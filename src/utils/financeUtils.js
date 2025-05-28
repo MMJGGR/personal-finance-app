@@ -27,3 +27,17 @@ export function calculatePV(amount, frequency, growthRate, discountRate, periods
   // Standard growing-annuity formula
   return A * (1 - Math.pow((1 + g) / (1 + d), periods)) / (d - g);
 }
+
+
+/**
+ * Calculate present value of a single future amount.
+ *
+ * @param {number} amount     - Future cash flow.
+ * @param {number} rate       - Annual discount rate (%).
+ * @param {number} periods    - Years until payment.
+ * @returns {number} Present value.
+ */
+export function calculateLumpSumPV(amount, rate, periods) {
+  const d = rate / 100;
+  return amount / Math.pow(1 + d, periods);
+}
