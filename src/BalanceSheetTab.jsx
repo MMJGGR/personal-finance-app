@@ -25,11 +25,11 @@ export default function BalanceSheetTab() {
   const addAsset = () => setAssets([...assets, { name: '', amount: 0 }])
   const addLiability = () => setLiabilities([...liabilities, { name: '', amount: 0 }])
 
-  const updateItem = (setList, index, key, value) => {
-    const newList = [...(key === 'assets' ? assets : liabilities)]
-    newList[index][key === 'assets' ? 'name' : 'name'] = key === 'name' ? value : newList[index].name
-    newList[index].amount = key === 'amount' ? Number(value) : newList[index].amount
-    key === 'assets' ? setAssets(newList) : setLiabilities(newList)
+  const updateItem = (setList, list, index, field, value) => {
+    const updated = list.map((it, i) =>
+      i === index ? { ...it, [field]: field === 'amount' ? Number(value) : value } : it
+    )
+    setList(updated)
   }
 
   const barData = [
@@ -55,13 +55,13 @@ export default function BalanceSheetTab() {
               <input
                 className="border p-2 rounded-md w-1/2"
                 value={item.name}
-                onChange={e => updateItem(setAssets, i, 'name', e.target.value)}
+                onChange={e => updateItem(setAssets, assets, i, 'name', e.target.value)}
               />
               <input
                 type="number"
                 className="border p-2 rounded-md w-1/2"
                 value={item.amount}
-                onChange={e => updateItem(setAssets, i, 'amount', e.target.value)}
+                onChange={e => updateItem(setAssets, assets, i, 'amount', e.target.value)}
               />
             </div>
           ))}
@@ -77,13 +77,13 @@ export default function BalanceSheetTab() {
               <input
                 className="border p-2 rounded-md w-1/2"
                 value={item.name}
-                onChange={e => updateItem(setLiabilities, i, 'name', e.target.value)}
+                onChange={e => updateItem(setLiabilities, liabilities, i, 'name', e.target.value)}
               />
               <input
                 type="number"
                 className="border p-2 rounded-md w-1/2"
                 value={item.amount}
-                onChange={e => updateItem(setLiabilities, i, 'amount', e.target.value)}
+                onChange={e => updateItem(setLiabilities, liabilities, i, 'amount', e.target.value)}
               />
             </div>
           ))}
