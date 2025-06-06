@@ -194,6 +194,14 @@ export function FinanceProvider({ children }) {
     }
   })
 
+  // Utility to create a new asset with defaults
+  const createAsset = () => ({
+    id: crypto.randomUUID(),
+    name: '',
+    amount: 0,
+    horizonYears: profile.lifeExpectancy - profile.age,
+  })
+
   // === Settings state ===
   const [settings, setSettings] = useState(() => {
     const s = localStorage.getItem('settings')
@@ -470,6 +478,7 @@ export function FinanceProvider({ children }) {
       expensesList,  setExpensesList,
       goalsList,     setGoalsList,
       assetsList,    setAssetsList,
+      createAsset,
 
       // Liabilities
       liabilitiesList, setLiabilitiesList,

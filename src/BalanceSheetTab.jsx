@@ -10,6 +10,7 @@ export default function BalanceSheetTab() {
     expensesPV,
     assetsList,
     setAssetsList,
+    createAsset,
     liabilitiesList,
     setLiabilitiesList,
   } = useFinance()
@@ -45,7 +46,7 @@ export default function BalanceSheetTab() {
   const netWorth = totalAssets - totalLiabilities
 
   const addAsset = () =>
-    setAssetsList([...assetsList, { id: crypto.randomUUID(), name: '', amount: 0 }])
+    setAssetsList([...assetsList, createAsset()])
   const addLiability = () =>
     setLiabilitiesList([...liabilitiesList, { id: crypto.randomUUID(), name: '', amount: 0 }])
 
