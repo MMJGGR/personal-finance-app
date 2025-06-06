@@ -3,6 +3,7 @@
 import React, { useMemo, useEffect } from 'react'
 import { useFinance } from './FinanceContext'
 import { calculatePV } from './utils/financeUtils'
+import { FREQUENCIES } from './constants'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
@@ -20,7 +21,7 @@ import {
  */
 export default function ExpensesGoalsTab() {
   const currentYear = new Date().getFullYear()
-  const {
+  const { 
     discountRate,
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
@@ -29,6 +30,8 @@ export default function ExpensesGoalsTab() {
     profile,
     settings
   } = useFinance()
+
+  const payMap = { Monthly: 12, Quarterly: 4, Annually: 1 }
 
   // --- Helpers ---
   const clamp = (v, min = 0) => isNaN(v) || v < min ? min : v
@@ -112,9 +115,8 @@ export default function ExpensesGoalsTab() {
 
   // --- 2) PV of Expenses over lifeYears ---
   const pvExpensesLife = useMemo(() => {
-    const freqMap = { Monthly: 12, Annual: 1, OneTime: 0 }
     return expensesList.reduce((sum, e) => {
-      const freq = freqMap[e.frequency] || 0
+      const freq = payMap[e.frequency] || 0
       return sum + calculatePV(e.amount, freq, e.growth, discountRate, lifeYears)
     }, 0)
   }, [expensesList, discountRate, lifeYears])
@@ -233,9 +235,9 @@ export default function ExpensesGoalsTab() {
               value={e.frequency}
               onChange={ev => handleExpenseChange(i, 'frequency', ev.target.value)}
             >
-              <option>Monthly</option>
-              <option>Annual</option>
-              <option>OneTime</option>
+              {FREQUENCIES.map(f => (
+                <option key={f}>{f}</option>
+              ))}
             </select>
             <input
               className="border p-2 rounded-md text-right"
@@ -358,9 +360,9 @@ export default function ExpensesGoalsTab() {
             value={l.paymentsPerYear}
             onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)}
           >
-            <option value={12}>Monthly</option>
-            <option value={4}>Quarterly</option>
-            <option value={1}>Annually</option>
+            {FREQUENCIES.map(f => (
+              <option key={f} value={payMap[f]}>{f}</option>
+            ))}
           </select>
             <input
               className="border p-2 rounded-md text-right"
