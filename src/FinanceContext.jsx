@@ -8,7 +8,10 @@ export function FinanceProvider({ children }) {
   // === Core financial state ===
   const [discountRate, setDiscountRate]     = useState(0)
   const [years, setYears]                   = useState(1)
-  const [monthlyExpense, setMonthlyExpense] = useState(0)
+  const [monthlyExpense, setMonthlyExpense] = useState(() => {
+    const s = localStorage.getItem('monthlyExpense')
+    return s ? parseFloat(s) : 0
+  })
   const [incomePV, setIncomePV]             = useState(0)
   const [expensesPV, setExpensesPV]         = useState(0)
 
@@ -110,6 +113,14 @@ export function FinanceProvider({ children }) {
   useEffect(() => { localStorage.setItem('goalsList', JSON.stringify(goalsList)) }, [goalsList])
   useEffect(() => { localStorage.setItem('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
 
+  useEffect(() => {
+    const monthlyTotal = expensesList
+      .filter(e => e.frequency === 'Monthly')
+      .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
+    setMonthlyExpense(monthlyTotal)
+    localStorage.setItem('monthlyExpense', monthlyTotal.toString())
+  }, [expensesList])
+
   // === Auto-load persisted state on mount ===
   useEffect(() => {
     const ip = localStorage.getItem('incomePV')
@@ -139,6 +150,9 @@ export function FinanceProvider({ children }) {
 
     const sL = localStorage.getItem('liabilitiesList')
     if (sL) setLiabilitiesList(JSON.parse(sL))
+
+    const me = localStorage.getItem('monthlyExpense')
+    if (me) setMonthlyExpense(+me)
   }, [])
 
   return (
