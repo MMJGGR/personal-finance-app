@@ -114,6 +114,18 @@ export function FinanceProvider({ children }) {
     return s ? JSON.parse(s) : []
   })
 
+  // === Balance Sheet assets state ===
+  const [assetsList, setAssetsList] = useState(() => {
+    const s = localStorage.getItem('assetsList')
+    return s
+      ? JSON.parse(s)
+      : [
+          { name: 'Cash', amount: 500000 },
+          { name: 'Investments', amount: 1000000 },
+          { name: 'PV of Lifetime Income', amount: 0 },
+        ]
+  })
+
   // === Liabilities (Loans) state ===
   const [liabilitiesList, setLiabilitiesList] = useState(() => {
     const s = localStorage.getItem('liabilitiesList')
@@ -190,6 +202,7 @@ export function FinanceProvider({ children }) {
   useEffect(() => { localStorage.setItem('incomeStartYear', String(startYear)) }, [startYear])
   useEffect(() => { localStorage.setItem('expensesList', JSON.stringify(expensesList)) }, [expensesList])
   useEffect(() => { localStorage.setItem('goalsList', JSON.stringify(goalsList)) }, [goalsList])
+  useEffect(() => { localStorage.setItem('assetsList', JSON.stringify(assetsList)) }, [assetsList])
   useEffect(() => { localStorage.setItem('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
 
   useEffect(() => {
@@ -318,6 +331,9 @@ export function FinanceProvider({ children }) {
     const sG = localStorage.getItem('goalsList')
     if (sG) setGoalsList(JSON.parse(sG))
 
+    const sA = localStorage.getItem('assetsList')
+    if (sA) setAssetsList(JSON.parse(sA))
+
     const sL = localStorage.getItem('liabilitiesList')
     if (sL) setLiabilitiesList(JSON.parse(sL))
 
@@ -385,6 +401,7 @@ export function FinanceProvider({ children }) {
       // Expenses & Goals
       expensesList,  setExpensesList,
       goalsList,     setGoalsList,
+      assetsList,    setAssetsList,
 
       // Liabilities
       liabilitiesList, setLiabilitiesList,
