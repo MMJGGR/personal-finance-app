@@ -80,6 +80,32 @@ export default function IncomeTab() {
     [incomeSources, discountRate, years]
   );
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream]);
+  const totalIncomePV = totalPV;
+
+  const monthlyIncomeEquivalent = useMemo(() => {
+    const r = discountRate / 100 / 12;
+    const n = years * 12;
+    const annuityFactor = r === 0 ? n : (1 - Math.pow(1 + r, -n)) / r;
+    return annuityFactor > 0 ? totalIncomePV / annuityFactor : 0;
+  }, [totalIncomePV, discountRate, years]);
+
+  const nominalSurvivalMonths = useMemo(
+    () =>
+      monthlyExpense > 0
+        ? Math.floor(monthlyIncomeEquivalent / monthlyExpense)
+        : 0,
+    [monthlyIncomeEquivalent, monthlyExpense]
+  );
+
+  const pvSurvivalMonths = useMemo(() => {
+    if (monthlyExpense <= 0) return 0;
+    const r = discountRate / 100 / 12;
+    if (r === 0) return Math.floor(totalIncomePV / monthlyExpense);
+    const ratio = (totalIncomePV * r) / monthlyExpense;
+    if (ratio >= 1) return years * 12;
+    const n = -Math.log(1 - ratio) / Math.log(1 + r);
+    return Math.floor(n);
+  }, [totalIncomePV, discountRate, monthlyExpense, years]);
 
   const interruptionPV = useMemo(
     () =>
@@ -466,24 +492,25 @@ export default function IncomeTab() {
             })}
           </span>
         </p>
-        <p className="text-sm mt-2">
-          You could survive&nbsp;
-          <strong>{interruptionMonths}</strong>&nbsp;months at PV-adjusted monthly expense of&nbsp;
-          {monthlyPVExpense.toLocaleString(settings.locale, {
-            style: 'currency', currency: settings.currency
-          })}.
+        <p className="text-sm mt-2" title="Months covered ignoring discounting">
+          Nominal Survival:&nbsp;
+          <strong>{nominalSurvivalMonths}</strong>&nbsp;months
+        </p>
+        <p className="text-sm" title="Months covered when discounting each month">
+          PV Survival:&nbsp;
+          <strong>{pvSurvivalMonths}</strong>&nbsp;months
         </p>
         {(() => {
           const color =
-            interruptionMonths < 6
+            pvSurvivalMonths < 6
               ? 'bg-red-200 text-red-800'
-              : interruptionMonths < 12
+              : pvSurvivalMonths < 12
               ? 'bg-orange-200 text-orange-800'
               : 'bg-green-200 text-green-800';
           const label =
-            interruptionMonths < 6
+            pvSurvivalMonths < 6
               ? 'At risk'
-              : interruptionMonths < 12
+              : pvSurvivalMonths < 12
               ? 'Caution'
               : 'Comfortable';
           return (
