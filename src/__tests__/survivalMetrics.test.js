@@ -22,3 +22,8 @@ test('pv survival caps at total period when ratio >= 1', () => {
   const months = calculatePVSurvival(highPV, discount, monthlyExpense, years)
   expect(months).toBe(years * 12)
 })
+
+test('returns Infinity when expenses are zero', () => {
+  expect(calculateNominalSurvival(totalPV, discount, years, 0)).toBe(Infinity)
+  expect(calculatePVSurvival(totalPV, discount, 0, years)).toBe(Infinity)
+})
