@@ -23,6 +23,7 @@ export default function IncomeTab() {
     discountRate, setDiscountRate,
     years, setYears,
     monthlyExpense,
+    monthlyPVExpense,
     settings,
     setIncomePV,
   } = useFinance();
@@ -59,8 +60,11 @@ export default function IncomeTab() {
 
   // 2. Compute interruption months (guard zero expense)
   const interruptionMonths = useMemo(
-    () => (monthlyExpense > 0 ? Math.floor(interruptionPV / monthlyExpense) : 0),
-    [interruptionPV, monthlyExpense]
+    () =>
+      monthlyPVExpense > 0
+        ? Math.floor(interruptionPV / monthlyPVExpense)
+        : 0,
+    [interruptionPV, monthlyPVExpense]
   );
 
   // 3. Build projection data for chart
@@ -328,6 +332,14 @@ export default function IncomeTab() {
               })}
             </span>
           </p>
+          <p className="text-sm italic text-slate-500 mt-1">
+            PV-Adjusted Monthly Expense:&nbsp;
+            <span className="font-semibold text-amber-700">
+              {monthlyPVExpense.toLocaleString(settings.locale, {
+                style: 'currency', currency: settings.currency
+              })}
+            </span>
+          </p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-md">
@@ -377,10 +389,10 @@ export default function IncomeTab() {
         </p>
         <p className="text-sm mt-2">
           You could survive&nbsp;
-          <strong>{interruptionMonths}</strong>&nbsp;months at&nbsp;
-          {monthlyExpense.toLocaleString(settings.locale, {
+          <strong>{interruptionMonths}</strong>&nbsp;months at PV-adjusted monthly expense of&nbsp;
+          {monthlyPVExpense.toLocaleString(settings.locale, {
             style: 'currency', currency: settings.currency
-          })}/mo.
+          })}.
         </p>
         {(() => {
           const color =
