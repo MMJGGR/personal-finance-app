@@ -18,6 +18,8 @@ export default function ProfileTab() {
     updateProfile(updated)
   }
 
+  const remainingYears = form.lifeExpectancy - form.age
+
   // Map numeric riskScore to a category label
   const scoreCategory = (s) => {
     if (s <= 6) return 'Conservative'
@@ -50,6 +52,7 @@ export default function ProfileTab() {
             ['Email Address', 'email', 'email'],
             ['Phone Number', 'phone', 'tel'],
             ['Age', 'age', 'number'],
+            ['Life Expectancy', 'lifeExpectancy', 'number'],
             ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']],
             ['Dependents', 'numDependents', 'number']
           ].map(([label, field, type, options]) => (
@@ -82,6 +85,9 @@ export default function ProfileTab() {
               )}
             </label>
           ))}
+          {remainingYears <= 0 && (
+            <p className="text-red-600 text-sm">Life expectancy must exceed age.</p>
+          )}
 
           {[
             ['Residential Address', 'residentialAddress'],
