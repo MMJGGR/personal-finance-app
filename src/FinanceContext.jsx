@@ -125,7 +125,9 @@ export function FinanceProvider({ children }) {
   }, [expensesList])
 
   useEffect(() => {
-    const freqMap = { Monthly: 12, Quarterly: 4, Annually: 1, Annual: 1, OneTime: 0 }
+    // Supported expense frequencies match the dropdown in
+    // ExpensesGoalsTab.jsx
+    const freqMap = { Monthly: 12, Annual: 1, OneTime: 0 }
     const totalPv = expensesList.reduce((sum, exp) => {
       const paymentsPerYear = freqMap[exp.frequency] ?? 1
       return sum + calculatePV(
