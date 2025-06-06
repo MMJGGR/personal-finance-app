@@ -57,3 +57,36 @@ export function calculateAmortizedPayment(principal, annualRate, termYears, paym
   if (r === 0) return principal / n;
   return (r * principal) / (1 - Math.pow(1 + r, -n));
 }
+
+/**
+ * Calculate the net present value of an amortising loan using a discount rate.
+ *
+ * @param {number} principal       - Original or remaining loan balance.
+ * @param {number} annualRate      - Loan interest rate (percent).
+ * @param {number} termYears       - Years until the loan is repaid.
+ * @param {number} paymentsPerYear - Number of payments each year.
+ * @param {number} discountRate    - Discount rate to value the cash flows (percent).
+ * @returns {number} Net present value of the loan.
+ */
+export function calculateLoanNPV(
+  principal,
+  annualRate,
+  termYears,
+  paymentsPerYear,
+  discountRate
+) {
+  const payment = calculateAmortizedPayment(
+    principal,
+    annualRate,
+    termYears,
+    paymentsPerYear
+  );
+  const n = termYears * paymentsPerYear;
+  const d = discountRate / 100 / paymentsPerYear;
+
+  const pvPayments = d === 0
+    ? payment * n
+    : payment * (1 - Math.pow(1 + d, -n)) / d;
+
+  return pvPayments - principal;
+}
