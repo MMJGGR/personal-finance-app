@@ -146,6 +146,12 @@ export default function IncomeTab() {
     [interruptionPV, monthlyObligations]
   );
 
+  const pvObligationSurvivalMonths = useMemo(() => {
+    const df = Math.pow(1 + discountRate / 100, 1 / 12);
+    const adjusted = monthlyObligations * df;
+    return adjusted > 0 ? Math.floor(totalIncomePV / adjusted) : Infinity;
+  }, [monthlyObligations, discountRate, totalIncomePV]);
+
   // 3. Build projection data for chart
   const incomeData = useMemo(() => {
     if (chartView === 'monthly') {
@@ -518,6 +524,14 @@ export default function IncomeTab() {
           <strong>{pvSurvivalMonths === Infinity ? '∞' : pvSurvivalMonths}</strong>
           {pvSurvivalMonths === Infinity ? '' : '\u00A0months'}
           {pvSurvivalMonths === Infinity && ' (No expenses)'}
+        </p>
+        <p className="text-sm" title="Months with PV obligations included">
+          PV Survival (Obligations):&nbsp;
+          <strong>
+            {pvObligationSurvivalMonths === Infinity ? '∞' : pvObligationSurvivalMonths}
+          </strong>
+          {pvObligationSurvivalMonths === Infinity ? '' : '\u00A0months'}
+          {pvObligationSurvivalMonths === Infinity && ' (No obligations)'}
         </p>
         {(() => {
           const color =
