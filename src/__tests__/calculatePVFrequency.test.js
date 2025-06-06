@@ -8,10 +8,10 @@ test('calculatePV handles supported frequencies', () => {
   const years = 3
 
   const monthly = calculatePV(amount, 12, growth, discount, years)
+  const quarterly = calculatePV(amount, 4, growth, discount, years)
   const annual = calculatePV(amount, 1, growth, discount, years)
-  const oneTime = calculatePV(amount, 0, growth, discount, years)
 
-  expect(monthly).toBeGreaterThan(annual)
+  expect(monthly).toBeGreaterThan(quarterly)
+  expect(quarterly).toBeGreaterThan(annual)
   expect(annual).toBeGreaterThan(0)
-  expect(oneTime).toBe(0)
 })

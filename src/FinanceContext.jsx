@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { calculatePV } from './utils/financeUtils'
+import { FREQUENCIES } from './constants'
 
 const FinanceContext = createContext()
 
@@ -17,6 +18,8 @@ export function FinanceProvider({ children }) {
   const [expensesPV, setExpensesPV]         = useState(0)
   const [pvExpenses, setPvExpenses]         = useState(0)
   const [monthlyPVExpense, setMonthlyPVExpense] = useState(0)
+
+  const payMap = { Monthly: 12, Quarterly: 4, Annually: 1 }
 
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
@@ -125,11 +128,8 @@ export function FinanceProvider({ children }) {
   }, [expensesList])
 
   useEffect(() => {
-    // Supported expense frequencies match the dropdown in
-    // ExpensesGoalsTab.jsx
-    const freqMap = { Monthly: 12, Annual: 1, OneTime: 0 }
     const totalPv = expensesList.reduce((sum, exp) => {
-      const paymentsPerYear = freqMap[exp.frequency] ?? 1
+      const paymentsPerYear = payMap[exp.frequency] ?? 1
       return sum + calculatePV(
         exp.amount,
         paymentsPerYear,
