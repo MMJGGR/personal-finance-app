@@ -4,6 +4,7 @@ import React, { useMemo, useEffect } from 'react'
 import { useFinance } from './FinanceContext'
 import { calculatePV } from './utils/financeUtils'
 import { FREQUENCIES } from './constants'
+import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
@@ -182,6 +183,11 @@ export default function ExpensesGoalsTab() {
 
   const totalLiabilitiesPV = liabilityDetails.reduce((s, l) => s + l.pv, 0)
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
+
+  const loanStrategies = useMemo(
+    () => suggestLoanStrategies(liabilityDetails),
+    [liabilityDetails]
+  )
 
   // --- 5) PV Summary data ---
   const pvSummaryData = [
@@ -457,6 +463,28 @@ export default function ExpensesGoalsTab() {
           </div>
         ))}
       </section>
+
+      {loanStrategies.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="text-lg font-bold text-amber-700 mb-2">Loan Advisor</h3>
+          <ul className="list-disc pl-5 text-sm space-y-1">
+            {loanStrategies.map((s, i) => (
+              <li key={i}>
+                Pay <strong>{s.name}</strong> early to save&nbsp;
+                <span className="text-amber-700 font-semibold">
+                  {s.interestSaved.toLocaleString(settings.locale, {
+                    style: 'currency',
+                    currency: settings.currency,
+                    maximumFractionDigits: 0
+                  })}
+                </span>
+                {s.paymentsSaved > 0 && ` and cut ${s.paymentsSaved} payments`}
+                .
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Export */}
       <div className="text-right">
