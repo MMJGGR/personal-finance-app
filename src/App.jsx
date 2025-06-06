@@ -25,9 +25,14 @@ export default function App() {
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Personal Finance Planner</h1>
 
-      <div className="flex space-x-4 border-b pb-2 mb-4 overflow-x-auto">
+      <nav
+        role="tablist"
+        className="flex space-x-4 border-b pb-2 mb-4 overflow-x-auto"
+      >
         {tabs.map(tab => (
           <button
+            role="tab"
+            aria-selected={activeTab === tab}
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-3 py-1 rounded-t ${
@@ -39,7 +44,7 @@ export default function App() {
             {tab}
           </button>
         ))}
-      </div>
+      </nav>
 
       <div className="bg-white p-4 rounded shadow min-h-[300px]">
         <Active />
