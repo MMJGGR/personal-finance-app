@@ -1,6 +1,7 @@
 // src/FinanceContext.jsx
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { calculatePV } from './utils/financeUtils'
 
 const FinanceContext = createContext()
 
@@ -14,6 +15,8 @@ export function FinanceProvider({ children }) {
   })
   const [incomePV, setIncomePV]             = useState(0)
   const [expensesPV, setExpensesPV]         = useState(0)
+  const [pvExpenses, setPvExpenses]         = useState(0)
+  const [monthlyPVExpense, setMonthlyPVExpense] = useState(0)
 
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
@@ -121,6 +124,27 @@ export function FinanceProvider({ children }) {
     localStorage.setItem('monthlyExpense', monthlyTotal.toString())
   }, [expensesList])
 
+  useEffect(() => {
+    const freqMap = { Monthly: 12, Quarterly: 4, Annually: 1, Annual: 1, OneTime: 0 }
+    const totalPv = expensesList.reduce((sum, exp) => {
+      const paymentsPerYear = freqMap[exp.frequency] ?? 1
+      return sum + calculatePV(
+        exp.amount,
+        paymentsPerYear,
+        exp.growth || 0,
+        discountRate,
+        years
+      )
+    }, 0)
+
+    setPvExpenses(totalPv)
+    localStorage.setItem('pvExpenses', totalPv.toString())
+
+    const avgMonthly = years > 0 ? totalPv / (years * 12) : 0
+    setMonthlyPVExpense(avgMonthly)
+    localStorage.setItem('monthlyPVExpense', avgMonthly.toString())
+  }, [expensesList, discountRate, years])
+
   // === Auto-load persisted state on mount ===
   useEffect(() => {
     const ip = localStorage.getItem('incomePV')
@@ -153,6 +177,11 @@ export function FinanceProvider({ children }) {
 
     const me = localStorage.getItem('monthlyExpense')
     if (me) setMonthlyExpense(+me)
+
+    const pvE = localStorage.getItem('pvExpenses')
+    if (pvE) setPvExpenses(+pvE)
+    const mpvE = localStorage.getItem('monthlyPVExpense')
+    if (mpvE) setMonthlyPVExpense(+mpvE)
   }, [])
 
   return (
@@ -163,6 +192,8 @@ export function FinanceProvider({ children }) {
       monthlyExpense, setMonthlyExpense,
       incomePV,     setIncomePV,
       expensesPV,   setExpensesPV,
+      pvExpenses,
+      monthlyPVExpense,
 
       // IncomeTab
       incomeSources, setIncomeSources,
