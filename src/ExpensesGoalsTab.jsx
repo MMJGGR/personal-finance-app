@@ -2,7 +2,7 @@
 
 import React, { useMemo, useEffect } from 'react'
 import { useFinance } from './FinanceContext'
-import { calculatePV } from './utils/financeUtils'
+import { calculatePV, calculateLoanNPV } from './utils/financeUtils'
 import { FREQUENCIES } from './constants'
 import {
   PieChart, Pie, Cell, Tooltip,
@@ -163,7 +163,13 @@ export default function ExpensesGoalsTab() {
       const computedPayment = i === 0
         ? l.principal / n
         : (i * l.principal) / (1 - Math.pow(1 + i, -n))
-      const pv = computedPayment * (1 - Math.pow(1 + i, -n)) / i
+      const pv = calculateLoanNPV(
+        l.principal,
+        l.interestRate,
+        l.remainingMonths / 12,
+        l.paymentsPerYear,
+        discountRate
+      ) + l.principal
 
       // Monthly amort schedule aggregated yearly
       let balance = l.principal
