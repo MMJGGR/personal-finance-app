@@ -12,6 +12,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
+import calcDiscretionaryAdvice from './utils/calcDiscretionaryAdvice';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
@@ -24,7 +25,9 @@ export default function IncomeTab() {
     years, setYears,
     monthlyExpense,
     monthlyPVExpense,
+    monthlySurplusNominal,
     settings,
+    expensesList,
     goalsList,
     liabilitiesList,
     setIncomePV,
@@ -107,6 +110,17 @@ export default function IncomeTab() {
     return Math.floor(n);
   }, [totalIncomePV, discountRate, monthlyExpense, years]);
 
+  const discretionaryAdvice = useMemo(
+    () =>
+      calcDiscretionaryAdvice(
+        expensesList,
+        monthlyExpense,
+        monthlySurplusNominal,
+        settings.discretionaryCutThreshold || 0
+      ),
+    [expensesList, monthlyExpense, monthlySurplusNominal, settings]
+  );
+
   const interruptionPV = useMemo(
     () =>
       pvPerStream.reduce(
@@ -124,7 +138,7 @@ export default function IncomeTab() {
     return monthlyPVExpense + goalsPart + liabPart;
   }, [includeGoalsPV, includeLiabilitiesNPV, pvGoals, pvLiabilities, monthlyPVExpense, years]);
 
-  const interruptionMonths = useMemo(
+  const _interruptionMonths = useMemo(
     () =>
       monthlyObligations > 0
         ? Math.floor(interruptionPV / monthlyObligations)
@@ -358,6 +372,7 @@ export default function IncomeTab() {
         </button>
       </section>
 
+
       {/* Assumptions */}
       <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <div className="bg-white p-4 rounded-xl shadow-md">
@@ -518,6 +533,26 @@ export default function IncomeTab() {
           );
         })()}
       </section>
+
+      {discretionaryAdvice.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="text-lg font-bold text-amber-700 mb-2">Spending Advice</h3>
+          <p className="text-sm mb-1">Consider trimming these expenses:</p>
+          <ul className="list-disc pl-5 text-sm space-y-1">
+            {discretionaryAdvice.map((d, i) => (
+              <li key={i}>
+                Cut <strong>{d.name}</strong> (~
+                {d.amount.toLocaleString(settings.locale, {
+                  style: 'currency',
+                  currency: settings.currency,
+                  maximumFractionDigits: 0
+                })}
+                /mo)
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Projection Chart */}
       <section className="bg-white p-4 rounded-xl shadow-md h-80">

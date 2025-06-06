@@ -77,6 +77,25 @@ export default function SettingsTab() {
           </select>
         </label>
 
+        {/* Discretionary Warning Threshold */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Discretionary Warning Threshold (%)</span>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={form.discretionaryCutThreshold}
+            onChange={e =>
+              handleChange(
+                'discretionaryCutThreshold',
+                Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
+              )
+            }
+            className="w-full border rounded-md p-2"
+            title="Threshold as % of monthly expenses"
+          />
+        </label>
+
         {/* API Endpoint */}
         <label className="block md:col-span-2">
           <span className="text-sm text-slate-600">API Endpoint (for exports)</span>

@@ -17,6 +17,10 @@ export function FinanceProvider({ children }) {
   const [expensesPV, setExpensesPV]         = useState(0)
   const [pvExpenses, setPvExpenses]         = useState(0)
   const [monthlyPVExpense, setMonthlyPVExpense] = useState(0)
+  const [monthlySurplusNominal, setMonthlySurplusNominal] = useState(() => {
+    const s = localStorage.getItem('monthlySurplusNominal')
+    return s ? parseFloat(s) : 0
+  })
 
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
@@ -44,10 +48,15 @@ export function FinanceProvider({ children }) {
     try {
       const parsed = JSON.parse(s)
       return parsed.map(exp => {
-        if (typeof exp.paymentsPerYear === 'number') return exp
-        const ppy = frequencyToPayments(exp.frequency) || 1
-        const { frequency: _unused, ...rest } = exp
-        return { ...rest, paymentsPerYear: ppy }
+        let paymentsPerYear = exp.paymentsPerYear
+        if (typeof paymentsPerYear !== 'number') {
+          paymentsPerYear = frequencyToPayments(exp.frequency) || 1
+        }
+        return {
+          ...exp,
+          paymentsPerYear,
+          priority: exp.priority ?? 2
+        }
       })
     } catch {
       // ignore malformed stored data
@@ -87,7 +96,7 @@ export function FinanceProvider({ children }) {
     const s = localStorage.getItem('settings')
     return s
       ? JSON.parse(s)
-      : { inflationRate:5, expectedReturn:8, currency:'KES', locale:'en-KE', apiEndpoint:'' }
+      : { inflationRate:5, expectedReturn:8, currency:'KES', locale:'en-KE', apiEndpoint:'', discretionaryCutThreshold:0 }
   })
 
   // === Risk scoring ===
@@ -138,6 +147,16 @@ export function FinanceProvider({ children }) {
   }, [expensesList])
 
   useEffect(() => {
+    const monthlyIncome = incomeSources.reduce((sum, src) => {
+      const afterTax = src.amount * (1 - (src.taxRate || 0) / 100)
+      return sum + (afterTax * src.frequency) / 12
+    }, 0)
+    const surplus = monthlyIncome - monthlyExpense
+    setMonthlySurplusNominal(surplus)
+    localStorage.setItem('monthlySurplusNominal', surplus.toString())
+  }, [incomeSources, monthlyExpense])
+
+  useEffect(() => {
     const totalPv = expensesList.reduce((sum, exp) => {
       return sum + calculatePV(
         exp.amount,
@@ -171,7 +190,10 @@ export function FinanceProvider({ children }) {
     }
 
     const sSet = localStorage.getItem('settings')
-    if (sSet) setSettings(JSON.parse(sSet))
+    if (sSet) {
+      const parsed = JSON.parse(sSet)
+      setSettings({ discretionaryCutThreshold: 0, ...parsed })
+    }
 
     const sInc = localStorage.getItem('incomeSources')
     if (sInc) setIncomeSources(JSON.parse(sInc))
@@ -207,6 +229,8 @@ export function FinanceProvider({ children }) {
     if (pvE) setPvExpenses(+pvE)
     const mpvE = localStorage.getItem('monthlyPVExpense')
     if (mpvE) setMonthlyPVExpense(+mpvE)
+    const ms = localStorage.getItem('monthlySurplusNominal')
+    if (ms) setMonthlySurplusNominal(+ms)
   }, [])
 
   return (
@@ -219,6 +243,7 @@ export function FinanceProvider({ children }) {
       expensesPV,   setExpensesPV,
       pvExpenses,
       monthlyPVExpense,
+      monthlySurplusNominal,
 
       // IncomeTab
       incomeSources, setIncomeSources,
