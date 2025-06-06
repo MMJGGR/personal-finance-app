@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* global module, require */
 module.exports = {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {

@@ -1,6 +1,5 @@
 // src/App.jsx
 import React, { useState } from 'react'
-import { useFinance } from './FinanceContext.jsx'
 import IncomeTab from './IncomeTab'
 import ExpensesGoalsTab from './ExpensesGoalsTab'
 import BalanceSheetTab from './BalanceSheetTab'
