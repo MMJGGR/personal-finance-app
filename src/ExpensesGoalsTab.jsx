@@ -52,12 +52,16 @@ export default function ExpensesGoalsTab() {
         }
         return { ...e, paymentsPerYear: ppy }
       }
+      if (field === 'priority') {
+        const val = parseInt(raw)
+        return { ...e, priority: val >= 1 && val <= 3 ? val : 2 }
+      }
       return { ...e, [field]: clamp(parseFloat(raw)) }
     }))
   }
   const addExpense = () => {
     setExpensesList([...expensesList, {
-      name: '', amount: 0, paymentsPerYear: 12, growth: 0, category: 'Fixed'
+      name: '', amount: 0, paymentsPerYear: 12, growth: 0, category: 'Fixed', priority: 2
     }])
   }
   const removeExpense = i =>
@@ -250,19 +254,20 @@ export default function ExpensesGoalsTab() {
       {/* Expenses CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Expenses</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Amt ({settings.currency})</div>
           <div>Pay/Yr</div>
           <div className="text-right">Growth %</div>
           <div>Category</div>
+          <div>Priority</div>
           <div></div>
         </div>
         {expensesList.length === 0 && (
           <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
         )}
         {expensesList.map((e, i) => (
-          <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Rent"
@@ -302,6 +307,16 @@ export default function ExpensesGoalsTab() {
               <option>Fixed</option>
               <option>Discretionary</option>
               <option>Other</option>
+            </select>
+            <select
+              className="border p-2 rounded-md"
+              value={e.priority}
+              onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)}
+              title="Expense priority"
+            >
+              <option value={1}>High</option>
+              <option value={2}>Medium</option>
+              <option value={3}>Low</option>
             </select>
             <button
               onClick={() => removeExpense(i)}
