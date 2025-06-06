@@ -12,6 +12,11 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
+import {
+  calculateNominalSurvival,
+  calculatePVSurvival,
+  calculatePVObligationSurvival
+} from './utils/survivalMetrics';
 import calcDiscretionaryAdvice from './utils/calcDiscretionaryAdvice';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
@@ -82,33 +87,30 @@ export default function IncomeTab() {
       }),
     [incomeSources, discountRate, years]
   );
-  const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream]);
-  const totalIncomePV = totalPV;
-
-  const monthlyIncomeEquivalent = useMemo(() => {
-    const r = discountRate / 100 / 12;
-    const n = years * 12;
-    const annuityFactor = r === 0 ? n : (1 - Math.pow(1 + r, -n)) / r;
-    return annuityFactor > 0 ? totalIncomePV / annuityFactor : 0;
-  }, [totalIncomePV, discountRate, years]);
+  const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
+  const totalIncomePV = totalPV
 
   const nominalSurvivalMonths = useMemo(
     () =>
-      monthlyExpense > 0
-        ? Math.floor(monthlyIncomeEquivalent / monthlyExpense)
-        : Infinity,
-    [monthlyIncomeEquivalent, monthlyExpense]
-  );
+      calculateNominalSurvival(
+        totalIncomePV,
+        discountRate,
+        years,
+        monthlyExpense
+      ),
+    [totalIncomePV, discountRate, years, monthlyExpense]
+  )
 
-  const pvSurvivalMonths = useMemo(() => {
-    if (monthlyExpense <= 0) return Infinity;
-    const r = discountRate / 100 / 12;
-    if (r === 0) return Math.floor(totalIncomePV / monthlyExpense);
-    const ratio = (totalIncomePV * r) / monthlyExpense;
-    if (ratio >= 1) return years * 12;
-    const n = -Math.log(1 - ratio) / Math.log(1 + r);
-    return Math.floor(n);
-  }, [totalIncomePV, discountRate, monthlyExpense, years]);
+  const pvSurvivalMonths = useMemo(
+    () =>
+      calculatePVSurvival(
+        totalIncomePV,
+        discountRate,
+        monthlyExpense,
+        years
+      ),
+    [totalIncomePV, discountRate, monthlyExpense, years]
+  )
 
   const discretionaryAdvice = useMemo(
     () =>
@@ -146,11 +148,15 @@ export default function IncomeTab() {
     [interruptionPV, monthlyObligations]
   );
 
-  const pvObligationSurvivalMonths = useMemo(() => {
-    const df = Math.pow(1 + discountRate / 100, 1 / 12);
-    const adjusted = monthlyObligations * df;
-    return adjusted > 0 ? Math.floor(totalIncomePV / adjusted) : Infinity;
-  }, [monthlyObligations, discountRate, totalIncomePV]);
+  const pvObligationSurvivalMonths = useMemo(
+    () =>
+      calculatePVObligationSurvival(
+        totalIncomePV,
+        discountRate,
+        monthlyObligations
+      ),
+    [totalIncomePV, discountRate, monthlyObligations]
+  )
 
   // 3. Build projection data for chart
   const incomeData = useMemo(() => {
