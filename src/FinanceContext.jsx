@@ -63,7 +63,13 @@ export function FinanceProvider({ children }) {
   // === Liabilities (Loans) state ===
   const [liabilitiesList, setLiabilitiesList] = useState(() => {
     const s = localStorage.getItem('liabilitiesList')
-    return s ? JSON.parse(s) : []
+    if (!s) return []
+    try {
+      const parsed = JSON.parse(s)
+      return parsed.map(l => ({ paymentConfirmed: false, ...l }))
+    } catch {
+      return []
+    }
   })
 
   // === Profile & KYC fields (with lifeExpectancy) ===
@@ -197,7 +203,14 @@ export function FinanceProvider({ children }) {
     if (sG) setGoalsList(JSON.parse(sG))
 
     const sL = localStorage.getItem('liabilitiesList')
-    if (sL) setLiabilitiesList(JSON.parse(sL))
+    if (sL) {
+      try {
+        const parsed = JSON.parse(sL).map(l => ({ paymentConfirmed: false, ...l }))
+        setLiabilitiesList(parsed)
+      } catch {
+        // ignore malformed stored data
+      }
+    }
 
     const me = localStorage.getItem('monthlyExpense')
     if (me) setMonthlyExpense(+me)

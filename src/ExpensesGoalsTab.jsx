@@ -99,21 +99,36 @@ export default function ExpensesGoalsTab() {
     setLiabilitiesList(liabilitiesList.map((l, idx) => {
       if (idx !== i) return l
       let updated = { ...l }
-      if (field === 'name') updated.name = raw
-      else if (['principal', 'interestRate'].includes(field)) {
+
+      if (field === 'name') {
+        updated.name = raw
+      } else if (['principal', 'interestRate'].includes(field)) {
         updated[field] = clamp(parseFloat(raw))
+        updated.paymentConfirmed = false
       } else if (['termYears', 'paymentsPerYear'].includes(field)) {
         updated[field] = Math.max(1, parseInt(raw) || 1)
+        updated.paymentConfirmed = false
       } else if (field === 'payment') {
         updated.payment = clamp(parseFloat(raw))
-        if (!validatePayment(updated)) return l
+        if (!validatePayment(updated)) {
+          updated.paymentConfirmed = false
+          return updated
+        }
+        updated.paymentConfirmed = true
       }
+
       return updated
     }))
   }
   const addLiability = () =>
     setLiabilitiesList([...liabilitiesList, {
-      name: '', principal: 0, interestRate: 0, termYears: 1, paymentsPerYear: 12, payment: 0
+      name: '',
+      principal: 0,
+      interestRate: 0,
+      termYears: 1,
+      paymentsPerYear: 12,
+      payment: 0,
+      paymentConfirmed: false
     }])
   const removeLiability = i =>
     setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
@@ -176,7 +191,7 @@ export default function ExpensesGoalsTab() {
         }
       })
 
-      return { ...l, computedPayment, pv, schedule }
+      return { ...l, computedPayment, pv, schedule, paymentConfirmed: l.paymentConfirmed }
     })
   }, [liabilitiesList, currentYear])
 
@@ -381,6 +396,8 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={l.payment}
               onChange={ev => handleLiabilityChange(i, 'payment', ev.target.value)}
+              disabled={l.paymentConfirmed}
+              title={l.paymentConfirmed ? 'Payment confirmed' : ''}
             />
             <div className="text-right">{l.computedPayment.toFixed(2)}</div>
             <div className="text-right">{l.pv.toFixed(2)}</div>
