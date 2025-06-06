@@ -25,11 +25,44 @@ export default function IncomeTab() {
     monthlyExpense,
     monthlyPVExpense,
     settings,
+    goalsList,
+    liabilitiesList,
     setIncomePV,
   } = useFinance();
 
   const [chartView, setChartView] = useState('yearly');
   const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
+  const [includeGoalsPV, setIncludeGoalsPV] = useState(() => {
+    const s = localStorage.getItem('includeGoalsPV');
+    return s ? JSON.parse(s) : false;
+  });
+  const [includeLiabilitiesNPV, setIncludeLiabilitiesNPV] = useState(() => {
+    const s = localStorage.getItem('includeLiabilitiesNPV');
+    return s ? JSON.parse(s) : false;
+  });
+
+  const currentYear = new Date().getFullYear();
+  const pvGoals = useMemo(
+    () =>
+      goalsList.reduce((sum, g) => {
+        const yrs = Math.max(0, g.targetYear - currentYear);
+        return sum + g.amount / Math.pow(1 + discountRate / 100, yrs);
+      }, 0),
+    [goalsList, discountRate, currentYear]
+  );
+
+  const pvLiabilities = useMemo(
+    () =>
+      liabilitiesList.reduce((sum, l) => {
+        const n = l.termYears * l.paymentsPerYear;
+        const i = (l.interestRate / 100) / l.paymentsPerYear;
+        if (n === 0) return sum;
+        const payment = i === 0 ? l.principal / n : (i * l.principal) / (1 - Math.pow(1 + i, -n));
+        const pv = i === 0 ? l.principal : payment * (1 - Math.pow(1 + i, -n)) / i;
+        return sum + pv;
+      }, 0),
+    [liabilitiesList]
+  );
 
   // 1. Compute PV per stream & total
   const pvPerStream = useMemo(
@@ -58,13 +91,19 @@ export default function IncomeTab() {
     [pvPerStream, excludedForInterrupt]
   );
 
-  // 2. Compute interruption months (guard zero expense)
+  // 2. Compute interruption months with optional obligations
+  const monthlyObligations = useMemo(() => {
+    const goalsPart = includeGoalsPV && years > 0 ? pvGoals / (years * 12) : 0;
+    const liabPart = includeLiabilitiesNPV && years > 0 ? pvLiabilities / (years * 12) : 0;
+    return monthlyPVExpense + goalsPart + liabPart;
+  }, [includeGoalsPV, includeLiabilitiesNPV, pvGoals, pvLiabilities, monthlyPVExpense, years]);
+
   const interruptionMonths = useMemo(
     () =>
-      monthlyPVExpense > 0
-        ? Math.floor(interruptionPV / monthlyPVExpense)
+      monthlyObligations > 0
+        ? Math.floor(interruptionPV / monthlyObligations)
         : 0,
-    [interruptionPV, monthlyPVExpense]
+    [interruptionPV, monthlyObligations]
   );
 
   // 3. Build projection data for chart
@@ -109,6 +148,14 @@ export default function IncomeTab() {
     setIncomePV(totalPV);
     localStorage.setItem('incomePV', totalPV.toString());
   }, [totalPV, setIncomePV]);
+
+  useEffect(() => {
+    localStorage.setItem('includeGoalsPV', JSON.stringify(includeGoalsPV));
+  }, [includeGoalsPV]);
+
+  useEffect(() => {
+    localStorage.setItem('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV));
+  }, [includeLiabilitiesNPV]);
 
   // --- Handlers for form inputs ---
   const onFieldChange = (idx, field, raw) => {
@@ -340,6 +387,28 @@ export default function IncomeTab() {
               })}
             </span>
           </p>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow-md">
+          <label className="block text-sm font-medium mb-2">Include in Expenses</label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeGoalsPV}
+              onChange={e => setIncludeGoalsPV(e.target.checked)}
+            />
+            Include Goals (PV)
+          </label>
+          <label className="flex items-center mt-1">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeLiabilitiesNPV}
+              onChange={e => setIncludeLiabilitiesNPV(e.target.checked)}
+            />
+            Include Liabilities (NPV)
+          </label>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-md">
