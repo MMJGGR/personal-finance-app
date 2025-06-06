@@ -1,5 +1,9 @@
 /* global test, expect */
-import { calculateNominalSurvival, calculatePVSurvival } from '../utils/survivalMetrics'
+import {
+  calculateNominalSurvival,
+  calculatePVSurvival,
+  calculatePVObligationSurvival
+} from '../utils/survivalMetrics'
 
 // Example inputs
 const totalPV = 120000
@@ -26,4 +30,13 @@ test('pv survival caps at total period when ratio >= 1', () => {
 test('returns Infinity when expenses are zero', () => {
   expect(calculateNominalSurvival(totalPV, discount, years, 0)).toBe(Infinity)
   expect(calculatePVSurvival(totalPV, discount, 0, years)).toBe(Infinity)
+})
+
+test('pv obligation survival uses discounted monthly obligations', () => {
+  const months = calculatePVObligationSurvival(totalPV, discount, monthlyExpense)
+  expect(months).toBe(119)
+})
+
+test('pv obligation survival returns Infinity when obligation is zero', () => {
+  expect(calculatePVObligationSurvival(totalPV, discount, 0)).toBe(Infinity)
 })

@@ -15,3 +15,9 @@ export function calculatePVSurvival(totalIncomePV, discountRate, monthlyExpense,
   const n = -Math.log(1 - ratio) / Math.log(1 + r)
   return Math.floor(n)
 }
+
+export function calculatePVObligationSurvival(totalIncomePV, discountRate, monthlyObligation) {
+  const df = Math.pow(1 + discountRate / 100, 1 / 12)
+  const adjusted = monthlyObligation * df
+  return adjusted > 0 ? Math.floor(totalIncomePV / adjusted) : Infinity
+}
