@@ -242,6 +242,8 @@ export default function ExpensesGoalsTab() {
   }
 
   const COLORS = ['#fbbf24','#f59e0b','#fcd34d','#fde68a','#eab308']
+  const PRINCIPAL_COLOR = '#34d399'
+  const INTEREST_COLOR  = '#f87171'
 
   return (
     <div className="space-y-8 p-6">
@@ -249,7 +251,7 @@ export default function ExpensesGoalsTab() {
       {/* Expenses CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Expenses</h2>
-        <div className="grid grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Amt ({settings.currency})</div>
           <div>Pay/Yr</div>
@@ -257,13 +259,17 @@ export default function ExpensesGoalsTab() {
           <div>Category</div>
           <div></div>
         </div>
+        {expensesList.length === 0 && (
+          <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
+        )}
         {expensesList.map((e, i) => (
-          <div key={i} className="grid grid-cols-6 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Rent"
               value={e.name}
               onChange={ev => handleExpenseChange(i, 'name', ev.target.value)}
+              title="Expense name"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -271,6 +277,7 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={e.amount}
               onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)}
+              title="Expense amount"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -285,11 +292,13 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={e.growth}
               onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)}
+              title="Growth rate"
             />
             <select
               className="border p-2 rounded-md"
               value={e.category}
               onChange={ev => handleExpenseChange(i, 'category', ev.target.value)}
+              title="Expense category"
             >
               <option>Fixed</option>
               <option>Discretionary</option>
@@ -305,25 +314,33 @@ export default function ExpensesGoalsTab() {
         <button
           onClick={addExpense}
           className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
-        >+ Add Expense</button>
+          aria-label="Add expense"
+          title="Add expense"
+        >
+          + Add Expense
+        </button>
       </section>
 
       {/* Goals CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Goals</h2>
-        <div className="grid grid-cols-4 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Amt ({settings.currency})</div>
           <div className="text-right">Target Yr</div>
           <div></div>
         </div>
+        {goalsList.length === 0 && (
+          <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
+        )}
         {goalsList.map((g, i) => (
-          <div key={i} className="grid grid-cols-4 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Vacation"
               value={g.name}
               onChange={ev => handleGoalChange(i, 'name', ev.target.value)}
+              title="Goal name"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -331,6 +348,7 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={g.amount}
               onChange={ev => handleGoalChange(i, 'amount', ev.target.value)}
+              title="Goal amount"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -338,6 +356,7 @@ export default function ExpensesGoalsTab() {
               placeholder={String(currentYear)}
               value={g.targetYear}
               onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)}
+              title="Target year"
             />
             <button
               onClick={() => removeGoal(i)}
@@ -349,13 +368,17 @@ export default function ExpensesGoalsTab() {
         <button
           onClick={addGoal}
           className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
-        >+ Add Goal</button>
+          aria-label="Add goal"
+          title="Add goal"
+        >
+          + Add Goal
+        </button>
       </section>
 
       {/* Liabilities CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Liabilities (Loans)</h2>
-        <div className="grid grid-cols-10 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-10 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Principal</div>
           <div className="text-right">Interest %</div>
@@ -367,13 +390,17 @@ export default function ExpensesGoalsTab() {
           <div className="text-right">PV</div>
           <div></div>
         </div>
+        {liabilityDetails.length === 0 && (
+          <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
+        )}
         {liabilityDetails.map((l, i) => (
-          <div key={i} className="grid grid-cols-10 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-10 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Car Loan"
               value={l.name}
               onChange={ev => handleLiabilityChange(i, 'name', ev.target.value)}
+              title="Loan name"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -381,6 +408,7 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={l.principal}
               onChange={ev => handleLiabilityChange(i, 'principal', ev.target.value)}
+              title="Principal"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -388,6 +416,7 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={l.interestRate}
               onChange={ev => handleLiabilityChange(i, 'interestRate', ev.target.value)}
+              title="Interest rate"
             />
             <input
               className="border p-2 rounded-md text-right"
@@ -395,17 +424,20 @@ export default function ExpensesGoalsTab() {
               placeholder="1"
               value={l.termYears}
               onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)}
+              title="Term years"
             />
             <input
               className="border p-2 rounded-md text-right"
               type="number" min="1" step="1"
               value={l.remainingMonths}
               onChange={ev => handleLiabilityChange(i, 'remainingMonths', ev.target.value)}
+              title="Remaining months"
             />
           <select
             className="border p-2 rounded-md"
             value={l.paymentsPerYear}
             onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)}
+            title="Payments per year"
           >
             {FREQUENCIES.map(f => (
               <option key={f} value={payMap[f]}>{f}</option>
@@ -417,6 +449,7 @@ export default function ExpensesGoalsTab() {
               placeholder="0"
               value={l.payment}
               onChange={ev => handleLiabilityChange(i, 'payment', ev.target.value)}
+              title="Actual payment"
             />
             <div className="text-right">{l.computedPayment.toFixed(2)}</div>
             <div className="text-right">{l.pv.toFixed(2)}</div>
@@ -430,7 +463,11 @@ export default function ExpensesGoalsTab() {
         <button
           onClick={addLiability}
           className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
-        >+ Add Liability</button>
+          aria-label="Add liability"
+          title="Add liability"
+        >
+          + Add Liability
+        </button>
       </section>
 
       {/* PV Summary Bar Chart */}
@@ -467,8 +504,8 @@ export default function ExpensesGoalsTab() {
                   v.toLocaleString(settings.locale,{style:'currency',currency:settings.currency})
                 }/>
                 <Legend verticalAlign="bottom" />
-                <Bar dataKey="principalPaid" stackId="a" name="Principal" fill={COLORS[2]} />
-                <Bar dataKey="interestPaid"  stackId="a" name="Interest"  fill={COLORS[3]} />
+                <Bar dataKey="principalPaid" stackId="a" name="Principal" fill={PRINCIPAL_COLOR} />
+                <Bar dataKey="interestPaid"  stackId="a" name="Interest"  fill={INTEREST_COLOR} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -521,7 +558,11 @@ export default function ExpensesGoalsTab() {
         <button
           onClick={exportJSON}
           className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50"
-        >📁 Export to JSON</button>
+          aria-label="Export to JSON"
+          title="Export to JSON"
+        >
+          📁 Export to JSON
+        </button>
       </div>
     </div>
   )

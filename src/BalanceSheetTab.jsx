@@ -61,7 +61,7 @@ export default function BalanceSheetTab() {
     <div className="space-y-6 p-6">
       <h2 className="text-xl font-semibold text-amber-700">Lifetime Balance Sheet</h2>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h3 className="text-md font-medium mb-2">Assets</h3>
           {assets.map((item, i) => (
@@ -70,16 +70,23 @@ export default function BalanceSheetTab() {
                 className="border p-2 rounded-md w-1/2"
                 value={item.name}
                 onChange={e => updateItem(setAssets, assets, i, 'name', e.target.value)}
+                title="Asset name"
               />
               <input
                 type="number"
                 className="border p-2 rounded-md w-1/2"
                 value={item.amount}
                 onChange={e => updateItem(setAssets, assets, i, 'amount', e.target.value)}
+                title="Asset amount"
               />
             </div>
           ))}
-          <button onClick={addAsset} className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700">
+          <button
+            onClick={addAsset}
+            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700"
+            aria-label="Add asset"
+            title="Add asset"
+          >
             + Add Asset
           </button>
         </div>
@@ -92,16 +99,23 @@ export default function BalanceSheetTab() {
                 className="border p-2 rounded-md w-1/2"
                 value={item.name}
                 onChange={e => updateItem(setLiabilities, liabilities, i, 'name', e.target.value)}
+                title="Liability name"
               />
               <input
                 type="number"
                 className="border p-2 rounded-md w-1/2"
                 value={item.amount}
                 onChange={e => updateItem(setLiabilities, liabilities, i, 'amount', e.target.value)}
+                title="Liability amount"
               />
             </div>
           ))}
-          <button onClick={addLiability} className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700">
+          <button
+            onClick={addLiability}
+            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700"
+            aria-label="Add liability"
+            title="Add liability"
+          >
             + Add Liability
           </button>
         </div>
@@ -111,7 +125,7 @@ export default function BalanceSheetTab() {
         Net Worth: <span className="text-2xl font-bold text-amber-700">KES {netWorth.toLocaleString()}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h4 className="font-semibold text-slate-700 mb-2">Balance Sheet Overview</h4>
           <ResponsiveContainer width="100%" height={250}>
