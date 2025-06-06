@@ -2,7 +2,7 @@
 
 import React, { useMemo, useEffect } from 'react'
 import { useFinance } from './FinanceContext'
-import { calculatePV, calculateLoanNPV } from './utils/financeUtils'
+import { calculatePV, calculateLoanNPV, frequencyToPayments } from './utils/financeUtils'
 import { FREQUENCIES } from './constants'
 import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import {
@@ -32,7 +32,6 @@ export default function ExpensesGoalsTab() {
     settings
   } = useFinance()
 
-  const payMap = { Monthly: 12, Quarterly: 4, Annually: 1 }
 
   // --- Helpers ---
   const clamp = (v, min = 0) => isNaN(v) || v < min ? min : v
@@ -440,7 +439,7 @@ export default function ExpensesGoalsTab() {
             title="Payments per year"
           >
             {FREQUENCIES.map(f => (
-              <option key={f} value={payMap[f]}>{f}</option>
+              <option key={f} value={frequencyToPayments(f)}>{f}</option>
             ))}
           </select>
             <input
