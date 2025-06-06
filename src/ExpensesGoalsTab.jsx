@@ -45,7 +45,12 @@ export default function ExpensesGoalsTab() {
         return { ...e, [field]: raw }
       }
       if (field === 'paymentsPerYear') {
-        return { ...e, paymentsPerYear: Math.max(1, parseInt(raw) || 1) }
+        const ppy = parseInt(raw)
+        if (!ppy || ppy < 1) {
+          alert('One-time outflows should be entered as Goals instead of Expenses')
+          return e
+        }
+        return { ...e, paymentsPerYear: ppy }
       }
       return { ...e, [field]: clamp(parseFloat(raw)) }
     }))
@@ -243,7 +248,7 @@ export default function ExpensesGoalsTab() {
               type="number" min="1" step="1"
               value={e.paymentsPerYear}
               onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)}
-              title="Payments per year"
+              title="Payments per year (use a Goal for one-off outflows)"
             />
             <input
               className="border p-2 rounded-md text-right"
