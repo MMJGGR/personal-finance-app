@@ -114,7 +114,7 @@ export default function ExpensesGoalsTab() {
     setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
 
   // --- 1) Remaining lifetime horizon ---
-  const lifeYears = Math.max(0, Math.floor(profile.lifeExpectancy - profile.age))
+  const lifeYears = Math.max(1, Math.floor(profile.lifeExpectancy - profile.age))
 
   // --- 2) PV of Expenses over lifeYears ---
   const pvExpensesLife = useMemo(() => {
