@@ -41,3 +41,19 @@ export function calculateLumpSumPV(amount, rate, periods) {
   const d = rate / 100;
   return amount / Math.pow(1 + d, periods);
 }
+
+/**
+ * Calculate the constant payment for an amortising loan.
+ *
+ * @param {number} principal       - Original loan amount.
+ * @param {number} annualRate      - Annual interest rate (percent).
+ * @param {number} termYears       - Loan term in years.
+ * @param {number} paymentsPerYear - Number of payments per year.
+ * @returns {number} Payment amount per period.
+ */
+export function calculateAmortizedPayment(principal, annualRate, termYears, paymentsPerYear) {
+  const r = annualRate / 100 / paymentsPerYear;
+  const n = termYears * paymentsPerYear;
+  if (r === 0) return principal / n;
+  return (r * principal) / (1 - Math.pow(1 + r, -n));
+}

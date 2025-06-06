@@ -73,22 +73,36 @@ export default function ExpensesGoalsTab() {
     setGoalsList(goalsList.filter((_, idx) => idx !== i))
 
   // Liabilities
+  const validatePayment = (l) => {
+    const r = l.interestRate / 100 / l.paymentsPerYear
+    const n = l.termYears * l.paymentsPerYear
+    const expected = (r * l.principal) / (1 - Math.pow(1 + r, -n))
+    if (Math.abs(expected - l.payment) > 5) {
+      alert('Payment doesn\u2019t match amortisation schedule. Did you mistype?')
+      return false
+    }
+    return true
+  }
+
   const handleLiabilityChange = (i, field, raw) => {
     setLiabilitiesList(liabilitiesList.map((l, idx) => {
       if (idx !== i) return l
-      if (field === 'name') return { ...l, name: raw }
-      if (['principal', 'interestRate'].includes(field)) {
-        return { ...l, [field]: clamp(parseFloat(raw)) }
+      let updated = { ...l }
+      if (field === 'name') updated.name = raw
+      else if (['principal', 'interestRate'].includes(field)) {
+        updated[field] = clamp(parseFloat(raw))
+      } else if (['termYears', 'paymentsPerYear'].includes(field)) {
+        updated[field] = Math.max(1, parseInt(raw) || 1)
+      } else if (field === 'payment') {
+        updated.payment = clamp(parseFloat(raw))
+        if (!validatePayment(updated)) return l
       }
-      if (['termYears', 'paymentsPerYear'].includes(field)) {
-        return { ...l, [field]: Math.max(1, parseInt(raw) || 1) }
-      }
-      return l
+      return updated
     }))
   }
   const addLiability = () =>
     setLiabilitiesList([...liabilitiesList, {
-      name: '', principal: 0, interestRate: 0, termYears: 1, paymentsPerYear: 12
+      name: '', principal: 0, interestRate: 0, termYears: 1, paymentsPerYear: 12, payment: 0
     }])
   const removeLiability = i =>
     setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
@@ -122,11 +136,11 @@ export default function ExpensesGoalsTab() {
   const liabilityDetails = useMemo(() => {
     return liabilitiesList.map(l => {
       const n = l.termYears * l.paymentsPerYear
-      const i = (l.interestRate/100) / l.paymentsPerYear
-      const payment = i === 0
+      const i = (l.interestRate / 100) / l.paymentsPerYear
+      const computedPayment = i === 0
         ? l.principal / n
         : (i * l.principal) / (1 - Math.pow(1 + i, -n))
-      const pv = payment * (1 - Math.pow(1 + i, -n)) / i
+      const pv = computedPayment * (1 - Math.pow(1 + i, -n)) / i
 
       // Annual amort schedule
       let balance = l.principal
@@ -134,7 +148,7 @@ export default function ExpensesGoalsTab() {
         let intSum = 0, prinSum = 0
         for (let p = 0; p < l.paymentsPerYear; p++) {
           const interest = balance * i
-          const principal = payment - interest
+          const principal = computedPayment - interest
           intSum += interest
           prinSum += principal
           balance -= principal
@@ -147,7 +161,7 @@ export default function ExpensesGoalsTab() {
         }
       })
 
-      return { ...l, payment, pv, schedule }
+      return { ...l, computedPayment, pv, schedule }
     })
   }, [liabilitiesList, currentYear])
 
@@ -299,18 +313,19 @@ export default function ExpensesGoalsTab() {
       {/* Liabilities CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Liabilities (Loans)</h2>
-        <div className="grid grid-cols-8 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Principal</div>
           <div className="text-right">Interest %</div>
           <div className="text-right">Term yrs</div>
           <div>Pay/Yr</div>
+          <div className="text-right">Payment</div>
           <div className="text-right">PMT</div>
           <div className="text-right">PV</div>
           <div></div>
         </div>
         {liabilityDetails.map((l, i) => (
-          <div key={i} className="grid grid-cols-8 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-9 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Car Loan"
@@ -338,16 +353,23 @@ export default function ExpensesGoalsTab() {
               value={l.termYears}
               onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)}
             />
-            <select
-              className="border p-2 rounded-md"
-              value={l.paymentsPerYear}
-              onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)}
-            >
-              <option value={12}>Monthly</option>
-              <option value={4}>Quarterly</option>
-              <option value={1}>Annually</option>
-            </select>
-            <div className="text-right">{l.payment.toFixed(2)}</div>
+          <select
+            className="border p-2 rounded-md"
+            value={l.paymentsPerYear}
+            onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)}
+          >
+            <option value={12}>Monthly</option>
+            <option value={4}>Quarterly</option>
+            <option value={1}>Annually</option>
+          </select>
+            <input
+              className="border p-2 rounded-md text-right"
+              type="number" min="0" step="0.01"
+              placeholder="0"
+              value={l.payment}
+              onChange={ev => handleLiabilityChange(i, 'payment', ev.target.value)}
+            />
+            <div className="text-right">{l.computedPayment.toFixed(2)}</div>
             <div className="text-right">{l.pv.toFixed(2)}</div>
             <button
               onClick={() => removeLiability(i)}
