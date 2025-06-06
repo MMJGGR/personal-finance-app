@@ -17,7 +17,7 @@ import {
   calculatePVSurvival,
   calculatePVObligationSurvival
 } from './utils/survivalMetrics';
-import calcDiscretionaryAdvice from './utils/calcDiscretionaryAdvice';
+import calcDiscretionaryAdvice from './utils/discretionaryUtils';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
