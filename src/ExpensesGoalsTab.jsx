@@ -201,7 +201,7 @@ export default function ExpensesGoalsTab() {
 
       return { ...l, computedPayment, pv, schedule }
     })
-  }, [liabilitiesList, currentYear])
+  }, [liabilitiesList, currentYear, discountRate])
 
   const totalLiabilitiesPV = liabilityDetails.reduce((s, l) => s + l.pv, 0)
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
