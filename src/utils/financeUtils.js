@@ -28,6 +28,19 @@ export function calculatePV(amount, frequency, growthRate, discountRate, periods
   return A * (1 - Math.pow((1 + g) / (1 + d), periods)) / (d - g);
 }
 
+/**
+ * Convert a frequency value to payments per year.
+ * Accepts recognized strings or numeric values.
+ *
+ * @param {string|number} freq - Frequency label or numeric payments per year.
+ * @returns {number} Payments per year (0 if invalid).
+ */
+export function frequencyToPayments(freq) {
+  if (typeof freq === 'number') return freq > 0 ? freq : 0;
+  const map = { Monthly: 12, Quarterly: 4, Annually: 1 };
+  return map[freq] ?? 0;
+}
+
 
 /**
  * Calculate present value of a single future amount.
