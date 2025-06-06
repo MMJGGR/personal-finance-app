@@ -533,6 +533,12 @@ export default function IncomeTab() {
           {pvObligationSurvivalMonths === Infinity ? '' : '\u00A0months'}
           {pvObligationSurvivalMonths === Infinity && ' (No obligations)'}
         </p>
+        <p className="text-sm" title="Months remaining income covers obligations">
+          Interruption Months:&nbsp;
+          <strong>{_interruptionMonths === Infinity ? '∞' : _interruptionMonths}</strong>
+          {_interruptionMonths === Infinity ? '' : '\u00A0months'}
+          {_interruptionMonths === Infinity && ' (No obligations)'}
+        </p>
         {(() => {
           const color =
             pvSurvivalMonths < 6
