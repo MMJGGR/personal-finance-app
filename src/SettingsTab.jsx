@@ -3,7 +3,18 @@ import React, { useState, useEffect } from 'react'
 import { useFinance } from './FinanceContext'
 
 export default function SettingsTab() {
-  const { settings, updateSettings } = useFinance()
+  const {
+    settings,
+    updateSettings,
+    includeMediumPV,
+    setIncludeMediumPV,
+    includeLowPV,
+    setIncludeLowPV,
+    includeGoalsPV,
+    setIncludeGoalsPV,
+    includeLiabilitiesNPV,
+    setIncludeLiabilitiesNPV,
+  } = useFinance()
   const [form, setForm] = useState(settings)
 
   // Whenever persisted settings change, reset the form
@@ -126,6 +137,46 @@ export default function SettingsTab() {
             title="Buffer percentage"
           />
         </label>
+
+        {/* PV Inclusion Options */}
+        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeMediumPV}
+              onChange={e => setIncludeMediumPV(e.target.checked)}
+            />
+            Include Medium Priority PV
+          </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeLowPV}
+              onChange={e => setIncludeLowPV(e.target.checked)}
+            />
+            Include Low Priority PV
+          </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeGoalsPV}
+              onChange={e => setIncludeGoalsPV(e.target.checked)}
+            />
+            Include Goals PV
+          </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeLiabilitiesNPV}
+              onChange={e => setIncludeLiabilitiesNPV(e.target.checked)}
+            />
+            Include Liabilities NPV
+          </label>
+        </div>
 
         {/* API Endpoint */}
         <label className="block md:col-span-2">

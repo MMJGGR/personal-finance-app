@@ -5,6 +5,9 @@ import { useFinance } from './FinanceContext'
 import { calculatePV, calculateLoanNPV, frequencyToPayments } from './utils/financeUtils'
 import { FREQUENCIES } from './constants'
 import suggestLoanStrategies from './utils/suggestLoanStrategies'
+import generateLoanAdvice from './utils/loanAdvisoryEngine'
+import AdviceDashboard from './AdviceDashboard'
+import calcDiscretionaryAdvice from './utils/discretionaryUtils'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
@@ -29,6 +32,9 @@ export default function ExpensesGoalsTab() {
     liabilitiesList, setLiabilitiesList,
     setExpensesPV,
     profile,
+    monthlyExpense,
+    monthlyIncomeNominal,
+    monthlySurplusNominal,
     settings
   } = useFinance()
 
@@ -210,6 +216,30 @@ export default function ExpensesGoalsTab() {
   const totalLiabilitiesPV = liabilityDetails.reduce((s, l) => s + l.pv, 0)
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
+  const loanAdvice = useMemo(
+    () =>
+      generateLoanAdvice(
+        liabilitiesList,
+        { ...profile, totalPV: pvExpensesLife },
+        monthlyIncomeNominal,
+        monthlyExpense,
+        discountRate,
+        lifeYears
+      ),
+    [liabilitiesList, profile, pvExpensesLife, monthlyIncomeNominal, monthlyExpense, discountRate, lifeYears]
+  )
+
+  const discretionaryAdvice = useMemo(
+    () =>
+      calcDiscretionaryAdvice(
+        expensesList,
+        monthlyExpense,
+        monthlySurplusNominal,
+        settings.discretionaryCutThreshold || 0
+      ),
+    [expensesList, monthlyExpense, monthlySurplusNominal, settings]
+  )
+
   const loanStrategies = useMemo(
     () => suggestLoanStrategies(liabilityDetails),
     [liabilityDetails]
@@ -250,6 +280,11 @@ export default function ExpensesGoalsTab() {
 
   return (
     <div className="space-y-8 p-6">
+      <AdviceDashboard
+        advice={loanAdvice}
+        discretionaryAdvice={discretionaryAdvice}
+        loanStrategies={loanStrategies}
+      />
 
       {/* Expenses CRUD */}
       <section>

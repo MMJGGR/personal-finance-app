@@ -18,6 +18,9 @@ import {
   calculatePVObligationSurvival
 } from './utils/survivalMetrics';
 import calcDiscretionaryAdvice from './utils/discretionaryUtils';
+import generateLoanAdvice from './utils/loanAdvisoryEngine'
+import suggestLoanStrategies from './utils/suggestLoanStrategies'
+import AdviceDashboard from './AdviceDashboard'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
@@ -42,6 +45,8 @@ export default function IncomeTab() {
     includeLiabilitiesNPV,
     setIncludeLiabilitiesNPV,
     monthlySurplusNominal,
+    monthlyIncomeNominal,
+    profile,
     settings,
     expensesList,
     goalsList,
@@ -72,6 +77,24 @@ export default function IncomeTab() {
         const pv = i === 0 ? l.principal : payment * (1 - Math.pow(1 + i, -n)) / i;
         return sum + pv;
       }, 0),
+    [liabilitiesList]
+  );
+
+  const loanAdvice = useMemo(
+    () =>
+      generateLoanAdvice(
+        liabilitiesList,
+        { ...profile, totalPV: totalIncomePV },
+        monthlyIncomeNominal,
+        monthlyExpense,
+        discountRate,
+        years
+      ),
+    [liabilitiesList, profile, totalIncomePV, monthlyIncomeNominal, monthlyExpense, discountRate, years]
+  );
+
+  const loanStrategies = useMemo(
+    () => suggestLoanStrategies(liabilitiesList),
     [liabilitiesList]
   );
 
@@ -280,6 +303,11 @@ export default function IncomeTab() {
   // --- Render ---
   return (
     <div className="space-y-8">
+      <AdviceDashboard
+        advice={loanAdvice}
+        discretionaryAdvice={discretionaryAdvice}
+        loanStrategies={loanStrategies}
+      />
       {/* Income Streams Form */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>
