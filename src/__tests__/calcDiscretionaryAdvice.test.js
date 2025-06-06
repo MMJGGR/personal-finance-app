@@ -1,5 +1,5 @@
 /* global test, expect */
-import calcDiscretionaryAdvice from '../utils/calcDiscretionaryAdvice'
+import calcDiscretionaryAdvice from '../utils/discretionaryUtils'
 
 const expenses = [
   { name: 'Streaming', amount: 10, paymentsPerYear: 12, priority: 3 },
