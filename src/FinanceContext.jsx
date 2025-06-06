@@ -120,15 +120,46 @@ export function FinanceProvider({ children }) {
     if (s) {
       try {
         const parsed = JSON.parse(s)
-        return parsed.map(a => ({ id: a.id || crypto.randomUUID(), ...a }))
+        return parsed.map(a => ({
+          id: a.id || crypto.randomUUID(),
+          type: a.type || '',
+          expectedReturn: a.expectedReturn ?? 0,
+          volatility: a.volatility ?? 0,
+          horizonYears: a.horizonYears ?? 0,
+          ...a,
+        }))
       } catch {
         // ignore malformed stored data
       }
     }
     return [
-      { id: crypto.randomUUID(), name: 'Cash', amount: 500000 },
-      { id: crypto.randomUUID(), name: 'Investments', amount: 1000000 },
-      { id: 'pv-income', name: 'PV of Lifetime Income', amount: 0 },
+      {
+        id: crypto.randomUUID(),
+        name: 'Cash',
+        amount: 500000,
+        type: 'Cash',
+        expectedReturn: 2,
+        volatility: 1,
+        horizonYears: 0,
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Investments',
+        amount: 1000000,
+        type: 'Portfolio',
+        expectedReturn: 8,
+        volatility: 15,
+        horizonYears: 5,
+      },
+      {
+        id: 'pv-income',
+        name: 'PV of Lifetime Income',
+        amount: 0,
+        type: 'Income',
+        expectedReturn: 0,
+        volatility: 0,
+        horizonYears: 0,
+      },
     ]
   })
 
@@ -349,7 +380,16 @@ export function FinanceProvider({ children }) {
     if (sA) {
       try {
         const parsed = JSON.parse(sA)
-        setAssetsList(parsed.map(a => ({ id: a.id || crypto.randomUUID(), ...a })))
+        setAssetsList(
+          parsed.map(a => ({
+            id: a.id || crypto.randomUUID(),
+            type: a.type || '',
+            expectedReturn: a.expectedReturn ?? 0,
+            volatility: a.volatility ?? 0,
+            horizonYears: a.horizonYears ?? 0,
+            ...a,
+          }))
+        )
       } catch {
         // ignore malformed stored data
       }
