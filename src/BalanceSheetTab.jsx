@@ -13,10 +13,24 @@ export default function BalanceSheetTab() {
     { name: 'PV of Lifetime Income', amount: incomePV }
   ])
 
+  // Keep PV of Lifetime Income in sync with context changes
+  useEffect(() => {
+    setAssets(prev => prev.map(a =>
+      a.name === 'PV of Lifetime Income' ? { ...a, amount: incomePV } : a
+    ))
+  }, [incomePV])
+
   const [liabilities, setLiabilities] = useState([
     { name: 'Business Loan', amount: 400000 },
     { name: 'PV of Lifetime Expenses', amount: expensesPV }
   ])
+
+  // Keep PV of Lifetime Expenses in sync with context changes
+  useEffect(() => {
+    setLiabilities(prev => prev.map(l =>
+      l.name === 'PV of Lifetime Expenses' ? { ...l, amount: expensesPV } : l
+    ))
+  }, [expensesPV])
 
   const totalAssets = assets.reduce((sum, a) => sum + Number(a.amount || 0), 0)
   const totalLiabilities = liabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0)
