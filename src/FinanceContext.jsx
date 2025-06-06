@@ -1,10 +1,9 @@
 // src/FinanceContext.jsx
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { calculatePV } from './utils/financeUtils'
+import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 
 const FinanceContext = createContext()
-const payMap = { Monthly: 12, Quarterly: 4, Annually: 1 }
 
 export function FinanceProvider({ children }) {
   // === Core financial state ===
@@ -46,7 +45,7 @@ export function FinanceProvider({ children }) {
       const parsed = JSON.parse(s)
       return parsed.map(exp => {
         if (typeof exp.paymentsPerYear === 'number') return exp
-        const ppy = payMap[exp.frequency] ?? 1
+        const ppy = frequencyToPayments(exp.frequency) || 1
         const { frequency: _unused, ...rest } = exp
         return { ...rest, paymentsPerYear: ppy }
       })
@@ -183,12 +182,14 @@ export function FinanceProvider({ children }) {
     if (sExp) {
       try {
         const parsed = JSON.parse(sExp)
-        setExpensesList(parsed.map(exp => {
-          if (typeof exp.paymentsPerYear === 'number') return exp
-          const ppy = payMap[exp.frequency] ?? 1
-          const { frequency: _unused, ...rest } = exp
-          return { ...rest, paymentsPerYear: ppy }
-        }))
+        setExpensesList(
+          parsed.map(exp => {
+            if (typeof exp.paymentsPerYear === 'number') return exp
+            const ppy = frequencyToPayments(exp.frequency) || 1
+            const { frequency: _unused, ...rest } = exp
+            return { ...rest, paymentsPerYear: ppy }
+          })
+        )
       } catch {
         // ignore malformed stored data
       }
