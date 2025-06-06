@@ -21,6 +21,52 @@ export function FinanceProvider({ children }) {
     const s = localStorage.getItem('monthlySurplusNominal')
     return s ? parseFloat(s) : 0
   })
+  const [monthlyIncomeNominal, setMonthlyIncomeNominal] = useState(() => {
+    const s = localStorage.getItem('monthlyIncomeNominal')
+    return s ? parseFloat(s) : 0
+  })
+
+  const [pvHigh, setPvHigh] = useState(() => {
+    const s = localStorage.getItem('pvHigh')
+    return s ? parseFloat(s) : 0
+  })
+  const [pvMedium, setPvMedium] = useState(() => {
+    const s = localStorage.getItem('pvMedium')
+    return s ? parseFloat(s) : 0
+  })
+  const [pvLow, setPvLow] = useState(() => {
+    const s = localStorage.getItem('pvLow')
+    return s ? parseFloat(s) : 0
+  })
+  const [monthlyPVHigh, setMonthlyPVHigh] = useState(() => {
+    const s = localStorage.getItem('monthlyPVHigh')
+    return s ? parseFloat(s) : 0
+  })
+  const [monthlyPVMedium, setMonthlyPVMedium] = useState(() => {
+    const s = localStorage.getItem('monthlyPVMedium')
+    return s ? parseFloat(s) : 0
+  })
+  const [monthlyPVLow, setMonthlyPVLow] = useState(() => {
+    const s = localStorage.getItem('monthlyPVLow')
+    return s ? parseFloat(s) : 0
+  })
+
+  const [includeMediumPV, setIncludeMediumPV] = useState(() => {
+    const s = localStorage.getItem('includeMediumPV')
+    return s ? JSON.parse(s) : true
+  })
+  const [includeLowPV, setIncludeLowPV] = useState(() => {
+    const s = localStorage.getItem('includeLowPV')
+    return s ? JSON.parse(s) : true
+  })
+  const [includeGoalsPV, setIncludeGoalsPV] = useState(() => {
+    const s = localStorage.getItem('includeGoalsPV')
+    return s ? JSON.parse(s) : false
+  })
+  const [includeLiabilitiesNPV, setIncludeLiabilitiesNPV] = useState(() => {
+    const s = localStorage.getItem('includeLiabilitiesNPV')
+    return s ? JSON.parse(s) : false
+  })
 
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
@@ -96,7 +142,16 @@ export function FinanceProvider({ children }) {
     const s = localStorage.getItem('settings')
     return s
       ? JSON.parse(s)
-      : { inflationRate:5, expectedReturn:8, currency:'KES', locale:'en-KE', apiEndpoint:'', discretionaryCutThreshold:0 }
+      : {
+          inflationRate: 5,
+          expectedReturn: 8,
+          currency: 'KES',
+          locale: 'en-KE',
+          apiEndpoint: '',
+          discretionaryCutThreshold: 0,
+          survivalThresholdMonths: 0,
+          bufferPct: 0,
+        }
   })
 
   // === Risk scoring ===
@@ -151,29 +206,68 @@ export function FinanceProvider({ children }) {
       const afterTax = src.amount * (1 - (src.taxRate || 0) / 100)
       return sum + (afterTax * src.frequency) / 12
     }, 0)
+    setMonthlyIncomeNominal(monthlyIncome)
+    localStorage.setItem('monthlyIncomeNominal', monthlyIncome.toString())
     const surplus = monthlyIncome - monthlyExpense
     setMonthlySurplusNominal(surplus)
     localStorage.setItem('monthlySurplusNominal', surplus.toString())
   }, [incomeSources, monthlyExpense])
 
   useEffect(() => {
+    let high = 0
+    let medium = 0
+    let low = 0
     const totalPv = expensesList.reduce((sum, exp) => {
-      return sum + calculatePV(
+      const pv = calculatePV(
         exp.amount,
         exp.paymentsPerYear,
         exp.growth || 0,
         discountRate,
         years
       )
+      if (exp.priority === 1) high += pv
+      else if (exp.priority === 2) medium += pv
+      else low += pv
+      return sum + pv
     }, 0)
+
+    setPvHigh(high)
+    localStorage.setItem('pvHigh', high.toString())
+    setPvMedium(medium)
+    localStorage.setItem('pvMedium', medium.toString())
+    setPvLow(low)
+    localStorage.setItem('pvLow', low.toString())
 
     setPvExpenses(totalPv)
     localStorage.setItem('pvExpenses', totalPv.toString())
 
-    const avgMonthly = years > 0 ? totalPv / (years * 12) : 0
+    const months = years * 12
+    const avgMonthly = months > 0 ? totalPv / months : 0
+    const mHigh = months > 0 ? high / months : 0
+    const mMedium = months > 0 ? medium / months : 0
+    const mLow = months > 0 ? low / months : 0
     setMonthlyPVExpense(avgMonthly)
     localStorage.setItem('monthlyPVExpense', avgMonthly.toString())
+    setMonthlyPVHigh(mHigh)
+    localStorage.setItem('monthlyPVHigh', mHigh.toString())
+    setMonthlyPVMedium(mMedium)
+    localStorage.setItem('monthlyPVMedium', mMedium.toString())
+    setMonthlyPVLow(mLow)
+    localStorage.setItem('monthlyPVLow', mLow.toString())
   }, [expensesList, discountRate, years])
+
+  useEffect(() => {
+    localStorage.setItem('includeMediumPV', JSON.stringify(includeMediumPV))
+  }, [includeMediumPV])
+  useEffect(() => {
+    localStorage.setItem('includeLowPV', JSON.stringify(includeLowPV))
+  }, [includeLowPV])
+  useEffect(() => {
+    localStorage.setItem('includeGoalsPV', JSON.stringify(includeGoalsPV))
+  }, [includeGoalsPV])
+  useEffect(() => {
+    localStorage.setItem('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV))
+  }, [includeLiabilitiesNPV])
 
   // === Auto-load persisted state on mount ===
   useEffect(() => {
@@ -192,7 +286,12 @@ export function FinanceProvider({ children }) {
     const sSet = localStorage.getItem('settings')
     if (sSet) {
       const parsed = JSON.parse(sSet)
-      setSettings({ discretionaryCutThreshold: 0, ...parsed })
+      setSettings({
+        discretionaryCutThreshold: 0,
+        survivalThresholdMonths: 0,
+        bufferPct: 0,
+        ...parsed,
+      })
     }
 
     const sInc = localStorage.getItem('incomeSources')
@@ -231,6 +330,29 @@ export function FinanceProvider({ children }) {
     if (mpvE) setMonthlyPVExpense(+mpvE)
     const ms = localStorage.getItem('monthlySurplusNominal')
     if (ms) setMonthlySurplusNominal(+ms)
+    const mi = localStorage.getItem('monthlyIncomeNominal')
+    if (mi) setMonthlyIncomeNominal(+mi)
+    const ph = localStorage.getItem('pvHigh')
+    if (ph) setPvHigh(+ph)
+    const pm = localStorage.getItem('pvMedium')
+    if (pm) setPvMedium(+pm)
+    const pl = localStorage.getItem('pvLow')
+    if (pl) setPvLow(+pl)
+    const mph = localStorage.getItem('monthlyPVHigh')
+    if (mph) setMonthlyPVHigh(+mph)
+    const mpm = localStorage.getItem('monthlyPVMedium')
+    if (mpm) setMonthlyPVMedium(+mpm)
+    const mpl = localStorage.getItem('monthlyPVLow')
+    if (mpl) setMonthlyPVLow(+mpl)
+
+    const incMed = localStorage.getItem('includeMediumPV')
+    if (incMed) setIncludeMediumPV(JSON.parse(incMed))
+    const incLow = localStorage.getItem('includeLowPV')
+    if (incLow) setIncludeLowPV(JSON.parse(incLow))
+    const incGoals = localStorage.getItem('includeGoalsPV')
+    if (incGoals) setIncludeGoalsPV(JSON.parse(incGoals))
+    const incLiab = localStorage.getItem('includeLiabilitiesNPV')
+    if (incLiab) setIncludeLiabilitiesNPV(JSON.parse(incLiab))
   }, [])
 
   return (
@@ -243,7 +365,18 @@ export function FinanceProvider({ children }) {
       expensesPV,   setExpensesPV,
       pvExpenses,
       monthlyPVExpense,
+      pvHigh,
+      pvMedium,
+      pvLow,
+      monthlyPVHigh,
+      monthlyPVMedium,
+      monthlyPVLow,
       monthlySurplusNominal,
+      monthlyIncomeNominal,
+      includeMediumPV, setIncludeMediumPV,
+      includeLowPV, setIncludeLowPV,
+      includeGoalsPV, setIncludeGoalsPV,
+      includeLiabilitiesNPV, setIncludeLiabilitiesNPV,
 
       // IncomeTab
       incomeSources, setIncomeSources,
