@@ -17,9 +17,9 @@ export default function BalanceSheetTab() {
   // Keep PV of Lifetime Income in sync with context changes
   useEffect(() => {
     setAssetsList(prev => {
-      const idx = prev.findIndex(a => a.name === 'PV of Lifetime Income')
+      const idx = prev.findIndex(a => a.id === 'pv-income')
       if (idx === -1) {
-        return [...prev, { name: 'PV of Lifetime Income', amount: incomePV }]
+        return [...prev, { id: 'pv-income', name: 'PV of Lifetime Income', amount: incomePV }]
       }
       const updated = [...prev]
       updated[idx] = { ...updated[idx], amount: incomePV }
@@ -30,9 +30,9 @@ export default function BalanceSheetTab() {
   // Keep PV of Lifetime Expenses in sync with context changes
   useEffect(() => {
     setLiabilitiesList(prev => {
-      const idx = prev.findIndex(l => l.name === 'PV of Lifetime Expenses')
+      const idx = prev.findIndex(l => l.id === 'pv-expenses')
       if (idx === -1) {
-        return [...prev, { name: 'PV of Lifetime Expenses', amount: expensesPV }]
+        return [...prev, { id: 'pv-expenses', name: 'PV of Lifetime Expenses', amount: expensesPV }]
       }
       const updated = [...prev]
       updated[idx] = { ...updated[idx], amount: expensesPV }
@@ -44,8 +44,10 @@ export default function BalanceSheetTab() {
   const totalLiabilities = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || 0), 0)
   const netWorth = totalAssets - totalLiabilities
 
-  const addAsset = () => setAssetsList([...assetsList, { name: '', amount: 0 }])
-  const addLiability = () => setLiabilitiesList([...liabilitiesList, { name: '', amount: 0 }])
+  const addAsset = () =>
+    setAssetsList([...assetsList, { id: crypto.randomUUID(), name: '', amount: 0 }])
+  const addLiability = () =>
+    setLiabilitiesList([...liabilitiesList, { id: crypto.randomUUID(), name: '', amount: 0 }])
 
   const updateItem = (setList, list, index, field, value) => {
     const updated = list.map((it, i) =>
@@ -73,11 +75,12 @@ export default function BalanceSheetTab() {
         <div>
           <h3 className="text-md font-medium mb-2">Assets</h3>
           {assetsList.map((item, i) => (
-            <div key={i} className="flex space-x-2 mb-2">
+            <div key={item.id} className="flex space-x-2 mb-2">
               <input
                 className="border p-2 rounded-md w-1/2"
                 value={item.name}
                 onChange={e => updateItem(setAssetsList, assetsList, i, 'name', e.target.value)}
+                disabled={item.id === 'pv-income'}
                 title="Asset name"
               />
               <input
@@ -102,11 +105,12 @@ export default function BalanceSheetTab() {
         <div>
           <h3 className="text-md font-medium mb-2">Liabilities</h3>
           {liabilitiesList.map((item, i) => (
-            <div key={i} className="flex space-x-2 mb-2">
+            <div key={item.id} className="flex space-x-2 mb-2">
               <input
                 className="border p-2 rounded-md w-1/2"
                 value={item.name}
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'name', e.target.value)}
+                disabled={item.id === 'pv-expenses'}
                 title="Liability name"
               />
               <input
