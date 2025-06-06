@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { calculatePV } from './utils/financeUtils'
-import { FREQUENCIES } from './constants'
 
 const FinanceContext = createContext()
+const payMap = { Monthly: 12, Quarterly: 4, Annually: 1 }
 
 export function FinanceProvider({ children }) {
   // === Core financial state ===
@@ -18,8 +18,6 @@ export function FinanceProvider({ children }) {
   const [expensesPV, setExpensesPV]         = useState(0)
   const [pvExpenses, setPvExpenses]         = useState(0)
   const [monthlyPVExpense, setMonthlyPVExpense] = useState(0)
-
-  const payMap = { Monthly: 12, Quarterly: 4, Annually: 1 }
 
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
@@ -43,7 +41,19 @@ export function FinanceProvider({ children }) {
   // === Expenses & Goals state ===
   const [expensesList, setExpensesList] = useState(() => {
     const s = localStorage.getItem('expensesList')
-    return s ? JSON.parse(s) : []
+    if (!s) return []
+    try {
+      const parsed = JSON.parse(s)
+      return parsed.map(exp => {
+        if (typeof exp.paymentsPerYear === 'number') return exp
+        const ppy = payMap[exp.frequency] ?? 1
+        const { frequency: _unused, ...rest } = exp
+        return { ...rest, paymentsPerYear: ppy }
+      })
+    } catch {
+      // ignore malformed stored data
+      return []
+    }
   })
   const [goalsList, setGoalsList] = useState(() => {
     const s = localStorage.getItem('goalsList')
@@ -120,19 +130,19 @@ export function FinanceProvider({ children }) {
   useEffect(() => { localStorage.setItem('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
 
   useEffect(() => {
-    const monthlyTotal = expensesList
-      .filter(e => e.frequency === 'Monthly')
-      .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
+    const monthlyTotal = expensesList.reduce((sum, e) => {
+      const amt = parseFloat(e.amount) || 0
+      return sum + amt * (e.paymentsPerYear / 12)
+    }, 0)
     setMonthlyExpense(monthlyTotal)
     localStorage.setItem('monthlyExpense', monthlyTotal.toString())
   }, [expensesList])
 
   useEffect(() => {
     const totalPv = expensesList.reduce((sum, exp) => {
-      const paymentsPerYear = payMap[exp.frequency] ?? 1
       return sum + calculatePV(
         exp.amount,
-        paymentsPerYear,
+        exp.paymentsPerYear,
         exp.growth || 0,
         discountRate,
         years
@@ -170,7 +180,19 @@ export function FinanceProvider({ children }) {
     if (sSY) setStartYear(+sSY)
 
     const sExp = localStorage.getItem('expensesList')
-    if (sExp) setExpensesList(JSON.parse(sExp))
+    if (sExp) {
+      try {
+        const parsed = JSON.parse(sExp)
+        setExpensesList(parsed.map(exp => {
+          if (typeof exp.paymentsPerYear === 'number') return exp
+          const ppy = payMap[exp.frequency] ?? 1
+          const { frequency: _unused, ...rest } = exp
+          return { ...rest, paymentsPerYear: ppy }
+        }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
     const sG = localStorage.getItem('goalsList')
     if (sG) setGoalsList(JSON.parse(sG))
 
@@ -220,4 +242,5 @@ export function FinanceProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFinance = () => useContext(FinanceContext)

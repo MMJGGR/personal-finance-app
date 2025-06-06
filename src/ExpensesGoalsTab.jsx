@@ -41,15 +41,18 @@ export default function ExpensesGoalsTab() {
   const handleExpenseChange = (i, field, raw) => {
     setExpensesList(expensesList.map((e, idx) => {
       if (idx !== i) return e
-      if (['name', 'frequency', 'category'].includes(field)) {
+      if (['name', 'category'].includes(field)) {
         return { ...e, [field]: raw }
+      }
+      if (field === 'paymentsPerYear') {
+        return { ...e, paymentsPerYear: Math.max(1, parseInt(raw) || 1) }
       }
       return { ...e, [field]: clamp(parseFloat(raw)) }
     }))
   }
   const addExpense = () => {
     setExpensesList([...expensesList, {
-      name: '', amount: 0, frequency: 'Monthly', growth: 0, category: 'Fixed'
+      name: '', amount: 0, paymentsPerYear: 12, growth: 0, category: 'Fixed'
     }])
   }
   const removeExpense = i =>
@@ -116,8 +119,13 @@ export default function ExpensesGoalsTab() {
   // --- 2) PV of Expenses over lifeYears ---
   const pvExpensesLife = useMemo(() => {
     return expensesList.reduce((sum, e) => {
-      const freq = payMap[e.frequency] || 0
-      return sum + calculatePV(e.amount, freq, e.growth, discountRate, lifeYears)
+      return sum + calculatePV(
+        e.amount,
+        e.paymentsPerYear,
+        e.growth,
+        discountRate,
+        lifeYears
+      )
     }, 0)
   }, [expensesList, discountRate, lifeYears])
 
@@ -210,7 +218,7 @@ export default function ExpensesGoalsTab() {
         <div className="grid grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Amt ({settings.currency})</div>
-          <div>Freq</div>
+          <div>Pay/Yr</div>
           <div className="text-right">Growth %</div>
           <div>Category</div>
           <div></div>
@@ -230,15 +238,13 @@ export default function ExpensesGoalsTab() {
               value={e.amount}
               onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)}
             />
-            <select
-              className="border p-2 rounded-md"
-              value={e.frequency}
-              onChange={ev => handleExpenseChange(i, 'frequency', ev.target.value)}
-            >
-              {FREQUENCIES.map(f => (
-                <option key={f}>{f}</option>
-              ))}
-            </select>
+            <input
+              className="border p-2 rounded-md text-right"
+              type="number" min="1" step="1"
+              value={e.paymentsPerYear}
+              onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)}
+              title="Payments per year"
+            />
             <input
               className="border p-2 rounded-md text-right"
               type="number" min="0" step="0.1"
