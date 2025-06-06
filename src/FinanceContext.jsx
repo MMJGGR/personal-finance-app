@@ -15,7 +15,16 @@ export function FinanceProvider({ children }) {
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
     const s = localStorage.getItem('incomeSources')
-    return s ? JSON.parse(s) : [{ name:'Salary',amount:10000,frequency:12,growth:5 }]
+    return s
+      ? JSON.parse(s)
+      : [{
+          name: 'Salary',
+          type: 'Employment',
+          amount: 10000,
+          frequency: 12,
+          growth: 5,
+          taxRate: 30,
+        }]
   })
   const [startYear, setStartYear] = useState(() => {
     const s = localStorage.getItem('incomeStartYear')

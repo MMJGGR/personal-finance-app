@@ -25,7 +25,6 @@ export default function ExpensesGoalsTab() {
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
     liabilitiesList, setLiabilitiesList,
-    setMonthlyExpense,
     setExpensesPV,
     profile,
     settings
@@ -170,7 +169,10 @@ export default function ExpensesGoalsTab() {
       assumptions: { discountRate, lifeYears },
       expenses:      expensesList, pvExpenses: pvExpensesLife,
       goals:         goalsList,    pvGoals,
-      liabilities:   liabilityDetails.map(({ schedule, ...l }) => l),
+      liabilities:   liabilityDetails.map(l => {
+        const { schedule: _unused, ...rest } = l;
+        return rest;
+      }),
       totalLiabilitiesPV, totalRequired
     }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })

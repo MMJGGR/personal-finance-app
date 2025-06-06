@@ -9,7 +9,7 @@
  * Outputs (context): incomePV (updated each render)
  */
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
 import {
@@ -27,35 +27,78 @@ export default function IncomeTab() {
     setIncomePV,
   } = useFinance();
 
+  const [chartView, setChartView] = useState('yearly');
+  const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
+
   // 1. Compute PV per stream & total
   const pvPerStream = useMemo(
-    () => incomeSources.map(src =>
-      calculatePV(src.amount, src.frequency, src.growth, discountRate, years)
-    ),
+    () =>
+      incomeSources.map(src => {
+        const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100);
+        return calculatePV(
+          afterTaxAmt,
+          src.frequency,
+          src.growth,
+          discountRate,
+          years
+        );
+      }),
     [incomeSources, discountRate, years]
   );
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream]);
 
+  const interruptionPV = useMemo(
+    () =>
+      pvPerStream.reduce(
+        (sum, pv, idx) =>
+          excludedForInterrupt.includes(idx) ? sum : sum + pv,
+        0
+      ),
+    [pvPerStream, excludedForInterrupt]
+  );
+
   // 2. Compute interruption months (guard zero expense)
-  const interruptionMonths = useMemo(() => {
-    return monthlyExpense > 0
-      ? Math.floor(totalPV / (monthlyExpense * 12) * 12)
-      : 0;
-  }, [totalPV, monthlyExpense]);
+  const interruptionMonths = useMemo(
+    () => (monthlyExpense > 0 ? Math.floor(interruptionPV / monthlyExpense) : 0),
+    [interruptionPV, monthlyExpense]
+  );
 
   // 3. Build projection data for chart
   const incomeData = useMemo(() => {
+    if (chartView === 'monthly') {
+      return Array.from({ length: years * 12 }, (_, idx) => {
+        const yrIndex = Math.floor(idx / 12);
+        const month = (idx % 12) + 1;
+        const entry = {
+          year: `${startYear + yrIndex}-${String(month).padStart(2, '0')}`,
+        };
+        incomeSources.forEach((src, sIdx) => {
+          const annual =
+            src.amount *
+            src.frequency *
+            Math.pow(1 + src.growth / 100, yrIndex);
+          entry[src.name || `Source ${sIdx + 1}`] = Number(
+            (annual / 12).toFixed(2)
+          );
+        });
+        return entry;
+      });
+    }
     return Array.from({ length: years }, (_, i) => {
       const year = startYear + i;
       const entry = { year: `${year}` };
-      incomeSources.forEach(src => {
-        entry[src.name || `Source ${i + 1}`] = Number(
-          (src.amount * src.frequency * Math.pow(1 + src.growth/100, i)).toFixed(2)
+      incomeSources.forEach((src, sIdx) => {
+        entry[src.name || `Source ${sIdx + 1}`] = Number(
+          (
+            src.amount *
+            src.frequency *
+            Math.pow(1 + src.growth / 100, i)
+          ).toFixed(2)
         );
       });
       return entry;
     });
-  }, [incomeSources, startYear, years]);
+  }, [incomeSources, startYear, years, chartView]);
 
   // 4. Sync totalPV back into context & localStorage
   useEffect(() => {
@@ -67,7 +110,9 @@ export default function IncomeTab() {
   const onFieldChange = (idx, field, raw) => {
     const updated = incomeSources.map((src, i) => {
       if (i !== idx) return src;
-      if (field === 'name') return { ...src, name: raw };
+      if (field === 'name' || field === 'type') {
+        return { ...src, [field]: raw };
+      }
       const val = parseFloat(raw);
       return { ...src, [field]: isNaN(val) ? 0 : Math.max(0, val) };
     });
@@ -77,7 +122,14 @@ export default function IncomeTab() {
   const addIncome = () => {
     setIncomeSources([
       ...incomeSources,
-      { name: '', amount: 0, frequency: 1, growth: 0 },
+      {
+        name: '',
+        type: 'Other',
+        amount: 0,
+        frequency: 1,
+        growth: 0,
+        taxRate: 0,
+      },
     ]);
   };
 
@@ -100,6 +152,22 @@ export default function IncomeTab() {
     a.click();
   };
 
+  const exportCSV = () => {
+    const columns = ['Period', ...incomeSources.map((src, i) => src.name || `Source ${i + 1}`)];
+    const rows = incomeData.map(row =>
+      columns.map(col => (col === 'Period' ? row.year : row[col])).join(',')
+    );
+    const csv = [columns.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'income-data.csv';
+    a.click();
+  };
+
+  const triggerPrint = () => window.print();
+
   // Chart palette (aligned with warm amber theme)
   const chartColors = [
     '#FBBF24','#F59E0B','#FDBA74','#FB923C',
@@ -113,42 +181,84 @@ export default function IncomeTab() {
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {incomeSources.length === 0 && (
+            <p className="italic text-slate-500 col-span-full text-center">No income sources yet</p>
+          )}
           {incomeSources.map((src, i) => (
-            <div key={i} className="bg-white p-4 rounded-xl shadow-md relative">
+            <div
+              key={i}
+              className="bg-white p-4 rounded-xl shadow-md relative transition-all"
+            >
               <label className="block text-sm font-medium">Source Name</label>
               <input
                 type="text"
-                className="w-full border p-2 rounded-md"
+                className="w-full border p-2 rounded-md invalid:border-red-500"
                 value={src.name}
                 onChange={e => onFieldChange(i, 'name', e.target.value)}
                 required
               />
 
+              <label className="block text-sm font-medium mt-2">Type</label>
+              <select
+                className="w-full border p-2 rounded-md"
+                value={src.type}
+                onChange={e => onFieldChange(i, 'type', e.target.value)}
+                aria-label="Income type"
+              >
+                <option>Employment</option>
+                <option>Business</option>
+                <option>Rental</option>
+                <option>Investment</option>
+                <option>Other</option>
+              </select>
+
               <label className="block text-sm font-medium mt-2">Amount ({settings.currency})</label>
               <input
                 type="number"
-                className="w-full border p-2 rounded-md"
+                className="w-full border p-2 rounded-md invalid:border-red-500"
                 value={src.amount}
                 onChange={e => onFieldChange(i, 'amount', e.target.value)}
                 min={0}
+                step={0.01}
+                required
+                title="Amount per payment"
               />
 
               <label className="block text-sm font-medium mt-2">Frequency (/yr)</label>
               <input
                 type="number"
-                className="w-full border p-2 rounded-md"
+                className="w-full border p-2 rounded-md invalid:border-red-500"
                 value={src.frequency}
                 onChange={e => onFieldChange(i, 'frequency', e.target.value)}
                 min={0}
+                step={1}
+                required
+                title="Payments per year"
               />
 
               <label className="block text-sm font-medium mt-2">Growth Rate (%)</label>
               <input
                 type="number"
-                className="w-full border p-2 rounded-md"
+                className="w-full border p-2 rounded-md invalid:border-red-500"
                 value={src.growth}
                 onChange={e => onFieldChange(i, 'growth', e.target.value)}
                 step={0.1}
+                min={-100}
+                max={100}
+                title="Annual growth rate"
+              />
+
+              <label className="block text-sm font-medium mt-2">Tax Rate (%)</label>
+              <input
+                type="number"
+                className="w-full border p-2 rounded-md invalid:border-red-500"
+                value={src.taxRate}
+                onChange={e => onFieldChange(i, 'taxRate', e.target.value)}
+                min={0}
+                max={100}
+                step={0.1}
+                required
+                title="Income tax rate"
               />
 
               <button
@@ -162,6 +272,7 @@ export default function IncomeTab() {
         <button
           onClick={addIncome}
           className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+          aria-label="Add income source"
         >➕ Add Income</button>
       </section>
 
@@ -194,6 +305,17 @@ export default function IncomeTab() {
             onChange={e => setYears(+e.target.value)}
             min={1}
           />
+
+          <label className="block text-sm font-medium mt-4">Chart View</label>
+          <select
+            className="w-full border p-2 rounded-md"
+            value={chartView}
+            onChange={e => setChartView(e.target.value)}
+            aria-label="Chart view"
+          >
+            <option value="yearly">Yearly</option>
+            <option value="monthly">Monthly</option>
+          </select>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-md">
@@ -206,6 +328,27 @@ export default function IncomeTab() {
               })}
             </span>
           </p>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow-md">
+          <label className="block text-sm font-medium">Interrupted Sources</label>
+          <select
+            multiple
+            className="w-full border p-2 rounded-md"
+            value={excludedForInterrupt.map(String)}
+            onChange={e =>
+              setExcludedForInterrupt(
+                Array.from(e.target.selectedOptions, o => Number(o.value))
+              )
+            }
+            aria-label="Select interrupted incomes"
+          >
+            {incomeSources.map((src, i) => (
+              <option key={i} value={i}>
+                {src.name || `Source ${i + 1}`}
+              </option>
+            ))}
+          </select>
         </div>
       </section>
 
@@ -239,11 +382,30 @@ export default function IncomeTab() {
             style: 'currency', currency: settings.currency
           })}/mo.
         </p>
+        {(() => {
+          const color =
+            interruptionMonths < 6
+              ? 'bg-red-200 text-red-800'
+              : interruptionMonths < 12
+              ? 'bg-orange-200 text-orange-800'
+              : 'bg-green-200 text-green-800';
+          const label =
+            interruptionMonths < 6
+              ? 'At risk'
+              : interruptionMonths < 12
+              ? 'Caution'
+              : 'Comfortable';
+          return (
+            <span className={`mt-2 inline-block px-2 py-1 rounded ${color}`}>{label}</span>
+          );
+        })()}
       </section>
 
       {/* Projection Chart */}
       <section className="bg-white p-4 rounded-xl shadow-md h-80">
-        <h2 className="text-lg font-bold text-amber-700 mb-2">Projected Income by Year</h2>
+        <h2 className="text-lg font-bold text-amber-700 mb-2">
+          Projected Income by {chartView === 'monthly' ? 'Month' : 'Year'}
+        </h2>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={incomeData}>
             <XAxis dataKey="year" />
@@ -273,6 +435,18 @@ export default function IncomeTab() {
           className="bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
         >
           📁 Export Income to JSON
+        </button>
+        <button
+          onClick={exportCSV}
+          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+        >
+          📊 Export CSV
+        </button>
+        <button
+          onClick={triggerPrint}
+          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+        >
+          🖨️ Print
         </button>
       </section>
     </div>
