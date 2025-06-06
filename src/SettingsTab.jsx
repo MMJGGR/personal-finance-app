@@ -96,6 +96,37 @@ export default function SettingsTab() {
           />
         </label>
 
+        {/* Survival Threshold Months */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Survival Threshold (months)</span>
+          <input
+            type="number"
+            min={0}
+            value={form.survivalThresholdMonths}
+            onChange={e =>
+              handleChange('survivalThresholdMonths', Math.max(0, parseInt(e.target.value) || 0))
+            }
+            className="w-full border rounded-md p-2"
+            title="Survival threshold months"
+          />
+        </label>
+
+        {/* Buffer Percentage */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Buffer Percentage (%)</span>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={form.bufferPct}
+            onChange={e =>
+              handleChange('bufferPct', Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))
+            }
+            className="w-full border rounded-md p-2"
+            title="Buffer percentage"
+          />
+        </label>
+
         {/* API Endpoint */}
         <label className="block md:col-span-2">
           <span className="text-sm text-slate-600">API Endpoint (for exports)</span>

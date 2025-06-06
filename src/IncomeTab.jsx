@@ -30,6 +30,17 @@ export default function IncomeTab() {
     years, setYears,
     monthlyExpense,
     monthlyPVExpense,
+    monthlyPVHigh,
+    monthlyPVMedium,
+    monthlyPVLow,
+    includeMediumPV,
+    setIncludeMediumPV,
+    includeLowPV,
+    setIncludeLowPV,
+    includeGoalsPV,
+    setIncludeGoalsPV,
+    includeLiabilitiesNPV,
+    setIncludeLiabilitiesNPV,
     monthlySurplusNominal,
     settings,
     expensesList,
@@ -40,14 +51,6 @@ export default function IncomeTab() {
 
   const [chartView, setChartView] = useState('yearly');
   const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
-  const [includeGoalsPV, setIncludeGoalsPV] = useState(() => {
-    const s = localStorage.getItem('includeGoalsPV');
-    return s ? JSON.parse(s) : false;
-  });
-  const [includeLiabilitiesNPV, setIncludeLiabilitiesNPV] = useState(() => {
-    const s = localStorage.getItem('includeLiabilitiesNPV');
-    return s ? JSON.parse(s) : false;
-  });
 
   const currentYear = new Date().getFullYear();
   const pvGoals = useMemo(
@@ -135,10 +138,14 @@ export default function IncomeTab() {
 
   // 2. Compute interruption months with optional obligations
   const monthlyObligations = useMemo(() => {
+    const expPart =
+      monthlyPVHigh +
+      (includeMediumPV ? monthlyPVMedium : 0) +
+      (includeLowPV ? monthlyPVLow : 0);
     const goalsPart = includeGoalsPV && years > 0 ? pvGoals / (years * 12) : 0;
     const liabPart = includeLiabilitiesNPV && years > 0 ? pvLiabilities / (years * 12) : 0;
-    return monthlyPVExpense + goalsPart + liabPart;
-  }, [includeGoalsPV, includeLiabilitiesNPV, pvGoals, pvLiabilities, monthlyPVExpense, years]);
+    return expPart + goalsPart + liabPart;
+  }, [includeMediumPV, includeLowPV, includeGoalsPV, includeLiabilitiesNPV, pvGoals, pvLiabilities, monthlyPVHigh, monthlyPVMedium, monthlyPVLow, years]);
 
   const _interruptionMonths = useMemo(
     () =>
@@ -201,13 +208,6 @@ export default function IncomeTab() {
     localStorage.setItem('incomePV', totalPV.toString());
   }, [totalPV, setIncomePV]);
 
-  useEffect(() => {
-    localStorage.setItem('includeGoalsPV', JSON.stringify(includeGoalsPV));
-  }, [includeGoalsPV]);
-
-  useEffect(() => {
-    localStorage.setItem('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV));
-  }, [includeLiabilitiesNPV]);
 
   // --- Handlers for form inputs ---
   const onFieldChange = (idx, field, raw) => {
@@ -471,6 +471,26 @@ export default function IncomeTab() {
               aria-label="Include liabilities NPV"
             />
             Include Liabilities (NPV)
+          </label>
+          <label className="flex items-center mt-1">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeMediumPV}
+              onChange={e => setIncludeMediumPV(e.target.checked)}
+              aria-label="Include medium priority"
+            />
+            Include Medium Priority
+          </label>
+          <label className="flex items-center mt-1">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={includeLowPV}
+              onChange={e => setIncludeLowPV(e.target.checked)}
+              aria-label="Include low priority"
+            />
+            Include Low Priority
           </label>
         </div>
 
