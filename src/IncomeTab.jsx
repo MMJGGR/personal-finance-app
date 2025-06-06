@@ -96,12 +96,12 @@ export default function IncomeTab() {
     () =>
       monthlyExpense > 0
         ? Math.floor(monthlyIncomeEquivalent / monthlyExpense)
-        : 0,
+        : Infinity,
     [monthlyIncomeEquivalent, monthlyExpense]
   );
 
   const pvSurvivalMonths = useMemo(() => {
-    if (monthlyExpense <= 0) return 0;
+    if (monthlyExpense <= 0) return Infinity;
     const r = discountRate / 100 / 12;
     if (r === 0) return Math.floor(totalIncomePV / monthlyExpense);
     const ratio = (totalIncomePV * r) / monthlyExpense;
@@ -142,7 +142,7 @@ export default function IncomeTab() {
     () =>
       monthlyObligations > 0
         ? Math.floor(interruptionPV / monthlyObligations)
-        : 0,
+        : Infinity,
     [interruptionPV, monthlyObligations]
   );
 
@@ -509,11 +509,15 @@ export default function IncomeTab() {
         </p>
         <p className="text-sm mt-2" title="Months covered ignoring discounting">
           Nominal Survival:&nbsp;
-          <strong>{nominalSurvivalMonths}</strong>&nbsp;months
+          <strong>{nominalSurvivalMonths === Infinity ? '∞' : nominalSurvivalMonths}</strong>
+          {nominalSurvivalMonths === Infinity ? '' : '\u00A0months'}
+          {nominalSurvivalMonths === Infinity && ' (No expenses)'}
         </p>
         <p className="text-sm" title="Months covered when discounting each month">
           PV Survival:&nbsp;
-          <strong>{pvSurvivalMonths}</strong>&nbsp;months
+          <strong>{pvSurvivalMonths === Infinity ? '∞' : pvSurvivalMonths}</strong>
+          {pvSurvivalMonths === Infinity ? '' : '\u00A0months'}
+          {pvSurvivalMonths === Infinity && ' (No expenses)'}
         </p>
         {(() => {
           const color =
