@@ -129,6 +129,7 @@ export default function ExpensesGoalsTab() {
   }
   const addLiability = () =>
     setLiabilitiesList([...liabilitiesList, {
+      id: crypto.randomUUID(),
       name: '', principal: 0, interestRate: 0, termYears: 1,
       remainingMonths: 12, paymentsPerYear: 12, payment: 0
     }])
@@ -443,7 +444,7 @@ export default function ExpensesGoalsTab() {
           <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
         )}
         {liabilityDetails.map((l, i) => (
-          <div key={i} className="grid grid-cols-1 sm:grid-cols-10 gap-2 items-center mb-1">
+          <div key={l.id} className="grid grid-cols-1 sm:grid-cols-10 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Car Loan"
@@ -540,8 +541,8 @@ export default function ExpensesGoalsTab() {
       {/* Amortization Schedules */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Loan Amortization</h2>
-        {liabilityDetails.map((l, idx) => (
-          <div key={idx} className="mb-8">
+        {liabilityDetails.map(l => (
+          <div key={l.id} className="mb-8">
             <h3 className="text-lg font-semibold">{l.name}</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={l.schedule}>

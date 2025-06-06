@@ -117,19 +117,33 @@ export function FinanceProvider({ children }) {
   // === Balance Sheet assets state ===
   const [assetsList, setAssetsList] = useState(() => {
     const s = localStorage.getItem('assetsList')
-    return s
-      ? JSON.parse(s)
-      : [
-          { name: 'Cash', amount: 500000 },
-          { name: 'Investments', amount: 1000000 },
-          { name: 'PV of Lifetime Income', amount: 0 },
-        ]
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        return parsed.map(a => ({ id: a.id || crypto.randomUUID(), ...a }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return [
+      { id: crypto.randomUUID(), name: 'Cash', amount: 500000 },
+      { id: crypto.randomUUID(), name: 'Investments', amount: 1000000 },
+      { id: 'pv-income', name: 'PV of Lifetime Income', amount: 0 },
+    ]
   })
 
   // === Liabilities (Loans) state ===
   const [liabilitiesList, setLiabilitiesList] = useState(() => {
     const s = localStorage.getItem('liabilitiesList')
-    return s ? JSON.parse(s) : []
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        return parsed.map(l => ({ id: l.id || crypto.randomUUID(), ...l }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return []
   })
 
   // === Profile & KYC fields (with lifeExpectancy) ===
@@ -332,10 +346,24 @@ export function FinanceProvider({ children }) {
     if (sG) setGoalsList(JSON.parse(sG))
 
     const sA = localStorage.getItem('assetsList')
-    if (sA) setAssetsList(JSON.parse(sA))
+    if (sA) {
+      try {
+        const parsed = JSON.parse(sA)
+        setAssetsList(parsed.map(a => ({ id: a.id || crypto.randomUUID(), ...a })))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
 
     const sL = localStorage.getItem('liabilitiesList')
-    if (sL) setLiabilitiesList(JSON.parse(sL))
+    if (sL) {
+      try {
+        const parsed = JSON.parse(sL)
+        setLiabilitiesList(parsed.map(l => ({ id: l.id || crypto.randomUUID(), ...l })))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
 
     const me = localStorage.getItem('monthlyExpense')
     if (me) setMonthlyExpense(+me)
