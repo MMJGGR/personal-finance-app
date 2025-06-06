@@ -39,6 +39,7 @@ export default function App() {
                 ? 'bg-white shadow text-amber-700'
                 : 'text-slate-500 hover:text-amber-700'
             }`}
+            title={tab}
           >
             {tab}
           </button>

@@ -31,6 +31,7 @@ export default function SettingsTab() {
             value={form.inflationRate}
             onChange={e => handleChange('inflationRate', parseFloat(e.target.value) || 0)}
             className="w-full border rounded-md p-2"
+            title="Inflation rate"
           />
         </label>
 
@@ -42,6 +43,7 @@ export default function SettingsTab() {
             value={form.expectedReturn}
             onChange={e => handleChange('expectedReturn', parseFloat(e.target.value) || 0)}
             className="w-full border rounded-md p-2"
+            title="Expected annual return"
           />
         </label>
 
@@ -52,6 +54,7 @@ export default function SettingsTab() {
             value={form.currency}
             onChange={e => handleChange('currency', e.target.value)}
             className="w-full border rounded-md p-2"
+            title="Default currency"
           >
             <option value="KES">KES</option>
             <option value="USD">USD</option>
@@ -66,6 +69,7 @@ export default function SettingsTab() {
             value={form.locale}
             onChange={e => handleChange('locale', e.target.value)}
             className="w-full border rounded-md p-2"
+            title="Locale"
           >
             <option value="en-KE">English (Kenya)</option>
             <option value="en-US">English (US)</option>
@@ -82,6 +86,7 @@ export default function SettingsTab() {
             onChange={e => handleChange('apiEndpoint', e.target.value)}
             placeholder="https://api.your-backend.com/submit"
             className="w-full border rounded-md p-2"
+            title="API endpoint"
           />
         </label>
       </div>

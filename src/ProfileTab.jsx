@@ -63,6 +63,7 @@ export default function ProfileTab() {
                   value={form[field]}
                   onChange={e => handleChange(field, e.target.value)}
                   className="w-full border rounded-md p-2"
+                  title={label}
                 >
                   {options.map(o => (
                     <option key={o} value={o}>
@@ -81,6 +82,7 @@ export default function ProfileTab() {
                     )
                   }
                   className="w-full border rounded-md p-2"
+                  title={label}
                 />
               )}
             </label>
@@ -103,6 +105,7 @@ export default function ProfileTab() {
                 value={form[field]}
                 onChange={e => handleChange(field, e.target.value)}
                 className="w-full border rounded-md p-2"
+                title={label}
               />
             </label>
           ))}
@@ -118,6 +121,7 @@ export default function ProfileTab() {
                 value={form[field]}
                 onChange={e => handleChange(field, parseFloat(e.target.value) || 0)}
                 className="w-full border rounded-md p-2"
+                title={label}
               />
             </label>
           ))}
@@ -129,6 +133,7 @@ export default function ProfileTab() {
               onChange={e => handleChange('sourceOfFunds', e.target.value)}
               className="w-full border rounded-md p-2"
               rows={3}
+              title="Source of funds"
             />
           </label>
         </div>
@@ -150,6 +155,7 @@ export default function ProfileTab() {
                 value={form[field]}
                 onChange={e => handleChange(field, e.target.value)}
                 className="w-full border rounded-md p-2"
+                title={label}
               >
                 {options.map(o => (
                   <option key={o} value={o}>

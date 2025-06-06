@@ -247,6 +247,7 @@ export default function IncomeTab() {
                 value={src.name}
                 onChange={e => onFieldChange(i, 'name', e.target.value)}
                 required
+                title="Source name"
               />
 
               <label className="block text-sm font-medium mt-2">Type</label>
@@ -255,6 +256,7 @@ export default function IncomeTab() {
                 value={src.type}
                 onChange={e => onFieldChange(i, 'type', e.target.value)}
                 aria-label="Income type"
+                title="Income type"
               >
                 <option>Employment</option>
                 <option>Business</option>
@@ -324,7 +326,10 @@ export default function IncomeTab() {
           onClick={addIncome}
           className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
           aria-label="Add income source"
-        >➕ Add Income</button>
+          title="Add income source"
+        >
+          ➕ Add Income
+        </button>
       </section>
 
       {/* Assumptions */}
@@ -337,6 +342,7 @@ export default function IncomeTab() {
             value={startYear}
             onChange={e => setStartYear(+e.target.value)}
             min={1900} max={2100}
+            title="Start year"
           />
 
           <label className="block text-sm font-medium mt-4">Discount Rate (%)</label>
@@ -346,6 +352,7 @@ export default function IncomeTab() {
             value={discountRate}
             onChange={e => setDiscountRate(+e.target.value)}
             min={0} max={100} step={0.1}
+            title="Discount rate"
           />
 
           <label className="block text-sm font-medium mt-4">Projection Years</label>
@@ -355,6 +362,7 @@ export default function IncomeTab() {
             value={years}
             onChange={e => setYears(+e.target.value)}
             min={1}
+            title="Projection years"
           />
 
           <label className="block text-sm font-medium mt-4">Chart View</label>
@@ -397,6 +405,7 @@ export default function IncomeTab() {
               className="mr-2"
               checked={includeGoalsPV}
               onChange={e => setIncludeGoalsPV(e.target.checked)}
+              aria-label="Include goals present value"
             />
             Include Goals (PV)
           </label>
@@ -406,6 +415,7 @@ export default function IncomeTab() {
               className="mr-2"
               checked={includeLiabilitiesNPV}
               onChange={e => setIncludeLiabilitiesNPV(e.target.checked)}
+              aria-label="Include liabilities NPV"
             />
             Include Liabilities (NPV)
           </label>
@@ -514,18 +524,24 @@ export default function IncomeTab() {
         <button
           onClick={exportJSON}
           className="bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+          aria-label="Export income to JSON"
+          title="Export income to JSON"
         >
           📁 Export Income to JSON
         </button>
         <button
           onClick={exportCSV}
           className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+          aria-label="Export CSV"
+          title="Export CSV"
         >
           📊 Export CSV
         </button>
         <button
           onClick={triggerPrint}
           className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+          aria-label="Print"
+          title="Print"
         >
           🖨️ Print
         </button>
