@@ -23,3 +23,29 @@ npm run preview
 ## Tooling
 
 The project uses [React](https://react.dev/) with [Vite](https://vitejs.dev/) for the build system. Styling is powered by Tailwind CSS and ESLint provides linting rules.
+
+## Configuration
+
+Application settings are stored in local storage and can be modified under the **Settings** tab.  Available keys include:
+
+- `inflationRate` – annual inflation assumption used in PV calculations
+- `expectedReturn` – expected yearly portfolio return
+- `currency` – default ISO currency code
+- `locale` – locale for number formatting
+- `apiEndpoint` – URL to POST exported data
+- `discretionaryCutThreshold` – percentage of monthly expenses that triggers discretionary advice
+- `survivalThresholdMonths` – minimum months of PV coverage considered healthy
+- `bufferPct` – buffer percent applied to loan strategy comparisons
+
+## Advice Engine
+
+Utility modules under `src/utils` expose helper functions for generating spending and loan repayment advice.  The main entry point is `generateLoanAdvice`:
+
+```javascript
+import generateLoanAdvice from './src/utils/loanAdvisoryEngine'
+
+const advice = generateLoanAdvice(loans, profile, income, expenses, discountRate, years)
+console.log(advice.dti, advice.survival)
+```
+
+`calcDiscretionaryAdvice` suggests low‑priority expenses to cut when the monthly surplus falls below the configured threshold. `suggestLoanStrategies` ranks liabilities by interest saved when paying them off early.

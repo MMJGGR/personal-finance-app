@@ -2,8 +2,8 @@
 
 import React, { useMemo, useEffect } from 'react'
 import { useFinance } from './FinanceContext'
-import { calculatePV, calculateLoanNPV, frequencyToPayments } from './utils/financeUtils'
-import { FREQUENCIES } from './constants'
+import { calculatePV, calculateLoanNPV } from './utils/financeUtils'
+import { FREQUENCIES, FREQUENCY_LABELS } from './constants'
 import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import generateLoanAdvice from './utils/loanAdvisoryEngine'
 import AdviceDashboard from './AdviceDashboard'
@@ -488,8 +488,8 @@ export default function ExpensesGoalsTab() {
             onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)}
             title="Payments per year"
           >
-            {FREQUENCIES.map(f => (
-              <option key={f} value={frequencyToPayments(f)}>{f}</option>
+            {FREQUENCY_LABELS.map(label => (
+              <option key={label} value={FREQUENCIES[label]}>{label}</option>
             ))}
           </select>
             <input

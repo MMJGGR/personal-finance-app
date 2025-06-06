@@ -3,6 +3,8 @@
  * Shared financial formulas for present-value and related calculations.
  */
 
+import { FREQUENCIES } from '../constants'
+
 /**
  * Calculate present value of a growing annuity.
  *
@@ -36,9 +38,9 @@ export function calculatePV(amount, frequency, growthRate, discountRate, periods
  * @returns {number} Payments per year (0 if invalid).
  */
 export function frequencyToPayments(freq) {
-  if (typeof freq === 'number') return freq > 0 ? freq : 0;
-  const map = { Monthly: 12, Quarterly: 4, Annually: 1 };
-  return map[freq] ?? 0;
+  if (typeof freq === 'number') return freq > 0 ? freq : 0
+  // FREQUENCIES maps labels to payments per year
+  return FREQUENCIES[freq] ?? 0
 }
 
 
