@@ -80,24 +80,6 @@ export default function IncomeTab() {
     [liabilitiesList]
   );
 
-  const loanAdvice = useMemo(
-    () =>
-      generateLoanAdvice(
-        liabilitiesList,
-        { ...profile, totalPV: totalIncomePV },
-        monthlyIncomeNominal,
-        monthlyExpense,
-        discountRate,
-        years
-      ),
-    [liabilitiesList, profile, totalIncomePV, monthlyIncomeNominal, monthlyExpense, discountRate, years]
-  );
-
-  const loanStrategies = useMemo(
-    () => suggestLoanStrategies(liabilitiesList),
-    [liabilitiesList]
-  );
-
   // 1. Compute PV per stream & total
   const pvPerStream = useMemo(
     () =>
@@ -115,6 +97,24 @@ export default function IncomeTab() {
   );
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
   const totalIncomePV = totalPV
+
+  const loanAdvice = useMemo(
+    () =>
+      generateLoanAdvice(
+        liabilitiesList,
+        { ...profile, totalPV: totalIncomePV },
+        monthlyIncomeNominal,
+        monthlyExpense,
+        discountRate,
+        years
+      ),
+    [liabilitiesList, profile, totalIncomePV, monthlyIncomeNominal, monthlyExpense, discountRate, years]
+  );
+
+  const loanStrategies = useMemo(
+    () => suggestLoanStrategies(liabilitiesList),
+    [liabilitiesList]
+  );
 
   const nominalSurvivalMonths = useMemo(
     () =>
