@@ -40,3 +40,45 @@ test('pv obligation survival uses discounted monthly obligations', () => {
 test('pv obligation survival returns Infinity when obligation is zero', () => {
   expect(calculatePVObligationSurvival(totalPV, discount, 0)).toBe(Infinity)
 })
+
+test('pv obligation survival returns Infinity when all obligations excluded', () => {
+  const goalsPV = 12000
+  const liabilitiesPV = 2400
+  const monthlyPVExpense = 0
+
+  const obligation = (g, l) => {
+    const goalsPart = g ? goalsPV / (years * 12) : 0
+    const liabPart = l ? liabilitiesPV / (years * 12) : 0
+    return monthlyPVExpense + goalsPart + liabPart
+  }
+
+  const none = obligation(false, false)
+  expect(none).toBe(0)
+  expect(calculatePVObligationSurvival(totalPV, discount, none)).toBe(Infinity)
+})
+
+test('pv survival denominator responds to goal/liability toggles', () => {
+  const goalsPV = 12000
+  const liabilitiesPV = 2400
+  const monthlyPVExpense = 0
+
+  const obligation = (g, l) => {
+    const goalsPart = g ? goalsPV / (years * 12) : 0
+    const liabPart = l ? liabilitiesPV / (years * 12) : 0
+    return monthlyPVExpense + goalsPart + liabPart
+  }
+
+  const withGoals = obligation(true, false)
+  const withBoth = obligation(true, true)
+
+  expect(withGoals).toBeCloseTo(goalsPV / (years * 12))
+  expect(withBoth).toBeCloseTo((goalsPV + liabilitiesPV) / (years * 12))
+
+  const df = Math.pow(1 + discount / 100, 1 / 12)
+  const monthsGoals = Math.floor(totalPV / (withGoals * df))
+  const monthsBoth = Math.floor(totalPV / (withBoth * df))
+
+  expect(calculatePVObligationSurvival(totalPV, discount, withGoals)).toBe(monthsGoals)
+  expect(calculatePVObligationSurvival(totalPV, discount, withBoth)).toBe(monthsBoth)
+  expect(monthsBoth).toBeLessThan(monthsGoals)
+})
