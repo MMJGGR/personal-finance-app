@@ -9,6 +9,7 @@ import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import generateLoanAdvice from './utils/loanAdvisoryEngine'
 import AdviceDashboard from './AdviceDashboard'
 import calcDiscretionaryAdvice from './utils/discretionaryUtils'
+import { buildPlanJSON, buildPlanCSV } from './utils/exportHelpers'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
@@ -256,23 +257,33 @@ export default function ExpensesGoalsTab() {
 
   // --- Export JSON ---
   const exportJSON = () => {
-    const payload = {
-      generatedAt: new Date().toISOString(),
+    const payload = buildPlanJSON(
       profile,
-      assumptions: { discountRate, lifeYears },
-      expenses:      expensesList, pvExpenses: pvExpensesLife,
-      goals:         goalsList,    pvGoals,
-      liabilities:   liabilityDetails.map(l => {
-        const { schedule: _unused, ...rest } = l;
-        return rest;
-      }),
-      totalLiabilitiesPV, totalRequired
-    }
+      discountRate,
+      lifeYears,
+      expensesList,
+      pvExpensesLife,
+      goalsList,
+      pvGoals,
+      liabilityDetails,
+      totalLiabilitiesPV,
+      totalRequired
+    )
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
     a.download = 'financial-plan.json'
+    a.click()
+  }
+
+  const exportCSV = () => {
+    const csv = buildPlanCSV(profile, pvSummaryData)
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'financial-plan.csv'
     a.click()
   }
 
@@ -609,6 +620,14 @@ export default function ExpensesGoalsTab() {
           title="Export to JSON"
         >
           📁 Export to JSON
+        </button>
+        <button
+          onClick={exportCSV}
+          className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Export to CSV"
+          title="Export to CSV"
+        >
+          📊 Export to CSV
         </button>
       </div>
     </div>

@@ -12,7 +12,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
-import { buildCSV } from './utils/csvUtils'
+import { buildIncomeJSON, buildIncomeCSV } from './utils/exportHelpers'
 import {
   calculateNominalSurvival,
   calculatePVSurvival,
@@ -270,11 +270,16 @@ export default function IncomeTab() {
 
   // --- Export JSON payload ---
   const exportJSON = () => {
-    const payload = {
-      startYear, incomeSources,
-      assumptions: { discountRate, years, monthlyExpense },
-      pvPerStream, totalPV,
-    };
+    const payload = buildIncomeJSON(
+      profile,
+      startYear,
+      incomeSources,
+      discountRate,
+      years,
+      monthlyExpense,
+      pvPerStream,
+      totalPV
+    )
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -288,7 +293,7 @@ export default function IncomeTab() {
     const rows = incomeData.map(row =>
       columns.map(col => (col === 'Period' ? row.year : row[col]))
     )
-    const csv = buildCSV(columns, rows)
+    const csv = buildIncomeCSV(profile, columns, rows)
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
