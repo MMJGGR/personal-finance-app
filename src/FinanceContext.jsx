@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import { riskScoreMap } from './riskScoreConfig'
@@ -252,6 +253,7 @@ export function FinanceProvider({ children }) {
   const [settings, setSettings] = useState(() => {
     const s = storage.get('settings')
     const defaults = {
+      discountRate: 0,
       inflationRate: 5,
       expectedReturn: 8,
       currency: '',
@@ -427,16 +429,45 @@ export function FinanceProvider({ children }) {
     storage.set('monthlySurplusNominal', surplus.toString())
   }, [incomeSources, monthlyExpense])
 
+  const incomePvValue = useMemo(() => {
+    const rate = settings.discountRate ?? discountRate
+    const inflation = settings.inflationRate ?? 0
+    return incomeSources.reduce((sum, src) => {
+      const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
+      const growth = (src.growth || 0) - inflation
+      const pv = calculatePV(
+        afterTaxAmt,
+        src.frequency,
+        growth,
+        rate,
+        years
+      )
+      return sum + pv
+    }, 0)
+  }, [incomeSources, settings.discountRate, settings.inflationRate, discountRate, years])
+
+  const recalcIncomePV = useCallback(() => {
+    setIncomePV(incomePvValue)
+    storage.set('incomePV', incomePvValue.toString())
+  }, [incomePvValue])
+
   useEffect(() => {
+    recalcIncomePV()
+  }, [recalcIncomePV])
+
+  const expensesPvData = useMemo(() => {
     let high = 0
     let medium = 0
     let low = 0
+    const rate = settings.discountRate ?? discountRate
+    const inflation = settings.inflationRate ?? 0
     const totalPv = expensesList.reduce((sum, exp) => {
+      const growth = (exp.growth || 0) - inflation
       const pv = calculatePV(
         exp.amount,
         exp.paymentsPerYear,
-        exp.growth || 0,
-        discountRate,
+        growth,
+        rate,
         years
       )
       if (exp.priority === 1) high += pv
@@ -444,22 +475,33 @@ export function FinanceProvider({ children }) {
       else low += pv
       return sum + pv
     }, 0)
+    const months = years * 12
+    const avgMonthly = months > 0 ? totalPv / months : 0
+    const mHigh = months > 0 ? high / months : 0
+    const mMedium = months > 0 ? medium / months : 0
+    const mLow = months > 0 ? low / months : 0
+    return {
+      high,
+      medium,
+      low,
+      totalPv,
+      avgMonthly,
+      mHigh,
+      mMedium,
+      mLow,
+    }
+  }, [expensesList, settings.discountRate, settings.inflationRate, discountRate, years])
 
+  const recalcExpensesPV = useCallback(() => {
+    const { high, medium, low, totalPv, avgMonthly, mHigh, mMedium, mLow } = expensesPvData
     setPvHigh(high)
     storage.set('pvHigh', high.toString())
     setPvMedium(medium)
     storage.set('pvMedium', medium.toString())
     setPvLow(low)
     storage.set('pvLow', low.toString())
-
     setPvExpenses(totalPv)
     storage.set('pvExpenses', totalPv.toString())
-
-    const months = years * 12
-    const avgMonthly = months > 0 ? totalPv / months : 0
-    const mHigh = months > 0 ? high / months : 0
-    const mMedium = months > 0 ? medium / months : 0
-    const mLow = months > 0 ? low / months : 0
     setMonthlyPVExpense(avgMonthly)
     storage.set('monthlyPVExpense', avgMonthly.toString())
     setMonthlyPVHigh(mHigh)
@@ -468,7 +510,16 @@ export function FinanceProvider({ children }) {
     storage.set('monthlyPVMedium', mMedium.toString())
     setMonthlyPVLow(mLow)
     storage.set('monthlyPVLow', mLow.toString())
-  }, [expensesList, discountRate, years])
+  }, [expensesPvData])
+
+  useEffect(() => {
+    recalcExpensesPV()
+  }, [recalcExpensesPV])
+
+  useEffect(() => {
+    recalcIncomePV()
+    recalcExpensesPV()
+  }, [recalcIncomePV, recalcExpensesPV, settings.discountRate, settings.inflationRate])
 
   useEffect(() => {
     storage.set('includeMediumPV', JSON.stringify(includeMediumPV))
