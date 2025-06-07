@@ -330,7 +330,9 @@ export default function BalanceSheetTab() {
             <tr key={row.label} className="border-b last:border-none">
               <td className="py-1 pr-2 text-slate-700">{row.label}</td>
               <td className="py-1 text-right">
-                {typeof row.value === 'number'
+                {row.label === 'Debt/Asset Ratio'
+                  ? `${(row.value * 100).toFixed(1)}%`
+                  : typeof row.value === 'number'
                   ? row.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
                   : row.value}
               </td>
