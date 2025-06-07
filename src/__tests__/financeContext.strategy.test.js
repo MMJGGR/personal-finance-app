@@ -26,3 +26,16 @@ test('strategy is derived when risk score loads from storage', async () => {
   const out = await screen.findByTestId('strategy')
   expect(out.textContent).toBe('Balanced')
 })
+
+test('existing strategy is preserved', async () => {
+  localStorage.setItem('strategy', 'Growth')
+  localStorage.setItem('riskScore', '5')
+  localStorage.setItem('profile', JSON.stringify({ investmentHorizon: '3–7 years' }))
+  render(
+    <FinanceProvider>
+      <StrategyDisplay />
+    </FinanceProvider>
+  )
+  const out = await screen.findByTestId('strategy')
+  expect(out.textContent).toBe('Growth')
+})
