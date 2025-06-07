@@ -9,6 +9,12 @@ import React, {
   useMemo,
 } from 'react'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
+import {
+  selectAnnualIncome,
+  selectAnnualOutflow,
+  selectDiscountedNet,
+  selectCumulativePV
+} from './selectors'
 import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
 import storage from './utils/storage'
@@ -446,6 +452,55 @@ export function FinanceProvider({ children }) {
     storage.set('monthlySurplusNominal', surplus.toString())
   }, [incomeSources, monthlyExpense])
 
+  const annualIncome = useMemo(
+    () =>
+      selectAnnualIncome({
+        incomeSources,
+        startYear,
+        years,
+        settings
+      }),
+    [incomeSources, startYear, years, settings, profile]
+  )
+
+  const annualOutflow = useMemo(
+    () =>
+      selectAnnualOutflow({
+        expensesList,
+        goalsList,
+        startYear,
+        years,
+        settings
+      }),
+    [expensesList, goalsList, startYear, years, settings, profile]
+  )
+
+  const discountedNet = useMemo(
+    () =>
+      selectDiscountedNet({
+        incomeSources,
+        expensesList,
+        goalsList,
+        startYear,
+        years,
+        settings
+      }),
+    [incomeSources, expensesList, goalsList, startYear, years, settings, profile]
+  )
+
+  const cumulativePV = useMemo(
+    () =>
+      selectCumulativePV({
+        incomeSources,
+        expensesList,
+        goalsList,
+        startYear,
+        years,
+        settings
+      }),
+    [incomeSources, expensesList, goalsList, startYear, years, settings, profile]
+  )
+
   const incomePvValue = useMemo(() => {
     const rate = settings.discountRate ?? discountRate
     const planStart = startYear
@@ -524,6 +579,8 @@ export function FinanceProvider({ children }) {
     storage.set('pvMedium', medium.toString())
     setPvLow(low)
     storage.set('pvLow', low.toString())
+    setExpensesPV(totalPv)
+    storage.set('expensesPV', totalPv.toString())
     setPvExpenses(totalPv)
     storage.set('pvExpenses', totalPv.toString())
     setMonthlyPVExpense(avgMonthly)
@@ -741,6 +798,10 @@ export function FinanceProvider({ children }) {
       monthlyPVLow,
       monthlySurplusNominal,
       monthlyIncomeNominal,
+      annualIncome,
+      annualOutflow,
+      discountedNet,
+      cumulativePV,
       netWorth,
       debtToAssetRatio,
       humanCapitalShare,
