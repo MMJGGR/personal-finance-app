@@ -2,6 +2,14 @@ import mitt from 'mitt'
 
 const emitter = mitt()
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', event => {
+    if (event.storageArea === localStorage) {
+      emitter.emit(event.key, event.newValue)
+    }
+  })
+}
+
 const storage = {
   get(key) {
     return localStorage.getItem(key)
