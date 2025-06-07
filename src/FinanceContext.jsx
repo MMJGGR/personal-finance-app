@@ -3,6 +3,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 
+function safeParse(str, fallback) {
+  try {
+    return JSON.parse(str)
+  } catch {
+    return fallback
+  }
+}
+
 const FinanceContext = createContext()
 
 export function FinanceProvider({ children }) {
@@ -53,19 +61,19 @@ export function FinanceProvider({ children }) {
 
   const [includeMediumPV, setIncludeMediumPV] = useState(() => {
     const s = localStorage.getItem('includeMediumPV')
-    return s ? JSON.parse(s) : true
+    return s ? safeParse(s, true) : true
   })
   const [includeLowPV, setIncludeLowPV] = useState(() => {
     const s = localStorage.getItem('includeLowPV')
-    return s ? JSON.parse(s) : true
+    return s ? safeParse(s, true) : true
   })
   const [includeGoalsPV, setIncludeGoalsPV] = useState(() => {
     const s = localStorage.getItem('includeGoalsPV')
-    return s ? JSON.parse(s) : false
+    return s ? safeParse(s, false) : false
   })
   const [includeLiabilitiesNPV, setIncludeLiabilitiesNPV] = useState(() => {
     const s = localStorage.getItem('includeLiabilitiesNPV')
-    return s ? JSON.parse(s) : false
+    return s ? safeParse(s, false) : false
   })
 
   // === Derived balance sheet metrics ===
@@ -85,16 +93,15 @@ export function FinanceProvider({ children }) {
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
     const s = localStorage.getItem('incomeSources')
-    return s
-      ? JSON.parse(s)
-      : [{
-          name: 'Salary',
-          type: 'Employment',
-          amount: 10000,
-          frequency: 12,
-          growth: 5,
-          taxRate: 30,
-        }]
+    const defaults = [{
+      name: 'Salary',
+      type: 'Employment',
+      amount: 10000,
+      frequency: 12,
+      growth: 5,
+      taxRate: 30,
+    }]
+    return s ? safeParse(s, defaults) : defaults
   })
   const [startYear, setStartYear] = useState(() => {
     const s = localStorage.getItem('incomeStartYear')
@@ -125,7 +132,7 @@ export function FinanceProvider({ children }) {
   })
   const [goalsList, setGoalsList] = useState(() => {
     const s = localStorage.getItem('goalsList')
-    return s ? JSON.parse(s) : []
+    return s ? safeParse(s, []) : []
   })
 
   // === Balance Sheet assets state ===
@@ -194,18 +201,28 @@ export function FinanceProvider({ children }) {
   // === Profile & KYC fields (with lifeExpectancy) ===
   const [profile, setProfile] = useState(() => {
     const s = localStorage.getItem('profile')
-    if (s) return JSON.parse(s)
-    return {
-      name:'', email:'', phone:'', age:30,
-      maritalStatus:'', numDependents:0,
-      residentialAddress:'', nationality:'',
-      idNumber:'', taxResidence:'',
-      employmentStatus:'', annualIncome:0,
-      liquidNetWorth:0, sourceOfFunds:'',
-      investmentKnowledge:'', lossResponse:'',
-      investmentHorizon:'', investmentGoal:'',
-      lifeExpectancy:85
+    const defaults = {
+      name: '',
+      email: '',
+      phone: '',
+      age: 30,
+      maritalStatus: '',
+      numDependents: 0,
+      residentialAddress: '',
+      nationality: '',
+      idNumber: '',
+      taxResidence: '',
+      employmentStatus: '',
+      annualIncome: 0,
+      liquidNetWorth: 0,
+      sourceOfFunds: '',
+      investmentKnowledge: '',
+      lossResponse: '',
+      investmentHorizon: '',
+      investmentGoal: '',
+      lifeExpectancy: 85,
     }
+    return s ? safeParse(s, defaults) : defaults
   })
 
   // Utility to create a new asset with defaults
@@ -219,18 +236,17 @@ export function FinanceProvider({ children }) {
   // === Settings state ===
   const [settings, setSettings] = useState(() => {
     const s = localStorage.getItem('settings')
-    return s
-      ? JSON.parse(s)
-      : {
-          inflationRate: 5,
-          expectedReturn: 8,
-          currency: 'KES',
-          locale: 'en-KE',
-          apiEndpoint: '',
-          discretionaryCutThreshold: 0,
-          survivalThresholdMonths: 0,
-          bufferPct: 0,
-        }
+    const defaults = {
+      inflationRate: 5,
+      expectedReturn: 8,
+      currency: 'KES',
+      locale: 'en-KE',
+      apiEndpoint: '',
+      discretionaryCutThreshold: 0,
+      survivalThresholdMonths: 0,
+      bufferPct: 0,
+    }
+    return s ? safeParse(s, defaults) : defaults
   })
 
   // === Risk scoring ===
@@ -386,24 +402,31 @@ export function FinanceProvider({ children }) {
 
     const sProf = localStorage.getItem('profile')
     if (sProf) {
-      const p = JSON.parse(sProf)
-      setProfile(p)
-      setRiskScore(calculateRiskScore(p))
+      const p = safeParse(sProf, null)
+      if (p) {
+        setProfile(p)
+        setRiskScore(calculateRiskScore(p))
+      }
     }
 
     const sSet = localStorage.getItem('settings')
     if (sSet) {
-      const parsed = JSON.parse(sSet)
-      setSettings({
-        discretionaryCutThreshold: 0,
-        survivalThresholdMonths: 0,
-        bufferPct: 0,
-        ...parsed,
-      })
+      const parsed = safeParse(sSet, null)
+      if (parsed) {
+        setSettings({
+          discretionaryCutThreshold: 0,
+          survivalThresholdMonths: 0,
+          bufferPct: 0,
+          ...parsed,
+        })
+      }
     }
 
     const sInc = localStorage.getItem('incomeSources')
-    if (sInc) setIncomeSources(JSON.parse(sInc))
+    if (sInc) {
+      const parsed = safeParse(sInc, null)
+      if (parsed) setIncomeSources(parsed)
+    }
     const sSY = localStorage.getItem('incomeStartYear')
     if (sSY) setStartYear(+sSY)
 
@@ -424,7 +447,10 @@ export function FinanceProvider({ children }) {
       }
     }
     const sG = localStorage.getItem('goalsList')
-    if (sG) setGoalsList(JSON.parse(sG))
+    if (sG) {
+      const parsed = safeParse(sG, null)
+      if (parsed) setGoalsList(parsed)
+    }
 
     const sA = localStorage.getItem('assetsList')
     if (sA) {
@@ -486,13 +512,13 @@ export function FinanceProvider({ children }) {
     if (hcs) setHumanCapitalShare(+hcs)
 
     const incMed = localStorage.getItem('includeMediumPV')
-    if (incMed) setIncludeMediumPV(JSON.parse(incMed))
+    if (incMed) setIncludeMediumPV(safeParse(incMed, true))
     const incLow = localStorage.getItem('includeLowPV')
-    if (incLow) setIncludeLowPV(JSON.parse(incLow))
+    if (incLow) setIncludeLowPV(safeParse(incLow, true))
     const incGoals = localStorage.getItem('includeGoalsPV')
-    if (incGoals) setIncludeGoalsPV(JSON.parse(incGoals))
+    if (incGoals) setIncludeGoalsPV(safeParse(incGoals, false))
     const incLiab = localStorage.getItem('includeLiabilitiesNPV')
-    if (incLiab) setIncludeLiabilitiesNPV(JSON.parse(incLiab))
+    if (incLiab) setIncludeLiabilitiesNPV(safeParse(incLiab, false))
   }, [])
 
   return (
