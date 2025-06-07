@@ -15,6 +15,7 @@ import { useFinance } from './FinanceContext'
 import LTCMA from './ltcmaAssumptions'
 import InvestmentStrategies from './investmentStrategies'
 import { formatCurrency } from './utils/formatters'
+import AdequacyAlert from './AdequacyAlert'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
@@ -200,6 +201,9 @@ export default function BalanceSheetTab() {
   return (
     <div className="space-y-6 p-6">
       <h2 className="text-xl font-semibold text-amber-700">Lifetime Balance Sheet</h2>
+      <a href="#adequacy-alert" className="text-sm underline text-amber-700 block">
+        View Funding Gaps
+      </a>
 
       <div className="mb-4 space-x-2">
         <label className="font-medium">Strategy:</label>
@@ -449,6 +453,7 @@ export default function BalanceSheetTab() {
           </ResponsiveContainer>
         </div>
       </div>
+      <AdequacyAlert />
     </div>
   )
 }

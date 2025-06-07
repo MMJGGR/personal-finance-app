@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`shows funding gaps table 1`] = `
+<div
+  class="bg-red-50 border border-red-300 p-4 rounded-lg"
+  id="adequacy-alert"
+>
+  <h3
+    class="text-red-700 font-semibold mb-2"
+  >
+    Adequacy Alert
+  </h3>
+  <table
+    class="w-full text-sm"
+  >
+    <thead>
+      <tr
+        class="text-left"
+      >
+        <th
+          class="py-1 pr-2"
+        >
+          Year
+        </th>
+        <th
+          class="py-1"
+        >
+          Funding Gap
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="border-t"
+      >
+        <td
+          class="py-1 pr-2"
+        >
+          2025
+        </td>
+        <td
+          class="py-1 text-right"
+        >
+          Ksh 500.00
+        </td>
+      </tr>
+      <tr
+        class="border-t"
+      >
+        <td
+          class="py-1 pr-2"
+        >
+          2026
+        </td>
+        <td
+          class="py-1 text-right"
+        >
+          Ksh 1,000.00
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
