@@ -44,16 +44,36 @@ export default function BalanceSheetTab() {
   const totalAssets = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
   const totalLiabilities = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || 0), 0)
   const netWorth = totalAssets - totalLiabilities
+  const debtAssetRatio = totalAssets > 0 ? totalLiabilities / totalAssets : 0
 
   const addAsset = () =>
     setAssetsList([...assetsList, createAsset()])
   const addLiability = () =>
     setLiabilitiesList([...liabilitiesList, { id: crypto.randomUUID(), name: '', amount: 0 }])
 
+  const validateAsset = (asset, idx, list) => {
+    if (
+      list.some((a, i) => i !== idx && a.name && a.name.toLowerCase() === asset.name.toLowerCase())
+    ) {
+      alert('Asset names must be unique.')
+      return false
+    }
+    const er = asset.expectedReturn ?? 0
+    const vol = asset.volatility ?? 0
+    if (er < 0 || er > 20 || vol < 0 || vol > 30) {
+      alert('Expected return must be 0-20% and volatility 0-30%.')
+      return false
+    }
+    return true
+  }
+
   const updateItem = (setList, list, index, field, value) => {
-    const updated = list.map((it, i) =>
-      i === index ? { ...it, [field]: field === 'amount' ? Number(value) : value } : it
-    )
+    const updatedItem = {
+      ...list[index],
+      [field]: field === 'amount' ? Number(value) : value,
+    }
+    const updated = list.map((it, i) => (i === index ? updatedItem : it))
+    if (setList === setAssetsList && !validateAsset(updatedItem, index, list)) return
     setList(updated)
   }
 
@@ -136,6 +156,9 @@ export default function BalanceSheetTab() {
 
       <div className="text-md text-slate-700 italic">
         Net Worth: <span className="text-2xl font-bold text-amber-700">KES {netWorth.toLocaleString()}</span>
+        {debtAssetRatio > 1 && (
+          <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtAssetRatio * 100).toFixed(1)}%).</span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
