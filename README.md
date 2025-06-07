@@ -160,3 +160,8 @@ Testers can mirror these values in a spreadsheet using the formula:
 Net Worth = Assets - Liabilities + Income PV - Expenses PV - Goals PV
 ```
 With the example figures above the spreadsheet result should match **KES 1,580,000**.
+
+## License
+
+This project is proprietary. All rights are reserved and it is not covered by an open-source license. Redistribution is prohibited without written permission.
+
