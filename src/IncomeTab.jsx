@@ -26,6 +26,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { formatCurrency } from './utils/formatters'
+import storage from './utils/storage'
 
 export default function IncomeTab() {
   const {
@@ -230,7 +231,7 @@ export default function IncomeTab() {
   // 4. Sync totalPV back into context & localStorage
   useEffect(() => {
     setIncomePV(totalPV);
-    localStorage.setItem('incomePV', totalPV.toString());
+    storage.set('incomePV', totalPV.toString());
   }, [totalPV, setIncomePV]);
 
 

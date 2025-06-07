@@ -10,6 +10,7 @@ import React, {
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
+import storage from './utils/storage'
 
 const DEFAULT_CURRENCY_MAP = {
   Kenyan: 'KES',
@@ -32,7 +33,7 @@ export function FinanceProvider({ children }) {
   const [discountRate, setDiscountRate]     = useState(0)
   const [years, setYears]                   = useState(1)
   const [monthlyExpense, setMonthlyExpense] = useState(() => {
-    const s = localStorage.getItem('monthlyExpense')
+    const s = storage.get('monthlyExpense')
     return s ? parseFloat(s) : 0
   })
   const [incomePV, setIncomePV]             = useState(0)
@@ -40,73 +41,73 @@ export function FinanceProvider({ children }) {
   const [pvExpenses, setPvExpenses]         = useState(0)
   const [monthlyPVExpense, setMonthlyPVExpense] = useState(0)
   const [monthlySurplusNominal, setMonthlySurplusNominal] = useState(() => {
-    const s = localStorage.getItem('monthlySurplusNominal')
+    const s = storage.get('monthlySurplusNominal')
     return s ? parseFloat(s) : 0
   })
   const [monthlyIncomeNominal, setMonthlyIncomeNominal] = useState(() => {
-    const s = localStorage.getItem('monthlyIncomeNominal')
+    const s = storage.get('monthlyIncomeNominal')
     return s ? parseFloat(s) : 0
   })
 
   const [pvHigh, setPvHigh] = useState(() => {
-    const s = localStorage.getItem('pvHigh')
+    const s = storage.get('pvHigh')
     return s ? parseFloat(s) : 0
   })
   const [pvMedium, setPvMedium] = useState(() => {
-    const s = localStorage.getItem('pvMedium')
+    const s = storage.get('pvMedium')
     return s ? parseFloat(s) : 0
   })
   const [pvLow, setPvLow] = useState(() => {
-    const s = localStorage.getItem('pvLow')
+    const s = storage.get('pvLow')
     return s ? parseFloat(s) : 0
   })
   const [monthlyPVHigh, setMonthlyPVHigh] = useState(() => {
-    const s = localStorage.getItem('monthlyPVHigh')
+    const s = storage.get('monthlyPVHigh')
     return s ? parseFloat(s) : 0
   })
   const [monthlyPVMedium, setMonthlyPVMedium] = useState(() => {
-    const s = localStorage.getItem('monthlyPVMedium')
+    const s = storage.get('monthlyPVMedium')
     return s ? parseFloat(s) : 0
   })
   const [monthlyPVLow, setMonthlyPVLow] = useState(() => {
-    const s = localStorage.getItem('monthlyPVLow')
+    const s = storage.get('monthlyPVLow')
     return s ? parseFloat(s) : 0
   })
 
   const [includeMediumPV, setIncludeMediumPV] = useState(() => {
-    const s = localStorage.getItem('includeMediumPV')
+    const s = storage.get('includeMediumPV')
     return s ? safeParse(s, true) : true
   })
   const [includeLowPV, setIncludeLowPV] = useState(() => {
-    const s = localStorage.getItem('includeLowPV')
+    const s = storage.get('includeLowPV')
     return s ? safeParse(s, true) : true
   })
   const [includeGoalsPV, setIncludeGoalsPV] = useState(() => {
-    const s = localStorage.getItem('includeGoalsPV')
+    const s = storage.get('includeGoalsPV')
     return s ? safeParse(s, false) : false
   })
   const [includeLiabilitiesNPV, setIncludeLiabilitiesNPV] = useState(() => {
-    const s = localStorage.getItem('includeLiabilitiesNPV')
+    const s = storage.get('includeLiabilitiesNPV')
     return s ? safeParse(s, false) : false
   })
 
   // === Derived balance sheet metrics ===
   const [netWorth, setNetWorth] = useState(() => {
-    const s = localStorage.getItem('netWorth')
+    const s = storage.get('netWorth')
     return s ? parseFloat(s) : 0
   })
   const [debtToAssetRatio, setDebtToAssetRatio] = useState(() => {
-    const s = localStorage.getItem('debtToAssetRatio')
+    const s = storage.get('debtToAssetRatio')
     return s ? parseFloat(s) : 0
   })
   const [humanCapitalShare, setHumanCapitalShare] = useState(() => {
-    const s = localStorage.getItem('humanCapitalShare')
+    const s = storage.get('humanCapitalShare')
     return s ? parseFloat(s) : 0
   })
 
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
-    const s = localStorage.getItem('incomeSources')
+    const s = storage.get('incomeSources')
     const defaults = [{
       name: 'Salary',
       type: 'Employment',
@@ -118,13 +119,13 @@ export function FinanceProvider({ children }) {
     return s ? safeParse(s, defaults) : defaults
   })
   const [startYear, setStartYear] = useState(() => {
-    const s = localStorage.getItem('incomeStartYear')
+    const s = storage.get('incomeStartYear')
     return s ? Number(s) : new Date().getFullYear()
   })
 
   // === Expenses & Goals state ===
   const [expensesList, setExpensesList] = useState(() => {
-    const s = localStorage.getItem('expensesList')
+    const s = storage.get('expensesList')
     if (!s) return []
     try {
       const parsed = JSON.parse(s)
@@ -145,13 +146,13 @@ export function FinanceProvider({ children }) {
     }
   })
   const [goalsList, setGoalsList] = useState(() => {
-    const s = localStorage.getItem('goalsList')
+    const s = storage.get('goalsList')
     return s ? safeParse(s, []) : []
   })
 
   // === Balance Sheet assets state ===
   const [assetsList, setAssetsList] = useState(() => {
-    const s = localStorage.getItem('assetsList')
+    const s = storage.get('assetsList')
     if (s) {
       try {
         const parsed = JSON.parse(s)
@@ -200,7 +201,7 @@ export function FinanceProvider({ children }) {
 
   // === Liabilities (Loans) state ===
   const [liabilitiesList, setLiabilitiesList] = useState(() => {
-    const s = localStorage.getItem('liabilitiesList')
+    const s = storage.get('liabilitiesList')
     if (s) {
       try {
         const parsed = JSON.parse(s)
@@ -214,7 +215,7 @@ export function FinanceProvider({ children }) {
 
   // === Profile & KYC fields (with lifeExpectancy) ===
   const [profile, setProfile] = useState(() => {
-    const s = localStorage.getItem('profile')
+    const s = storage.get('profile')
     const defaults = {
       name: '', // FIXME: unused - pending integration
       email: '', // FIXME: unused - pending integration
@@ -249,7 +250,7 @@ export function FinanceProvider({ children }) {
 
   // === Settings state ===
   const [settings, setSettings] = useState(() => {
-    const s = localStorage.getItem('settings')
+    const s = storage.get('settings')
     const defaults = {
       inflationRate: 5,
       expectedReturn: 8,
@@ -283,31 +284,31 @@ export function FinanceProvider({ children }) {
 
   // === Derived strategy ===
   const [strategy, setStrategy] = useState(() =>
-    localStorage.getItem('strategy') || ''
+    storage.get('strategy') || ''
   )
 
   useEffect(() => {
-    if (!localStorage.getItem('strategy')) {
+    if (!storage.get('strategy')) {
       setStrategy(deriveStrategy(riskScore, profile.investmentHorizon))
     }
   }, [riskScore, profile.investmentHorizon])
 
   useEffect(() => {
-    if (strategy) localStorage.setItem('strategy', strategy)
+    if (strategy) storage.set('strategy', strategy)
   }, [strategy])
 
   // === Updaters that persist to localStorage ===
   const updateSettings = useCallback(updated => {
     setSettings(updated)
-    localStorage.setItem('settings', JSON.stringify(updated))
+    storage.set('settings', JSON.stringify(updated))
   }, [])
 
   const updateProfile = useCallback(updated => {
     setProfile(updated)
-    localStorage.setItem('profile', JSON.stringify(updated))
+    storage.set('profile', JSON.stringify(updated))
     const score = calculateRiskScore(updated)
     setRiskScore(score)
-    localStorage.setItem('riskScore', score)
+    storage.set('riskScore', score)
     if (!settings.currency) {
       const cur = DEFAULT_CURRENCY_MAP[updated.nationality]
       if (cur) updateSettings({ ...settings, currency: cur })
@@ -325,7 +326,7 @@ export function FinanceProvider({ children }) {
   // === Load default Hadi persona if no data present ===
   useEffect(() => {
     async function loadSeed() {
-      if (localStorage.getItem('profile')) return
+      if (storage.get('profile')) return
       if (typeof fetch !== 'function') return
       try {
         const res = await fetch('/hadiSeed.json')
@@ -398,12 +399,12 @@ export function FinanceProvider({ children }) {
   ])
 
   // === Persist state slices ===
-  useEffect(() => { localStorage.setItem('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
-  useEffect(() => { localStorage.setItem('incomeStartYear', String(startYear)) }, [startYear])
-  useEffect(() => { localStorage.setItem('expensesList', JSON.stringify(expensesList)) }, [expensesList])
-  useEffect(() => { localStorage.setItem('goalsList', JSON.stringify(goalsList)) }, [goalsList])
-  useEffect(() => { localStorage.setItem('assetsList', JSON.stringify(assetsList)) }, [assetsList])
-  useEffect(() => { localStorage.setItem('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
+  useEffect(() => { storage.set('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
+  useEffect(() => { storage.set('incomeStartYear', String(startYear)) }, [startYear])
+  useEffect(() => { storage.set('expensesList', JSON.stringify(expensesList)) }, [expensesList])
+  useEffect(() => { storage.set('goalsList', JSON.stringify(goalsList)) }, [goalsList])
+  useEffect(() => { storage.set('assetsList', JSON.stringify(assetsList)) }, [assetsList])
+  useEffect(() => { storage.set('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
 
   useEffect(() => {
     const monthlyTotal = expensesList.reduce((sum, e) => {
@@ -411,7 +412,7 @@ export function FinanceProvider({ children }) {
       return sum + amt * (e.paymentsPerYear / 12)
     }, 0)
     setMonthlyExpense(monthlyTotal)
-    localStorage.setItem('monthlyExpense', monthlyTotal.toString())
+    storage.set('monthlyExpense', monthlyTotal.toString())
   }, [expensesList])
 
   useEffect(() => {
@@ -420,10 +421,10 @@ export function FinanceProvider({ children }) {
       return sum + (afterTax * src.frequency) / 12
     }, 0)
     setMonthlyIncomeNominal(monthlyIncome)
-    localStorage.setItem('monthlyIncomeNominal', monthlyIncome.toString())
+    storage.set('monthlyIncomeNominal', monthlyIncome.toString())
     const surplus = monthlyIncome - monthlyExpense
     setMonthlySurplusNominal(surplus)
-    localStorage.setItem('monthlySurplusNominal', surplus.toString())
+    storage.set('monthlySurplusNominal', surplus.toString())
   }, [incomeSources, monthlyExpense])
 
   useEffect(() => {
@@ -445,14 +446,14 @@ export function FinanceProvider({ children }) {
     }, 0)
 
     setPvHigh(high)
-    localStorage.setItem('pvHigh', high.toString())
+    storage.set('pvHigh', high.toString())
     setPvMedium(medium)
-    localStorage.setItem('pvMedium', medium.toString())
+    storage.set('pvMedium', medium.toString())
     setPvLow(low)
-    localStorage.setItem('pvLow', low.toString())
+    storage.set('pvLow', low.toString())
 
     setPvExpenses(totalPv)
-    localStorage.setItem('pvExpenses', totalPv.toString())
+    storage.set('pvExpenses', totalPv.toString())
 
     const months = years * 12
     const avgMonthly = months > 0 ? totalPv / months : 0
@@ -460,26 +461,26 @@ export function FinanceProvider({ children }) {
     const mMedium = months > 0 ? medium / months : 0
     const mLow = months > 0 ? low / months : 0
     setMonthlyPVExpense(avgMonthly)
-    localStorage.setItem('monthlyPVExpense', avgMonthly.toString())
+    storage.set('monthlyPVExpense', avgMonthly.toString())
     setMonthlyPVHigh(mHigh)
-    localStorage.setItem('monthlyPVHigh', mHigh.toString())
+    storage.set('monthlyPVHigh', mHigh.toString())
     setMonthlyPVMedium(mMedium)
-    localStorage.setItem('monthlyPVMedium', mMedium.toString())
+    storage.set('monthlyPVMedium', mMedium.toString())
     setMonthlyPVLow(mLow)
-    localStorage.setItem('monthlyPVLow', mLow.toString())
+    storage.set('monthlyPVLow', mLow.toString())
   }, [expensesList, discountRate, years])
 
   useEffect(() => {
-    localStorage.setItem('includeMediumPV', JSON.stringify(includeMediumPV))
+    storage.set('includeMediumPV', JSON.stringify(includeMediumPV))
   }, [includeMediumPV])
   useEffect(() => {
-    localStorage.setItem('includeLowPV', JSON.stringify(includeLowPV))
+    storage.set('includeLowPV', JSON.stringify(includeLowPV))
   }, [includeLowPV])
   useEffect(() => {
-    localStorage.setItem('includeGoalsPV', JSON.stringify(includeGoalsPV))
+    storage.set('includeGoalsPV', JSON.stringify(includeGoalsPV))
   }, [includeGoalsPV])
   useEffect(() => {
-    localStorage.setItem('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV))
+    storage.set('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV))
   }, [includeLiabilitiesNPV])
 
   useEffect(() => {
@@ -503,23 +504,23 @@ export function FinanceProvider({ children }) {
     const hcs = assetTotal > 0 ? incomePV / assetTotal : 0
 
     setNetWorth(nw)
-    localStorage.setItem('netWorth', nw.toString())
+    storage.set('netWorth', nw.toString())
     setDebtToAssetRatio(dar)
-    localStorage.setItem('debtToAssetRatio', dar.toString())
+    storage.set('debtToAssetRatio', dar.toString())
     setHumanCapitalShare(hcs)
-    localStorage.setItem('humanCapitalShare', hcs.toString())
+    storage.set('humanCapitalShare', hcs.toString())
   }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
 
   // === Auto-load persisted state on mount ===
   useEffect(() => {
-    const ip = localStorage.getItem('incomePV')
+    const ip = storage.get('incomePV')
     if (ip) setIncomePV(+ip)
-    const ep = localStorage.getItem('expensesPV')
+    const ep = storage.get('expensesPV')
     if (ep) setExpensesPV(+ep)
 
-    const rs = localStorage.getItem('riskScore')
+    const rs = storage.get('riskScore')
 
-    const sProf = localStorage.getItem('profile')
+    const sProf = storage.get('profile')
     let loadedProfile = null
     if (sProf) {
       const p = safeParse(sProf, null)
@@ -535,7 +536,7 @@ export function FinanceProvider({ children }) {
       setRiskScore(calculateRiskScore(loadedProfile))
     }
 
-    const sSet = localStorage.getItem('settings')
+    const sSet = storage.get('settings')
     if (sSet) {
       const parsed = safeParse(sSet, null)
       if (parsed) {
@@ -548,15 +549,15 @@ export function FinanceProvider({ children }) {
       }
     }
 
-    const sInc = localStorage.getItem('incomeSources')
+    const sInc = storage.get('incomeSources')
     if (sInc) {
       const parsed = safeParse(sInc, null)
       if (parsed) setIncomeSources(parsed)
     }
-    const sSY = localStorage.getItem('incomeStartYear')
+    const sSY = storage.get('incomeStartYear')
     if (sSY) setStartYear(+sSY)
 
-    const sExp = localStorage.getItem('expensesList')
+    const sExp = storage.get('expensesList')
     if (sExp) {
       try {
         const parsed = JSON.parse(sExp)
@@ -572,13 +573,13 @@ export function FinanceProvider({ children }) {
         // ignore malformed stored data
       }
     }
-    const sG = localStorage.getItem('goalsList')
+    const sG = storage.get('goalsList')
     if (sG) {
       const parsed = safeParse(sG, null)
       if (parsed) setGoalsList(parsed)
     }
 
-    const sA = localStorage.getItem('assetsList')
+    const sA = storage.get('assetsList')
     if (sA) {
       try {
         const parsed = JSON.parse(sA)
@@ -597,7 +598,7 @@ export function FinanceProvider({ children }) {
       }
     }
 
-    const sL = localStorage.getItem('liabilitiesList')
+    const sL = storage.get('liabilitiesList')
     if (sL) {
       try {
         const parsed = JSON.parse(sL)
@@ -607,43 +608,43 @@ export function FinanceProvider({ children }) {
       }
     }
 
-    const me = localStorage.getItem('monthlyExpense')
+    const me = storage.get('monthlyExpense')
     if (me) setMonthlyExpense(+me)
 
-    const pvE = localStorage.getItem('pvExpenses')
+    const pvE = storage.get('pvExpenses')
     if (pvE) setPvExpenses(+pvE)
-    const mpvE = localStorage.getItem('monthlyPVExpense')
+    const mpvE = storage.get('monthlyPVExpense')
     if (mpvE) setMonthlyPVExpense(+mpvE)
-    const ms = localStorage.getItem('monthlySurplusNominal')
+    const ms = storage.get('monthlySurplusNominal')
     if (ms) setMonthlySurplusNominal(+ms)
-    const mi = localStorage.getItem('monthlyIncomeNominal')
+    const mi = storage.get('monthlyIncomeNominal')
     if (mi) setMonthlyIncomeNominal(+mi)
-    const ph = localStorage.getItem('pvHigh')
+    const ph = storage.get('pvHigh')
     if (ph) setPvHigh(+ph)
-    const pm = localStorage.getItem('pvMedium')
+    const pm = storage.get('pvMedium')
     if (pm) setPvMedium(+pm)
-    const pl = localStorage.getItem('pvLow')
+    const pl = storage.get('pvLow')
     if (pl) setPvLow(+pl)
-    const mph = localStorage.getItem('monthlyPVHigh')
+    const mph = storage.get('monthlyPVHigh')
     if (mph) setMonthlyPVHigh(+mph)
-    const mpm = localStorage.getItem('monthlyPVMedium')
+    const mpm = storage.get('monthlyPVMedium')
     if (mpm) setMonthlyPVMedium(+mpm)
-    const mpl = localStorage.getItem('monthlyPVLow')
+    const mpl = storage.get('monthlyPVLow')
     if (mpl) setMonthlyPVLow(+mpl)
-    const nw = localStorage.getItem('netWorth')
+    const nw = storage.get('netWorth')
     if (nw) setNetWorth(+nw)
-    const dar = localStorage.getItem('debtToAssetRatio')
+    const dar = storage.get('debtToAssetRatio')
     if (dar) setDebtToAssetRatio(+dar)
-    const hcs = localStorage.getItem('humanCapitalShare')
+    const hcs = storage.get('humanCapitalShare')
     if (hcs) setHumanCapitalShare(+hcs)
 
-    const incMed = localStorage.getItem('includeMediumPV')
+    const incMed = storage.get('includeMediumPV')
     if (incMed) setIncludeMediumPV(safeParse(incMed, true))
-    const incLow = localStorage.getItem('includeLowPV')
+    const incLow = storage.get('includeLowPV')
     if (incLow) setIncludeLowPV(safeParse(incLow, true))
-    const incGoals = localStorage.getItem('includeGoalsPV')
+    const incGoals = storage.get('includeGoalsPV')
     if (incGoals) setIncludeGoalsPV(safeParse(incGoals, false))
-    const incLiab = localStorage.getItem('includeLiabilitiesNPV')
+    const incLiab = storage.get('includeLiabilitiesNPV')
     if (incLiab) setIncludeLiabilitiesNPV(safeParse(incLiab, false))
   }, [])
 

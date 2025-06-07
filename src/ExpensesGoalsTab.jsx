@@ -10,6 +10,7 @@ import generateLoanAdvice from './utils/loanAdvisoryEngine'
 import AdviceDashboard from './AdviceDashboard'
 import calcDiscretionaryAdvice from './utils/discretionaryUtils'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from './utils/exportHelpers'
+import storage from './utils/storage'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
@@ -156,7 +157,7 @@ export default function ExpensesGoalsTab() {
 
   useEffect(() => {
     setExpensesPV(pvExpensesLife)
-    localStorage.setItem('expensesPV', pvExpensesLife.toString())
+    storage.set('expensesPV', pvExpensesLife.toString())
   }, [pvExpensesLife, setExpensesPV])
 
   // --- 3) PV of Goals ---
