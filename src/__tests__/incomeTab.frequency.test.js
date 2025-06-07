@@ -1,7 +1,8 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { FinanceProvider } from '../FinanceContext'
 import IncomeTab from '../IncomeTab'
+import { FREQUENCY_LABELS } from '../constants'
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -11,14 +12,14 @@ beforeAll(() => {
   }
 })
 
-test('frequency below 1 is corrected to 1', () => {
+test('frequency dropdown offers valid choices', () => {
   render(
     <FinanceProvider>
       <IncomeTab />
     </FinanceProvider>
   )
 
-  const input = screen.getAllByTitle('Payments per year')[0]
-  fireEvent.change(input, { target: { value: '0' } })
-  expect(input.value).toBe('1')
+  const select = screen.getAllByTitle('Payments per year')[0]
+  const labels = Array.from(select.options).map(o => o.textContent)
+  expect(labels).toEqual(FREQUENCY_LABELS)
 })
