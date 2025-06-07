@@ -523,6 +523,26 @@ export function FinanceProvider({ children }) {
     [expensesList, goalsList, startYear, years, settings, profile]
   )
 
+  const discountedNetSeries = useMemo(
+    () => {
+      const incomePVSeries = selectAnnualIncomePV({
+        incomeSources,
+        startYear,
+        years,
+        settings
+      })
+      const out = selectAnnualOutflow({
+        expensesList,
+        goalsList,
+        startYear,
+        years,
+        settings
+      })
+      return incomePVSeries.map((pv, idx) => pv - out[idx])
+    },
+    [incomeSources, expensesList, goalsList, startYear, years, settings]
+  )
+
   const discountedNet = useMemo(
     () =>
       selectDiscountedNet({
@@ -855,6 +875,7 @@ export function FinanceProvider({ children }) {
       annualIncome,
       annualIncomePV,
       annualOutflow,
+      discountedNetSeries,
       discountedNet,
       cumulativePV,
       netWorth,
