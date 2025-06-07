@@ -12,7 +12,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
-import { buildIncomeJSON, buildIncomeCSV } from './utils/exportHelpers'
+import { buildIncomeJSON, buildIncomeCSV, submitProfile } from './utils/exportHelpers'
 import {
   calculateNominalSurvival,
   calculatePVSurvival,
@@ -300,6 +300,20 @@ export default function IncomeTab() {
     a.href = url;
     a.download = 'income-data.csv';
     a.click();
+  };
+
+  const submitToAPI = () => {
+    const payload = buildIncomeJSON(
+      profile,
+      startYear,
+      incomeSources,
+      discountRate,
+      years,
+      monthlyExpense,
+      pvPerStream,
+      totalPV
+    )
+    submitProfile(payload, settings)
   };
 
   const triggerPrint = () => window.print();
@@ -672,6 +686,14 @@ export default function IncomeTab() {
           title="Export CSV"
         >
           📊 Export CSV
+        </button>
+        <button
+          onClick={submitToAPI}
+          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Submit income to API"
+          title="Submit income to API"
+        >
+          🚀 Submit to API
         </button>
         <button
           onClick={triggerPrint}

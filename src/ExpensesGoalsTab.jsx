@@ -9,7 +9,7 @@ import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import generateLoanAdvice from './utils/loanAdvisoryEngine'
 import AdviceDashboard from './AdviceDashboard'
 import calcDiscretionaryAdvice from './utils/discretionaryUtils'
-import { buildPlanJSON, buildPlanCSV } from './utils/exportHelpers'
+import { buildPlanJSON, buildPlanCSV, submitProfile } from './utils/exportHelpers'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
@@ -285,6 +285,22 @@ export default function ExpensesGoalsTab() {
     a.href = url
     a.download = 'financial-plan.csv'
     a.click()
+  }
+
+  const submitToAPI = () => {
+    const payload = buildPlanJSON(
+      profile,
+      discountRate,
+      lifeYears,
+      expensesList,
+      pvExpensesLife,
+      goalsList,
+      pvGoals,
+      liabilityDetails,
+      totalLiabilitiesPV,
+      totalRequired
+    )
+    submitProfile(payload, settings)
   }
 
   const COLORS = ['#fbbf24','#f59e0b','#fcd34d','#fde68a','#eab308']
@@ -628,6 +644,14 @@ export default function ExpensesGoalsTab() {
           title="Export to CSV"
         >
           📊 Export to CSV
+        </button>
+        <button
+          onClick={submitToAPI}
+          className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Submit plan to API"
+          title="Submit plan to API"
+        >
+          🚀 Submit to API
         </button>
       </div>
     </div>

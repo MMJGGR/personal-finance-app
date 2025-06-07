@@ -55,3 +55,17 @@ export function buildPlanCSV(profile, pvSummaryData = []) {
   const data = buildCSV(columns, rows)
   return header + '\n' + data
 }
+
+export async function submitProfile(payload = {}, settings = {}) {
+  if (!settings.apiEndpoint) return
+  if (typeof fetch !== 'function') return
+  try {
+    await fetch(settings.apiEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+  } catch (err) {
+    console.error('Failed to submit profile', err)
+  }
+}
