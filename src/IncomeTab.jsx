@@ -10,6 +10,7 @@
  */
 
 import React, { useMemo, useEffect, useState } from 'react';
+import { FREQUENCIES, FREQUENCY_LABELS } from './constants';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from './utils/exportHelpers'
@@ -436,16 +437,16 @@ export default function IncomeTab() {
               />
 
               <label className="block text-sm font-medium mt-2">Frequency (/yr)</label>
-              <input
-                type="number"
-                className="w-full border p-2 rounded-md invalid:border-red-500"
+              <select
+                className="w-full border p-2 rounded-md"
                 value={src.frequency}
                 onChange={e => onFieldChange(i, 'frequency', e.target.value)}
-                min={1}
-                step={1}
-                required
                 title="Payments per year"
-              />
+              >
+                {FREQUENCY_LABELS.map(label => (
+                  <option key={label} value={FREQUENCIES[label]}>{label}</option>
+                ))}
+              </select>
 
               <label className="block text-sm font-medium mt-2">Growth Rate (%)</label>
               <input
