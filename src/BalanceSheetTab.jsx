@@ -23,6 +23,7 @@ export default function BalanceSheetTab() {
   const {
     incomePV,
     expensesPV,
+    cumulativePV,
     assetsList,
     setAssetsList,
     createAsset,
@@ -105,8 +106,16 @@ export default function BalanceSheetTab() {
   }, [expensesPV, setLiabilitiesList])
 
   const totalAssets = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
-  const totalLiabilities = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || l.principal || 0), 0)
-  const netWorth = totalAssets - totalLiabilities
+  const totalLiabilities = liabilitiesList.reduce(
+    (sum, l) => sum + Number(l.amount || l.principal || 0),
+    0
+  )
+
+  const pvIncome = assetsList.find(a => a.id === 'pv-income')?.amount || 0
+  const pvExpenses = liabilitiesList.find(l => l.id === 'pv-expenses')?.amount || 0
+  const baseNetWorth = totalAssets - pvIncome - (totalLiabilities - pvExpenses)
+  const futurePV = cumulativePV[cumulativePV.length - 1] || 0
+  const netWorth = baseNetWorth + futurePV
   const debtAssetRatio = totalAssets > 0 ? totalLiabilities / totalAssets : 0
 
   const currentYear = new Date().getFullYear()
