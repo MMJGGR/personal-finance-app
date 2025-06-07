@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import {
   BarChart,
   Bar,
@@ -31,19 +31,11 @@ export default function BalanceSheetTab() {
     discountRate,
     humanCapitalShare,
     settings,
-    riskScore,
+    strategy,
+    setStrategy,
   } = useFinance()
 
-  const [strategy, setStrategy] = useState('')
   const [expandedAssets, setExpandedAssets] = useState({})
-
-  // Initialize strategy based on risk score once on mount
-  useEffect(() => {
-    if (strategy) return
-    if (riskScore <= 6) setStrategy('Conservative')
-    else if (riskScore <= 12) setStrategy('Balanced')
-    else setStrategy('Growth')
-  }, [riskScore, strategy])
 
   const assetReturn = useMemo(() => {
     const total = assetsList.reduce((s, a) => s + Number(a.amount || 0), 0)

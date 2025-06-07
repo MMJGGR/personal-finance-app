@@ -9,6 +9,7 @@ import React, {
 } from 'react'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import { riskScoreMap } from './riskScoreConfig'
+import { deriveStrategy } from './utils/strategyUtils'
 
 function safeParse(str, fallback) {
   try {
@@ -268,6 +269,22 @@ export function FinanceProvider({ children }) {
     const capAdj = p.liquidNetWorth > p.annualIncome ? 2 : 1
     return s + capAdj
   }
+
+  // === Derived strategy ===
+  const [strategy, setStrategy] = useState(() =>
+    localStorage.getItem('strategy') || ''
+  )
+
+  useEffect(() => {
+    if (!strategy) {
+      const derived = deriveStrategy(riskScore, profile.investmentHorizon)
+      setStrategy(derived)
+    }
+  }, [riskScore, profile.investmentHorizon, strategy])
+
+  useEffect(() => {
+    if (strategy) localStorage.setItem('strategy', strategy)
+  }, [strategy])
 
   // === Updaters that persist to localStorage ===
   const updateProfile = useCallback(updated => {
@@ -650,6 +667,7 @@ export function FinanceProvider({ children }) {
       // Profile & lifeExpectancy
       profile,       updateProfile,
       riskScore,
+      strategy,     setStrategy,
 
       // Settings
       settings,      updateSettings
