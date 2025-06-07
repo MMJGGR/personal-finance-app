@@ -36,4 +36,30 @@ describe('storage helpers', () => {
     expect(first).toEqual(['1'])
     expect(second).toEqual(['1', '2', null])
   })
+
+  test('updates in another tab trigger callbacks', () => {
+    const events = []
+    storage.subscribe('d', v => events.push(v))
+    localStorage.setItem('d', 'z')
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'd',
+      newValue: 'z',
+      oldValue: null,
+      storageArea: localStorage
+    }))
+    expect(events).toEqual(['z'])
+  })
+
+  test('removals in another tab trigger callbacks', () => {
+    const events = []
+    storage.subscribe('e', v => events.push(v))
+    localStorage.removeItem('e')
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'e',
+      newValue: null,
+      oldValue: 'old',
+      storageArea: localStorage
+    }))
+    expect(events).toEqual([null])
+  })
 })
