@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
+import { riskScoreMap } from './riskScoreConfig'
 
 function safeParse(str, fallback) {
   try {
@@ -252,12 +253,7 @@ export function FinanceProvider({ children }) {
   // === Risk scoring ===
   const [riskScore, setRiskScore] = useState(0)
   function calculateRiskScore(p) {
-    const map = {
-      knowledge:{ None:1, Basic:2, Moderate:3, Advanced:4 },
-      response: { Sell:1, Wait:3, BuyMore:5 },
-      horizon:  { '<3 years':1, '3–7 years':3, '>7 years':5 },
-      goal:     { Preservation:1, Income:3, Growth:5 }
-    }
+    const map = riskScoreMap
     let s = 0
     s += map.knowledge[p.investmentKnowledge]||0
     s += map.response[p.lossResponse]          ||0
