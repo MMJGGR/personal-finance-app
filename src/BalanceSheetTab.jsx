@@ -238,6 +238,7 @@ export default function BalanceSheetTab() {
                 className="border p-2 rounded-md text-right"
                 value={item.amount}
                 onChange={e => updateItem(setAssetsList, assetsList, i, 'amount', e.target.value)}
+                disabled={item.id === 'pv-income'}
                 title="Asset amount"
               />
               <select
