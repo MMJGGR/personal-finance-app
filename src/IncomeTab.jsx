@@ -22,6 +22,7 @@ import calcDiscretionaryAdvice from './utils/discretionaryUtils';
 import generateLoanAdvice from './utils/loanAdvisoryEngine'
 import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import AdviceDashboard from './AdviceDashboard'
+import AdequacyAlert from './AdequacyAlert'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
@@ -382,6 +383,9 @@ export default function IncomeTab() {
         discretionaryAdvice={discretionaryAdvice}
         loanStrategies={loanStrategies}
       />
+      <a href="#adequacy-alert" className="text-sm underline text-amber-700 block">
+        View Funding Gaps
+      </a>
       {/* Income Streams Form */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>
@@ -736,6 +740,8 @@ export default function IncomeTab() {
           </BarChart>
         </ResponsiveContainer>
       </section>
+
+      <AdequacyAlert />
 
       {/* Export */}
       <section>
