@@ -22,4 +22,18 @@ describe('storage helpers', () => {
     storage.set('b', 'y')
     expect(events).toEqual(['x', null])
   })
+
+  test('multiple subscribers receive updates', () => {
+    const first = []
+    const second = []
+    const unsub1 = storage.subscribe('c', v => first.push(v))
+    const unsub2 = storage.subscribe('c', v => second.push(v))
+    storage.set('c', '1')
+    unsub1()
+    storage.set('c', '2')
+    storage.remove('c')
+    unsub2()
+    expect(first).toEqual(['1'])
+    expect(second).toEqual(['1', '2', null])
+  })
 })
