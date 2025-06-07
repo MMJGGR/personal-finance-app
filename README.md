@@ -47,6 +47,13 @@ Application settings are stored in local storage and can be modified under the *
 - `survivalThresholdMonths` – minimum months of PV coverage considered healthy
 - `bufferPct` – buffer percent applied to loan strategy comparisons
 
+## Hadi Persona Seed
+
+A sample user profile is provided in `public/hadiSeed.json`. When the app starts
+with no saved data, this file is fetched automatically so you can explore the
+features immediately. Clear the site's local storage and refresh to reload the
+defaults.
+
 ## Advice Engine
 
 Utility modules under `src/utils` expose helper functions for generating spending and loan repayment advice.  The main entry point is `generateLoanAdvice`:

@@ -1,0 +1,144 @@
+{
+  "profile": {
+    "name": "Hadi Mwangi",
+    "email": "hadi.mwangi@example.com",
+    "phone": "+254712345678",
+    "age": 35,
+    "lifeExpectancy": 85,
+    "maritalStatus": "Married",
+    "numDependents": 2,
+    "residentialAddress": "Nairobi, Kenya",
+    "nationality": "Kenyan",
+    "idNumber": "34567890",
+    "taxResidence": "Kenya",
+    "employmentStatus": "Full-Time",
+    "annualIncome": 3000000,
+    "liquidNetWorth": 2000000,
+    "sourceOfFunds": "Employment, rental income, long-term ETF investments",
+    "investmentKnowledge": "Moderate",
+    "lossResponse": "Wait",
+    "investmentHorizon": ">7 years",
+    "investmentGoal": "Growth"
+  },
+  "incomeSources": [
+    {
+      "name": "Salary",
+      "amount": 250000,
+      "frequency": 12,
+      "growth": 4,
+      "taxRate": 30
+    },
+    {
+      "name": "Rental Income",
+      "amount": 30000,
+      "frequency": 12,
+      "growth": 3,
+      "taxRate": 10
+    }
+  ],
+  "expensesList": [
+    {
+      "name": "Rent",
+      "amount": 80000,
+      "frequency": "Monthly",
+      "growth": 5,
+      "category": "Fixed",
+      "priority": 1
+    },
+    {
+      "name": "Transport",
+      "amount": 10000,
+      "frequency": "Monthly",
+      "growth": 2,
+      "category": "Variable",
+      "priority": 2
+    },
+    {
+      "name": "School Fees",
+      "amount": 120000,
+      "frequency": "Annual",
+      "growth": 5,
+      "category": "Fixed",
+      "priority": 1
+    },
+    {
+      "name": "Dining Out",
+      "amount": 15000,
+      "frequency": "Monthly",
+      "growth": 2,
+      "category": "Discretionary",
+      "priority": 3
+    }
+  ],
+  "goalsList": [
+    {
+      "name": "Family Vacation",
+      "amount": 300000,
+      "targetYear": 2026,
+      "priority": 2
+    },
+    {
+      "name": "Home Deposit",
+      "amount": 1500000,
+      "targetYear": 2029,
+      "priority": 1
+    }
+  ],
+  "assetsList": [
+    {
+      "id": "real-estate",
+      "name": "Land in Nanyuki",
+      "value": 2500000,
+      "return": 6,
+      "volatility": 12
+    },
+    {
+      "id": "etf-1",
+      "name": "US Equity ETF",
+      "value": 1200000,
+      "return": 7,
+      "volatility": 15
+    },
+    {
+      "id": "cash",
+      "name": "Emergency Savings",
+      "value": 300000,
+      "return": 2,
+      "volatility": 0
+    }
+  ],
+  "liabilitiesList": [
+    {
+      "id": "car-loan",
+      "name": "Car Loan",
+      "principal": 500000,
+      "interestRate": 12,
+      "monthlyPayment": 15000,
+      "termMonths": 48,
+      "startDate": "2023-07-01"
+    },
+    {
+      "id": "helb",
+      "name": "Student Loan",
+      "principal": 200000,
+      "interestRate": 4,
+      "monthlyPayment": 4000,
+      "termMonths": 60,
+      "startDate": "2021-01-01"
+    }
+  ],
+  "settings": {
+    "inflationRate": 5,
+    "expectedReturn": 8,
+    "currency": "KES",
+    "locale": "en-KE",
+    "discretionaryCutThreshold": 15,
+    "survivalThresholdMonths": 6,
+    "bufferPct": 10,
+    "apiEndpoint": "https://api.local/submit"
+  },
+  "includeMediumPV": true,
+  "includeLowPV": true,
+  "includeGoalsPV": true,
+  "includeLiabilitiesNPV": true
+}
