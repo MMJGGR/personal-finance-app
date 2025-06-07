@@ -7,17 +7,24 @@ const getGoals = state => state.goalsList || []
 const getStartYear = state => state.startYear || new Date().getFullYear()
 const getYears = state => state.years || 1
 const getDiscountRate = state => state.settings?.discountRate ?? state.discountRate ?? 0
+const getRetirementAge = state => state.settings?.retirementAge ?? 65
+const getCurrentAge = state => state.profile?.age ?? 0
 
 export const selectAnnualIncome = createSelector(
-  [getIncomeSources, getStartYear, getYears],
-  (sources, startYear, years) => {
+  [getIncomeSources, getStartYear, getYears, getRetirementAge, getCurrentAge],
+  (sources, startYear, years, retireAge, currentAge) => {
     return Array.from({ length: years }, (_, idx) => {
       const year = startYear + idx
       return sources.reduce((sum, src) => {
         const afterTax = (Number(src.amount) || 0) * (1 - (src.taxRate || 0) / 100)
         const freq = typeof src.frequency === 'number' ? src.frequency : 0
         const sStart = src.startYear ?? startYear
-        const sEnd = src.endYear ?? startYear + years - 1
+        const isSalary = String(src.type).toLowerCase() === 'salary'
+        let sEnd = src.endYear ?? startYear + years - 1
+        const retireLimit = startYear + (retireAge - currentAge) - 1
+        if (src.endYear == null && isSalary) {
+          sEnd = Math.min(sEnd, retireLimit)
+        }
         if (year < sStart || year > sEnd) return sum
         const yrIndex = year - sStart
         const growth = src.growth || 0

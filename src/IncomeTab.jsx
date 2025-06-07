@@ -91,7 +91,13 @@ export default function IncomeTab() {
         const planStart = startYear
         const planEnd = startYear + years - 1
         const srcStart = Math.max(src.startYear ?? planStart, planStart)
-        const srcEnd = src.endYear ?? planEnd
+        const isSalary = String(src.type).toLowerCase() === 'salary'
+        const retireLimit =
+          startYear + (settings.retirementAge - profile.age) - 1
+        let srcEnd = src.endYear ?? planEnd
+        if (src.endYear == null && isSalary) {
+          srcEnd = Math.min(srcEnd, retireLimit)
+        }
         const effectiveEnd = Math.min(srcEnd, planEnd)
         if (effectiveEnd < srcStart) return 0
         const activeYears = effectiveEnd - srcStart + 1
@@ -105,7 +111,7 @@ export default function IncomeTab() {
         const offset = srcStart - planStart
         return pvImmediate / Math.pow(1 + discountRate / 100, offset)
       }),
-    [incomeSources, discountRate, years, startYear]
+    [incomeSources, discountRate, years, startYear, settings.retirementAge, profile.age]
   )
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
   const totalIncomePV = totalPV
@@ -202,6 +208,7 @@ export default function IncomeTab() {
 
   // 3. Build projection data for chart
   const incomeData = useMemo(() => {
+    const planEnd = startYear + years - 1
     if (chartView === 'monthly') {
       return Array.from({ length: years * 12 }, (_, idx) => {
         const yrIndex = Math.floor(idx / 12)
@@ -211,9 +218,15 @@ export default function IncomeTab() {
           year: `${yearVal}-${String(month).padStart(2, '0')}`,
         }
         incomeSources.forEach((src, sIdx) => {
+          const isSalary = String(src.type).toLowerCase() === 'salary'
+          const retireLimit =
+            startYear + (settings.retirementAge - profile.age) - 1
+          const srcEnd =
+            src.endYear ??
+            (isSalary ? Math.min(planEnd, retireLimit) : planEnd)
           if (
             yearVal < (src.startYear ?? startYear) ||
-            (src.endYear && yearVal > src.endYear)
+            yearVal > srcEnd
           ) {
             entry[src.name || `Source ${sIdx + 1}`] = 0
             return
@@ -232,9 +245,15 @@ export default function IncomeTab() {
       const year = startYear + i
       const entry = { year: `${year}` }
       incomeSources.forEach((src, sIdx) => {
+        const isSalary = String(src.type).toLowerCase() === 'salary'
+        const retireLimit =
+          startYear + (settings.retirementAge - profile.age) - 1
+        const srcEnd =
+          src.endYear ??
+          (isSalary ? Math.min(planEnd, retireLimit) : planEnd)
         if (
           year < (src.startYear ?? startYear) ||
-          (src.endYear && year > src.endYear)
+          year > srcEnd
         ) {
           entry[src.name || `Source ${sIdx + 1}`] = 0
           return
@@ -250,7 +269,7 @@ export default function IncomeTab() {
       })
       return entry
     })
-  }, [incomeSources, startYear, years, chartView])
+  }, [incomeSources, startYear, years, chartView, settings.retirementAge, profile.age])
 
   // 4. Sync totalPV back into context & localStorage
   useEffect(() => {

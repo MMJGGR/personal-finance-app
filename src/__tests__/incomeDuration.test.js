@@ -43,3 +43,19 @@ test('income without endYear persists through horizon', () => {
   )
   expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(5000)
 })
+
+test('salary without endYear ends at retirement age', () => {
+  const current = new Date().getFullYear()
+  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, retirementAge: 65 }))
+  localStorage.setItem('profile', JSON.stringify({ age: 60, lifeExpectancy: 90 }))
+  localStorage.setItem('incomeStartYear', String(current))
+  localStorage.setItem('incomeSources', JSON.stringify([
+    { name: 'Job', type: 'Salary', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: current }
+  ]))
+  render(
+    <FinanceProvider>
+      <PVDisplay years={10} />
+    </FinanceProvider>
+  )
+  expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(5000)
+})
