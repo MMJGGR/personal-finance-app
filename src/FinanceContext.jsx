@@ -350,18 +350,32 @@ export function FinanceProvider({ children }) {
   }, [includeLiabilitiesNPV])
 
   useEffect(() => {
-    const assetTotal = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
-    const liabilityTotal = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || 0), 0)
-    const nw = assetTotal - liabilityTotal
+    const assetTotal = assetsList.reduce(
+      (sum, a) => sum + Number(a.amount || 0),
+      0
+    )
+    const liabilityTotal = liabilitiesList.reduce(
+      (sum, l) => sum + Number(l.amount || l.principal || 0),
+      0
+    )
+
+    const currentYear = new Date().getFullYear()
+    const pvGoals = goalsList.reduce((sum, g) => {
+      const yrs = Math.max(0, g.targetYear - currentYear)
+      return sum + g.amount / Math.pow(1 + discountRate / 100, yrs)
+    }, 0)
+
+    const nw = assetTotal - liabilityTotal + incomePV - expensesPV - pvGoals
     const dar = assetTotal > 0 ? liabilityTotal / assetTotal : 0
     const hcs = assetTotal > 0 ? incomePV / assetTotal : 0
+
     setNetWorth(nw)
     localStorage.setItem('netWorth', nw.toString())
     setDebtToAssetRatio(dar)
     localStorage.setItem('debtToAssetRatio', dar.toString())
     setHumanCapitalShare(hcs)
     localStorage.setItem('humanCapitalShare', hcs.toString())
-  }, [incomePV, goalsList, liabilitiesList, assetsList])
+  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
 
   // === Auto-load persisted state on mount ===
   useEffect(() => {
