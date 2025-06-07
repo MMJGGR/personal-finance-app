@@ -56,6 +56,8 @@ Application settings are stored in local storage and can be modified under the *
 - `expectedReturn` – expected yearly portfolio return
 - `currency` – default ISO currency code
 - `locale` – locale for number formatting
+- `discountRate` – rate used when discounting future cash flows
+- `projectionYears` – number of years to project on the Income tab
 - `apiEndpoint` – URL to POST exported data
 - `discretionaryCutThreshold` – percentage of monthly expenses that triggers discretionary advice
 - `survivalThresholdMonths` – minimum months of PV coverage considered healthy
@@ -161,6 +163,12 @@ The `AdequacyAlert` component consumes the `cumulativePV` array from
 income projection chart on the **Income** tab and at the bottom of the
 **Balance Sheet** tab. A short "View Funding Gaps" link on each page scrolls to
 the alert when deficits exist.
+
+## Income Views
+
+Above the income chart you'll find **Nominal** and **Discounted** buttons. Use
+them to toggle between raw projections and present value figures. The discount
+rate and projection horizon (Years) are both configured under **Settings**.
 
 ## Manual Verification
 
