@@ -54,6 +54,14 @@ with no saved data, this file is fetched automatically so you can explore the
 features immediately. Clear the site's local storage and refresh to reload the
 defaults.
 
+## Household & KYC Data
+
+The **Profile** tab captures household details alongside optional know-your-client
+(KYC) information. Fields such as nationality, tax residence, and ID number are
+stored locally and used for risk scoring. These entries can be exported for
+broker onboarding or regulatory checks. Update the form and changes will be
+persisted automatically.
+
 ## Advice Engine
 
 Utility modules under `src/utils` expose helper functions for generating spending and loan repayment advice.  The main entry point is `generateLoanAdvice`:
@@ -72,6 +80,31 @@ console.log(advice.dti, advice.survival)
 The app derives a default strategy from your profile. A `riskScore` is computed using the mapping in `src/riskScoreConfig.js`. Scores up to `6` yield a **Conservative** strategy, scores from `7–12` produce **Balanced** and anything higher defaults to **Growth**. Your selected investment horizon can override this: choosing **<3 years** forces **Conservative** while **>7 years** results in **Growth**.
 
 The chosen strategy is stored in `FinanceContext` and persisted in local storage. You may pick a different option under the **Balance Sheet** tab which overrides the automatic choice and is saved for later visits.
+
+## Insurance Calculator
+
+The **Insurance** tab provides an estimate of emergency savings and life cover
+needs. It relies on the helper functions in
+`src/utils/insuranceUtils.js`:
+
+```javascript
+import { computeEmergencyFund, computeLifeCover } from './src/utils/insuranceUtils'
+```
+
+Monthly expenses along with your dependents and marital status determine the
+recommended amounts.
+
+## API Export
+
+Data entered in the app can be posted to an external service. Set the
+`apiEndpoint` value under **Settings** and use the helpers from
+`src/utils/exportHelpers.js` to build payloads:
+
+```javascript
+import { buildIncomeJSON, buildPlanJSON, submitProfile } from './src/utils/exportHelpers'
+```
+
+Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
 ## Manual Verification
 
