@@ -434,7 +434,7 @@ export function FinanceProvider({ children }) {
         const isSalary = t === 'salary' || t === 'employment'
         if (isSalary && src.endYear == null) {
           const base = src.startYear ?? startYear
-          const end = base + diff
+          const end = base + diff - 1
           if (src.endYear !== end) {
             changed = true
             return { ...src, endYear: end }
