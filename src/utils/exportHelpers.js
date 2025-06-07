@@ -34,7 +34,7 @@ export function buildPlanJSON(profile, discountRate, lifeYears, expensesList, pv
     goals: goalsList,
     pvGoals,
     liabilities: liabilities.map(l => {
-      const { schedule, ...rest } = l
+      const { schedule: _schedule, ...rest } = l
       return rest
     }),
     totalLiabilitiesPV,

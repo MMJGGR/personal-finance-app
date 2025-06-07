@@ -24,6 +24,11 @@ export default [
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Warn on FIXME/TODO comments so they are reviewed before release
+      'no-warning-comments': [
+        'warn',
+        { terms: ['todo', 'fixme'], location: 'anywhere' },
+      ],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

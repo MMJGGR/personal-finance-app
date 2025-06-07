@@ -55,13 +55,13 @@ export default function ProfileTab() {
             Personal & KYC Information
           </h3>
           {[
-            ['Full Name', 'name', 'text'], // TODO: unused - pending integration
-            ['Email Address', 'email', 'email'], // TODO: unused - pending integration
-            ['Phone Number', 'phone', 'tel'], // TODO: unused - pending integration
+            ['Full Name', 'name', 'text'], // FIXME: unused - pending integration
+            ['Email Address', 'email', 'email'], // FIXME: unused - pending integration
+            ['Phone Number', 'phone', 'tel'], // FIXME: unused - pending integration
             ['Age', 'age', 'number'],
             ['Life Expectancy', 'lifeExpectancy', 'number'],
-            ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']], // TODO: unused - pending integration
-            ['Dependents', 'numDependents', 'number'] // TODO: unused - pending integration
+            ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']], // FIXME: unused - pending integration
+            ['Dependents', 'numDependents', 'number'] // FIXME: unused - pending integration
           ].map(([label, field, type, options]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -99,11 +99,11 @@ export default function ProfileTab() {
           )}
 
           {[
-            ['Residential Address', 'residentialAddress'], // TODO: unused - pending integration
-            ['Nationality', 'nationality'], // TODO: unused - pending integration
-            ['ID / Passport #', 'idNumber'], // TODO: unused - pending integration
-            ['Tax Residence', 'taxResidence'], // TODO: unused - pending integration
-            ['Employment Status', 'employmentStatus'] // TODO: unused - pending integration
+            ['Residential Address', 'residentialAddress'], // FIXME: unused - pending integration
+            ['Nationality', 'nationality'], // FIXME: unused - pending integration
+            ['ID / Passport #', 'idNumber'], // FIXME: unused - pending integration
+            ['Tax Residence', 'taxResidence'], // FIXME: unused - pending integration
+            ['Employment Status', 'employmentStatus'] // FIXME: unused - pending integration
           ].map(([label, field]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -134,7 +134,7 @@ export default function ProfileTab() {
           ))}
 
           <label className="block">
-            <span className="text-sm text-slate-600">Source of Funds</span>{/* TODO: unused - pending integration */}
+            <span className="text-sm text-slate-600">Source of Funds</span>{/* FIXME: unused - pending integration */}
             <textarea
               value={form.sourceOfFunds}
               onChange={e => handleChange('sourceOfFunds', e.target.value)}
