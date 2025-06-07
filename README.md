@@ -49,3 +49,23 @@ console.log(advice.dti, advice.survival)
 ```
 
 `calcDiscretionaryAdvice` suggests low‑priority expenses to cut when the monthly surplus falls below the configured threshold. `suggestLoanStrategies` ranks liabilities by interest saved when paying them off early.
+
+## Manual Verification
+
+### Verifying Charts
+1. Open the **Balance Sheet** tab and add an asset worth `100000` named *Test Asset*.
+2. Add a liability called *Test Loan* for `20000`.
+3. The bar and pie charts should refresh immediately. The **Net Worth** figure should read **KES 1,580,000** which equals `1,500,000 + 100,000 - 20,000`.
+4. Remove the test entries after confirming the charts update.
+
+### Stress Testing Metrics
+1. In the **Expenses** tab create a monthly expense named *Rent* of `2000`.
+2. Switch to the **Income** tab and set `Years` to `5` and `Discount Rate` to `5`.
+3. Under **Interrupted Sources** select your salary to simulate losing that income.
+4. `Interruption Months` will drop to **0** because no income covers the obligations. Re-select the salary and the metric will recompute.
+
+Testers can mirror these values in a spreadsheet using the formula:
+```
+Net Worth = Assets - Liabilities + Income PV - Expenses PV - Goals PV
+```
+With the example figures above the spreadsheet result should match **KES 1,580,000**.
