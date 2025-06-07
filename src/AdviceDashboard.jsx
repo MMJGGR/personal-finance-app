@@ -1,5 +1,6 @@
 import React from 'react'
 import { useFinance } from './FinanceContext'
+import { formatCurrency } from './utils/formatters'
 
 export default function AdviceDashboard({ advice, discretionaryAdvice = [], loanStrategies = [] }) {
   const { settings } = useFinance()
@@ -32,11 +33,7 @@ export default function AdviceDashboard({ advice, discretionaryAdvice = [], loan
               {discretionaryAdvice.map((d, i) => (
                 <li key={i} className="text-sm">
                   Cut <strong>{d.name}</strong> (~
-                  {d.amount.toLocaleString(settings.locale, {
-                    style: 'currency',
-                    currency: settings.currency,
-                    maximumFractionDigits: 0,
-                  })}
+                  {formatCurrency(d.amount, settings.locale, settings.currency)}
                   /mo)
                 </li>
               ))}
@@ -50,11 +47,7 @@ export default function AdviceDashboard({ advice, discretionaryAdvice = [], loan
               {loanStrategies.map((s, i) => (
                 <li key={i} className="text-sm">
                   Pay <strong>{s.name}</strong> early to save{' '}
-                  {s.interestSaved.toLocaleString(settings.locale, {
-                    style: 'currency',
-                    currency: settings.currency,
-                    maximumFractionDigits: 0,
-                  })}
+                  {formatCurrency(s.interestSaved, settings.locale, settings.currency)}
                   {s.paymentsSaved > 0 && ` and cut ${s.paymentsSaved} payments`}
                   .
                 </li>

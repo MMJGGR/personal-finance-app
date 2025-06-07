@@ -14,6 +14,7 @@ import {
 import { useFinance } from './FinanceContext'
 import LTCMA from './ltcmaAssumptions'
 import InvestmentStrategies from './investmentStrategies'
+import { formatCurrency } from './utils/formatters'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
@@ -29,6 +30,7 @@ export default function BalanceSheetTab() {
     goalsList,
     discountRate,
     humanCapitalShare,
+    settings,
   } = useFinance()
 
   const [strategy, setStrategy] = useState('')
@@ -318,7 +320,7 @@ export default function BalanceSheetTab() {
       </div>
 
       <div className="text-md text-slate-700 italic">
-        Net Worth: <span className="text-2xl font-bold text-amber-700">KES {netWorth.toLocaleString()}</span>
+        Net Worth: <span className="text-2xl font-bold text-amber-700">{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
         {debtAssetRatio > 1 && (
           <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtAssetRatio * 100).toFixed(1)}%).</span>
         )}
@@ -333,7 +335,7 @@ export default function BalanceSheetTab() {
                 {row.label === 'Debt/Asset Ratio'
                   ? `${(row.value * 100).toFixed(1)}%`
                   : typeof row.value === 'number'
-                  ? row.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                  ? formatCurrency(row.value, settings.locale, settings.currency)
                   : row.value}
               </td>
             </tr>
