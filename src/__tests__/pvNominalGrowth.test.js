@@ -17,8 +17,7 @@ function IncomePV({ years }) {
 
 test('income PV uses nominal growth rate', () => {
   const current = new Date().getFullYear()
-  localStorage.setItem('incomeStartYear', String(current))
-  localStorage.setItem('settings', JSON.stringify({ discountRate: 10, inflationRate: 5 }))
+  localStorage.setItem('settings', JSON.stringify({ discountRate: 10, inflationRate: 5, startYear: current }))
   localStorage.setItem('incomeSources', JSON.stringify([
     { name: 'Job', type: 'Salary', amount: 1000, frequency: 1, growth: 5, taxRate: 0 }
   ]))
