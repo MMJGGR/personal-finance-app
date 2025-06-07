@@ -276,6 +276,69 @@ export function FinanceProvider({ children }) {
     localStorage.setItem('settings', JSON.stringify(updated))
   }
 
+  // === Load default Hadi persona if no data present ===
+  useEffect(() => {
+    async function loadSeed() {
+      if (localStorage.getItem('profile')) return
+      if (typeof fetch !== 'function') return
+      try {
+        const res = await fetch('/hadiSeed.json')
+        if (!res.ok) return
+        const seed = await res.json()
+        if (seed.profile) updateProfile(seed.profile)
+        if (Array.isArray(seed.incomeSources)) setIncomeSources(seed.incomeSources)
+        if (Array.isArray(seed.expensesList)) {
+          const list = seed.expensesList.map(e => ({
+            ...e,
+            paymentsPerYear: typeof e.frequency === 'number'
+              ? e.frequency
+              : frequencyToPayments(e.frequency) || 1,
+          }))
+          setExpensesList(list)
+        }
+        if (Array.isArray(seed.goalsList)) setGoalsList(seed.goalsList)
+        if (Array.isArray(seed.assetsList)) {
+          const assets = seed.assetsList.map(a => ({
+            id: a.id || crypto.randomUUID(),
+            name: a.name,
+            amount: a.value,
+            type: a.type || '',
+            expectedReturn: a.return ?? 0,
+            volatility: a.volatility ?? 0,
+            horizonYears: a.horizonYears ?? 0,
+          }))
+          setAssetsList(assets)
+        }
+        if (Array.isArray(seed.liabilitiesList)) {
+          const liabs = seed.liabilitiesList.map(l => ({
+            id: l.id || crypto.randomUUID(),
+            name: l.name,
+            principal: l.principal,
+            interestRate: l.interestRate,
+            termYears: Math.ceil((l.termMonths || 0) / 12),
+            remainingMonths: l.termMonths,
+            paymentsPerYear: 12,
+            payment: l.monthlyPayment,
+          }))
+          setLiabilitiesList(liabs)
+        }
+        if (seed.settings) updateSettings({
+          discretionaryCutThreshold: 0,
+          survivalThresholdMonths: 0,
+          bufferPct: 0,
+          ...seed.settings,
+        })
+        if ('includeMediumPV' in seed) setIncludeMediumPV(seed.includeMediumPV)
+        if ('includeLowPV' in seed) setIncludeLowPV(seed.includeLowPV)
+        if ('includeGoalsPV' in seed) setIncludeGoalsPV(seed.includeGoalsPV)
+        if ('includeLiabilitiesNPV' in seed) setIncludeLiabilitiesNPV(seed.includeLiabilitiesNPV)
+      } catch (err) {
+        console.error('Failed to load Hadi seed', err)
+      }
+    }
+    loadSeed()
+  }, [])
+
   // === Persist state slices ===
   useEffect(() => { localStorage.setItem('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
   useEffect(() => { localStorage.setItem('incomeStartYear', String(startYear)) }, [startYear])

@@ -24,6 +24,16 @@ npm run preview
 
 The project uses [React](https://react.dev/) with [Vite](https://vitejs.dev/) for the build system. Styling is powered by Tailwind CSS and ESLint provides linting rules.
 
+## Linting and Testing
+
+Before running `npm run lint` or `npm test` make sure all development dependencies are installed:
+
+```bash
+npm install
+```
+
+This ensures that ESLint and Jest are available locally.
+
 ## Configuration
 
 Application settings are stored in local storage and can be modified under the **Settings** tab.  Available keys include:
@@ -36,6 +46,13 @@ Application settings are stored in local storage and can be modified under the *
 - `discretionaryCutThreshold` – percentage of monthly expenses that triggers discretionary advice
 - `survivalThresholdMonths` – minimum months of PV coverage considered healthy
 - `bufferPct` – buffer percent applied to loan strategy comparisons
+
+## Hadi Persona Seed
+
+A sample user profile is provided in `public/hadiSeed.json`. When the app starts
+with no saved data, this file is fetched automatically so you can explore the
+features immediately. Clear the site's local storage and refresh to reload the
+defaults.
 
 ## Advice Engine
 
