@@ -31,9 +31,6 @@ import storage from './utils/storage'
 export default function IncomeTab() {
   const {
     incomeSources, setIncomeSources,
-    startYear, setStartYear,
-    discountRate, setDiscountRate,
-    years, setYears,
     monthlyExpense,
     monthlyPVExpense,
     monthlyPVHigh,
@@ -59,12 +56,9 @@ export default function IncomeTab() {
 
   const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
 
-  // Keep local discount rate in sync with global settings
-  useEffect(() => {
-    if (settings.discountRate !== undefined && settings.discountRate !== discountRate) {
-      setDiscountRate(settings.discountRate)
-    }
-  }, [settings.discountRate])
+  const startYear = settings.startYear ?? new Date().getFullYear();
+  const discountRate = settings.discountRate ?? 0;
+  const years = settings.projectionYears ?? 1;
 
   const currentYear = new Date().getFullYear();
   const pvGoals = useMemo(
@@ -461,122 +455,6 @@ export default function IncomeTab() {
       </section>
 
 
-      {/* Assumptions */}
-      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <div className="bg-white p-4 rounded-xl shadow-md">
-          <label className="block text-sm font-medium">Start Year</label>
-          <input
-            type="number"
-            className="w-full border p-2 rounded-md"
-            value={startYear}
-            onChange={e => setStartYear(+e.target.value)}
-            min={1900} max={2100}
-            title="Start year"
-          />
-
-          <label className="block text-sm font-medium mt-4">Discount Rate (%)</label>
-          <input
-            type="number"
-            className="w-full border p-2 rounded-md"
-            value={discountRate}
-            onChange={e => setDiscountRate(+e.target.value)}
-            min={0} max={100} step={0.1}
-            title="Discount rate"
-          />
-
-          <label className="block text-sm font-medium mt-4">Projection Years</label>
-          <input
-            type="number"
-            className="w-full border p-2 rounded-md"
-            value={years}
-            onChange={e => setYears(+e.target.value)}
-            min={1}
-            title="Projection years"
-          />
-
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-md">
-          <p className="text-sm italic text-slate-500">
-            Monthly Expenses (from Expenses tab):
-            <span className="font-semibold text-amber-700">
-              {' '}
-              {formatCurrency(monthlyExpense, settings.locale, settings.currency)}
-            </span>
-          </p>
-          <p className="text-sm italic text-slate-500 mt-1">
-            PV-Adjusted Monthly Expense:&nbsp;
-            <span className="font-semibold text-amber-700">
-              {formatCurrency(monthlyPVExpense, settings.locale, settings.currency)}
-            </span>
-          </p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-md">
-          <label className="block text-sm font-medium mb-2">Include in Expenses</label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              className="mr-2"
-              checked={includeGoalsPV}
-              onChange={e => setIncludeGoalsPV(e.target.checked)}
-              aria-label="Include goals present value"
-            />
-            Include Goals (PV)
-          </label>
-          <label className="flex items-center mt-1">
-            <input
-              type="checkbox"
-              className="mr-2"
-              checked={includeLiabilitiesNPV}
-              onChange={e => setIncludeLiabilitiesNPV(e.target.checked)}
-              aria-label="Include liabilities NPV"
-            />
-            Include Liabilities (NPV)
-          </label>
-          <label className="flex items-center mt-1">
-            <input
-              type="checkbox"
-              className="mr-2"
-              checked={includeMediumPV}
-              onChange={e => setIncludeMediumPV(e.target.checked)}
-              aria-label="Include medium priority"
-            />
-            Include Medium Priority
-          </label>
-          <label className="flex items-center mt-1">
-            <input
-              type="checkbox"
-              className="mr-2"
-              checked={includeLowPV}
-              onChange={e => setIncludeLowPV(e.target.checked)}
-              aria-label="Include low priority"
-            />
-            Include Low Priority
-          </label>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-md">
-          <label className="block text-sm font-medium">Interrupted Sources</label>
-          <select
-            multiple
-            className="w-full border p-2 rounded-md"
-            value={excludedForInterrupt.map(String)}
-            onChange={e =>
-              setExcludedForInterrupt(
-                Array.from(e.target.selectedOptions, o => Number(o.value))
-              )
-            }
-            aria-label="Select interrupted incomes"
-          >
-            {incomeSources.map((src, i) => (
-              <option key={i} value={i}>
-                {src.name || `Source ${i + 1}`}
-              </option>
-            ))}
-          </select>
-        </div>
-      </section>
 
       {/* PV Summary */}
       <section className="bg-white p-4 rounded-xl shadow-md">

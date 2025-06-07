@@ -25,8 +25,7 @@ function SalaryEnd() {
 
 test('finite income stream stops at endYear', () => {
   const current = new Date().getFullYear()
-  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0 }))
-  localStorage.setItem('incomeStartYear', String(current))
+  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, startYear: current }))
   localStorage.setItem('incomeSources', JSON.stringify([
     { name: 'Contract', type: 'Employment', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: current, endYear: current + 1 }
   ]))
@@ -40,8 +39,7 @@ test('finite income stream stops at endYear', () => {
 
 test('income without endYear persists through horizon', () => {
   const current = new Date().getFullYear()
-  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0 }))
-  localStorage.setItem('incomeStartYear', String(current))
+  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, startYear: current }))
   localStorage.setItem('incomeSources', JSON.stringify([
     { name: 'Job', type: 'Employment', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: current }
   ]))
@@ -55,9 +53,8 @@ test('income without endYear persists through horizon', () => {
 
 test('salary without endYear ends at retirement age', async () => {
   const current = new Date().getFullYear()
-  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, retirementAge: 65 }))
+  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, retirementAge: 65, startYear: current }))
   localStorage.setItem('profile', JSON.stringify({ age: 60, lifeExpectancy: 90 }))
-  localStorage.setItem('incomeStartYear', String(current))
   localStorage.setItem('incomeSources', JSON.stringify([
     { name: 'Job', type: 'Salary', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: current }
   ]))

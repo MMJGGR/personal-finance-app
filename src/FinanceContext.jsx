@@ -277,6 +277,9 @@ export function FinanceProvider({ children }) {
   const [settings, setSettings] = useState(() => {
     const s = storage.get('settings')
     const defaults = {
+      startYear: new Date().getFullYear(),
+      projectionYears: 1,
+      chartView: 'nominal',
       discountRate: 0,
       inflationRate: 5,
       expectedReturn: 8,
@@ -451,6 +454,16 @@ export function FinanceProvider({ children }) {
   useEffect(() => { storage.set('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
   useEffect(() => { storage.set('incomeStartYear', String(startYear)) }, [startYear])
   useEffect(() => { storage.set('expensesList', JSON.stringify(expensesList)) }, [expensesList])
+  useEffect(() => {
+    if (settings.startYear !== undefined && settings.startYear !== startYear) {
+      setStartYear(settings.startYear)
+    }
+  }, [settings.startYear])
+  useEffect(() => {
+    if (settings.projectionYears !== undefined && settings.projectionYears !== years) {
+      setYears(settings.projectionYears)
+    }
+  }, [settings.projectionYears])
   useEffect(() => { storage.set('goalsList', JSON.stringify(goalsList)) }, [goalsList])
   useEffect(() => { storage.set('assetsList', JSON.stringify(assetsList)) }, [assetsList])
   useEffect(() => { storage.set('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
