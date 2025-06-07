@@ -68,6 +68,20 @@ export function FinanceProvider({ children }) {
     return s ? JSON.parse(s) : false
   })
 
+  // === Derived balance sheet metrics ===
+  const [netWorth, setNetWorth] = useState(() => {
+    const s = localStorage.getItem('netWorth')
+    return s ? parseFloat(s) : 0
+  })
+  const [debtToAssetRatio, setDebtToAssetRatio] = useState(() => {
+    const s = localStorage.getItem('debtToAssetRatio')
+    return s ? parseFloat(s) : 0
+  })
+  const [humanCapitalShare, setHumanCapitalShare] = useState(() => {
+    const s = localStorage.getItem('humanCapitalShare')
+    return s ? parseFloat(s) : 0
+  })
+
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
     const s = localStorage.getItem('incomeSources')
@@ -335,6 +349,20 @@ export function FinanceProvider({ children }) {
     localStorage.setItem('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV))
   }, [includeLiabilitiesNPV])
 
+  useEffect(() => {
+    const assetTotal = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
+    const liabilityTotal = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || 0), 0)
+    const nw = assetTotal - liabilityTotal
+    const dar = assetTotal > 0 ? liabilityTotal / assetTotal : 0
+    const hcs = assetTotal > 0 ? incomePV / assetTotal : 0
+    setNetWorth(nw)
+    localStorage.setItem('netWorth', nw.toString())
+    setDebtToAssetRatio(dar)
+    localStorage.setItem('debtToAssetRatio', dar.toString())
+    setHumanCapitalShare(hcs)
+    localStorage.setItem('humanCapitalShare', hcs.toString())
+  }, [incomePV, goalsList, liabilitiesList, assetsList])
+
   // === Auto-load persisted state on mount ===
   useEffect(() => {
     const ip = localStorage.getItem('incomePV')
@@ -436,6 +464,12 @@ export function FinanceProvider({ children }) {
     if (mpm) setMonthlyPVMedium(+mpm)
     const mpl = localStorage.getItem('monthlyPVLow')
     if (mpl) setMonthlyPVLow(+mpl)
+    const nw = localStorage.getItem('netWorth')
+    if (nw) setNetWorth(+nw)
+    const dar = localStorage.getItem('debtToAssetRatio')
+    if (dar) setDebtToAssetRatio(+dar)
+    const hcs = localStorage.getItem('humanCapitalShare')
+    if (hcs) setHumanCapitalShare(+hcs)
 
     const incMed = localStorage.getItem('includeMediumPV')
     if (incMed) setIncludeMediumPV(JSON.parse(incMed))
@@ -465,6 +499,9 @@ export function FinanceProvider({ children }) {
       monthlyPVLow,
       monthlySurplusNominal,
       monthlyIncomeNominal,
+      netWorth,
+      debtToAssetRatio,
+      humanCapitalShare,
       includeMediumPV, setIncludeMediumPV,
       includeLowPV, setIncludeLowPV,
       includeGoalsPV, setIncludeGoalsPV,
