@@ -34,6 +34,7 @@ export default function BalanceSheetTab() {
   } = useFinance()
 
   const [strategy, setStrategy] = useState('')
+  const [expandedAssets, setExpandedAssets] = useState({})
 
   const assetReturn = useMemo(() => {
     const total = assetsList.reduce((s, a) => s + Number(a.amount || 0), 0)
@@ -160,6 +161,9 @@ export default function BalanceSheetTab() {
     setList(updated)
   }
 
+  const toggleAsset = id =>
+    setExpandedAssets(prev => ({ ...prev, [id]: !prev[id] }))
+
   const barData = [
     { name: 'Assets', value: totalAssets },
     { name: 'Liabilities', value: totalLiabilities },
@@ -218,65 +222,77 @@ export default function BalanceSheetTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h3 className="text-md font-medium mb-2">Assets</h3>
-          <div className="grid grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+          <div className="grid grid-cols-4 gap-2 font-semibold text-gray-700 mb-1">
+            <div></div>
             <div>Name</div>
             <div className="text-right">Amt</div>
             <div>Type</div>
-            <div className="text-right">Ret %</div>
-            <div className="text-right">Vol %</div>
-            <div className="text-right">Horizon</div>
           </div>
           {assetsList.map((item, i) => (
-            <div key={item.id} className="grid grid-cols-6 gap-2 mb-1 items-center">
-              <input
-                className="border p-2 rounded-md"
-                value={item.name}
-                onChange={e => updateItem(setAssetsList, assetsList, i, 'name', e.target.value)}
-                disabled={item.id === 'pv-income'}
-                title="Asset name"
-              />
-              <input
-                type="number"
-                className="border p-2 rounded-md text-right"
-                value={item.amount}
-                onChange={e => updateItem(setAssetsList, assetsList, i, 'amount', e.target.value)}
-                disabled={item.id === 'pv-income'}
-                title="Asset amount"
-              />
-              <select
-                className="border p-2 rounded-md"
-                value={item.type}
-                onChange={e => updateItem(setAssetsList, assetsList, i, 'type', e.target.value)}
-                disabled={item.id === 'pv-income'}
-                title="Asset type"
-              >
-                <option value=""></option>
-                {Object.keys(LTCMA).map(t => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                className="border p-2 rounded-md text-right"
-                value={item.expectedReturn}
-                onChange={e => updateItem(setAssetsList, assetsList, i, 'expectedReturn', e.target.value)}
-                title="Expected return"
-              />
-              <input
-                type="number"
-                className="border p-2 rounded-md text-right"
-                value={item.volatility}
-                onChange={e => updateItem(setAssetsList, assetsList, i, 'volatility', e.target.value)}
-                title="Volatility"
-              />
-              <input
-                type="number"
-                className="border p-2 rounded-md text-right"
-                value={item.horizonYears ?? ''}
-                onChange={e => updateItem(setAssetsList, assetsList, i, 'horizonYears', e.target.value)}
-                title="Horizon years"
-              />
-            </div>
+            <React.Fragment key={item.id}>
+              <div className="grid grid-cols-4 gap-2 mb-1 items-center">
+                <button
+                  onClick={() => toggleAsset(item.id)}
+                  aria-expanded={expandedAssets[item.id] ? 'true' : 'false'}
+                  className="text-amber-700 focus:outline-none"
+                  title="Toggle details"
+                >
+                  {expandedAssets[item.id] ? '▾' : '▸'}
+                </button>
+                <input
+                  className="border p-2 rounded-md"
+                  value={item.name}
+                  onChange={e => updateItem(setAssetsList, assetsList, i, 'name', e.target.value)}
+                  disabled={item.id === 'pv-income'}
+                  title="Asset name"
+                />
+                <input
+                  type="number"
+                  className="border p-2 rounded-md text-right"
+                  value={item.amount}
+                  onChange={e => updateItem(setAssetsList, assetsList, i, 'amount', e.target.value)}
+                  disabled={item.id === 'pv-income'}
+                  title="Asset amount"
+                />
+                <select
+                  className="border p-2 rounded-md"
+                  value={item.type}
+                  onChange={e => updateItem(setAssetsList, assetsList, i, 'type', e.target.value)}
+                  disabled={item.id === 'pv-income'}
+                  title="Asset type"
+                >
+                  <option value=""></option>
+                  {Object.keys(LTCMA).map(t => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              {expandedAssets[item.id] && (
+                <div className="grid grid-cols-3 gap-2 mb-2 ml-6">
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.expectedReturn}
+                    onChange={e => updateItem(setAssetsList, assetsList, i, 'expectedReturn', e.target.value)}
+                    title="Expected return"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.volatility}
+                    onChange={e => updateItem(setAssetsList, assetsList, i, 'volatility', e.target.value)}
+                    title="Volatility"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.horizonYears ?? ''}
+                    onChange={e => updateItem(setAssetsList, assetsList, i, 'horizonYears', e.target.value)}
+                    title="Horizon years"
+                  />
+                </div>
+              )}
+            </React.Fragment>
           ))}
           <button
             onClick={addAsset}
@@ -291,9 +307,9 @@ export default function BalanceSheetTab() {
         <div>
           <h3 className="text-md font-medium mb-2">Liabilities</h3>
           {liabilitiesList.map((item, i) => (
-            <div key={item.id} className="flex space-x-2 mb-2">
+            <div key={item.id} className="grid grid-cols-2 gap-2 mb-2 items-center">
               <input
-                className="border p-2 rounded-md w-1/2"
+                className="border p-2 rounded-md"
                 value={item.name}
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'name', e.target.value)}
                 disabled={item.id === 'pv-expenses'}
@@ -301,7 +317,7 @@ export default function BalanceSheetTab() {
               />
               <input
                 type="number"
-                className="border p-2 rounded-md w-1/2"
+                className="border p-2 rounded-md"
                 value={item.amount}
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'amount', e.target.value)}
                 title="Liability amount"
