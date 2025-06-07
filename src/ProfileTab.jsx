@@ -14,6 +14,13 @@ export default function ProfileTab() {
   // Handle any field change locally, then persist via context
   const handleChange = (field, value) => {
     const updated = { ...form, [field]: value }
+
+    if (field === 'lifeExpectancy' && value <= updated.age) {
+      updated.lifeExpectancy = updated.age + 1
+    } else if (field === 'age' && updated.lifeExpectancy <= value) {
+      updated.lifeExpectancy = value + 1
+    }
+
     setForm(updated)
     updateProfile(updated)
   }
