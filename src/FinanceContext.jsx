@@ -448,12 +448,11 @@ export function FinanceProvider({ children }) {
 
   const incomePvValue = useMemo(() => {
     const rate = settings.discountRate ?? discountRate
-    const inflation = settings.inflationRate ?? 0
     const planStart = startYear
     const planEnd = startYear + years - 1
     return incomeSources.reduce((sum, src) => {
       const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
-      const growth = (src.growth || 0) - inflation
+      const growth = src.growth || 0
       const srcStart = Math.max(src.startYear ?? planStart, planStart)
       const srcEnd = src.endYear ?? planEnd
       const effectiveEnd = Math.min(srcEnd, planEnd)
@@ -486,9 +485,8 @@ export function FinanceProvider({ children }) {
     let medium = 0
     let low = 0
     const rate = settings.discountRate ?? discountRate
-    const inflation = settings.inflationRate ?? 0
     const totalPv = expensesList.reduce((sum, exp) => {
-      const growth = (exp.growth || 0) - inflation
+      const growth = exp.growth || 0
       const pv = calculatePV(
         exp.amount,
         exp.paymentsPerYear,
