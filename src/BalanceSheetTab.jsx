@@ -215,6 +215,7 @@ export default function BalanceSheetTab() {
           className="border p-2 rounded-md"
           value={strategy}
           onChange={e => setStrategy(e.target.value)}
+          aria-label="Strategy"
         >
           <option value="">-- Select --</option>
           {Object.keys(InvestmentStrategies).map(s => (
@@ -240,17 +241,22 @@ export default function BalanceSheetTab() {
           {assetsList.map((item, i) => (
             <React.Fragment key={item.id}>
               <div
-                className={`grid grid-cols-4 gap-2 mb-1 items-center ${
-                  item.id === 'pv-income' ? 'italic bg-slate-100' : ''
+                className={`grid grid-cols-1 sm:grid-cols-4 gap-2 mb-1 items-center ${
+                  item.id === 'pv-income'
+                    ? 'italic bg-slate-100'
+                    : 'border rounded-md p-2 sm:p-0'
                 }`}
               >
                 <button
                   onClick={() => toggleAsset(item.id)}
                   aria-expanded={expandedAssets[item.id] ? 'true' : 'false'}
-                  className="text-amber-700 focus:outline-none"
+                  className="text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   title="Toggle details"
                 >
-                  {expandedAssets[item.id] ? '▾' : '▸'}
+                  <span className="hidden sm:inline">{expandedAssets[item.id] ? '▾' : '▸'}</span>
+                  <span className="sm:hidden text-sm underline">
+                    {expandedAssets[item.id] ? 'Hide' : 'Details'}
+                  </span>
                 </button>
                 <input
                   className="border p-2 rounded-md"
@@ -258,6 +264,7 @@ export default function BalanceSheetTab() {
                   onChange={e => updateItem(setAssetsList, assetsList, i, 'name', e.target.value)}
                   disabled={item.id === 'pv-income'}
                   aria-disabled={item.id === 'pv-income' ? 'true' : undefined}
+                  aria-label="Asset name"
                   title="Asset name"
                 />
                 <input
@@ -267,6 +274,7 @@ export default function BalanceSheetTab() {
                   onChange={e => updateItem(setAssetsList, assetsList, i, 'amount', e.target.value)}
                   disabled={item.id === 'pv-income'}
                   aria-disabled={item.id === 'pv-income' ? 'true' : undefined}
+                  aria-label="Asset amount"
                   title="Asset amount"
                 />
                 <select
@@ -275,6 +283,7 @@ export default function BalanceSheetTab() {
                   onChange={e => updateItem(setAssetsList, assetsList, i, 'type', e.target.value)}
                   disabled={item.id === 'pv-income'}
                   aria-disabled={item.id === 'pv-income' ? 'true' : undefined}
+                  aria-label="Asset type"
                   title="Asset type"
                 >
                   <option value=""></option>
@@ -284,12 +293,13 @@ export default function BalanceSheetTab() {
                 </select>
               </div>
               {expandedAssets[item.id] && (
-                <div className="grid grid-cols-3 gap-2 mb-2 ml-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2 ml-4 sm:ml-6 border-t pt-2 sm:border-none">
                   <input
                     type="number"
                     className="border p-2 rounded-md text-right"
                     value={item.expectedReturn}
                     onChange={e => updateItem(setAssetsList, assetsList, i, 'expectedReturn', e.target.value)}
+                    aria-label="Expected return"
                     title="Expected return"
                   />
                   <input
@@ -297,6 +307,7 @@ export default function BalanceSheetTab() {
                     className="border p-2 rounded-md text-right"
                     value={item.volatility}
                     onChange={e => updateItem(setAssetsList, assetsList, i, 'volatility', e.target.value)}
+                    aria-label="Volatility"
                     title="Volatility"
                   />
                   <input
@@ -304,6 +315,7 @@ export default function BalanceSheetTab() {
                     className="border p-2 rounded-md text-right"
                     value={item.horizonYears ?? ''}
                     onChange={e => updateItem(setAssetsList, assetsList, i, 'horizonYears', e.target.value)}
+                    aria-label="Horizon years"
                     title="Horizon years"
                   />
                 </div>
@@ -312,7 +324,7 @@ export default function BalanceSheetTab() {
           ))}
           <button
             onClick={addAsset}
-            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700"
+            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
             aria-label="Add asset"
             title="Add asset"
           >
@@ -325,8 +337,10 @@ export default function BalanceSheetTab() {
           {liabilitiesList.map((item, i) => (
             <div
               key={item.id}
-              className={`grid grid-cols-2 gap-2 mb-2 items-center ${
-                item.id === 'pv-expenses' ? 'italic bg-slate-100' : ''
+              className={`grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2 items-center ${
+                item.id === 'pv-expenses'
+                  ? 'italic bg-slate-100'
+                  : 'border rounded-md p-2 sm:p-0'
               }`}
             >
               <input
@@ -335,6 +349,7 @@ export default function BalanceSheetTab() {
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'name', e.target.value)}
                 disabled={item.id === 'pv-expenses'}
                 aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
+                aria-label="Liability name"
                 title="Liability name"
               />
               <input
@@ -344,13 +359,14 @@ export default function BalanceSheetTab() {
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'amount', e.target.value)}
                 disabled={item.id === 'pv-expenses'}
                 aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
+                aria-label="Liability amount"
                 title="Liability amount"
               />
             </div>
           ))}
           <button
             onClick={addLiability}
-            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700"
+            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
             aria-label="Add liability"
             title="Add liability"
           >
@@ -386,7 +402,7 @@ export default function BalanceSheetTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h4 className="font-semibold text-slate-700 mb-2">Balance Sheet Overview</h4>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={250} role="img" aria-label="Balance sheet bar chart">
             <BarChart data={barData}>
               <XAxis dataKey="name" />
               <YAxis />
@@ -398,7 +414,7 @@ export default function BalanceSheetTab() {
         </div>
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h4 className="font-semibold text-slate-700 mb-2">Asset Allocation</h4>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={250} role="img" aria-label="Asset allocation pie chart">
             <PieChart>
               <Pie data={assetPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                 {assetPieData.map((_, index) => (
@@ -415,7 +431,7 @@ export default function BalanceSheetTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h4 className="font-semibold text-slate-700 mb-2">Liability Allocation</h4>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={250} role="img" aria-label="Liability allocation pie chart">
             <PieChart>
               <Pie data={liabilityPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                 {liabilityPieData.map((_, index) => (
@@ -430,7 +446,7 @@ export default function BalanceSheetTab() {
 
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h4 className="font-semibold text-slate-700 mb-2">Human vs Financial Capital</h4>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={250} role="img" aria-label="Human versus financial capital chart">
             <BarChart data={humanVsFinancial}>
               <XAxis dataKey="name" />
               <YAxis />

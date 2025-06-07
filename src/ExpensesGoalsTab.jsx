@@ -339,6 +339,7 @@ export default function ExpensesGoalsTab() {
               className="border p-2 rounded-md"
               value={e.category}
               onChange={ev => handleExpenseChange(i, 'category', ev.target.value)}
+              aria-label="Expense category"
               title="Expense category"
             >
               <option>Fixed</option>
@@ -349,6 +350,7 @@ export default function ExpensesGoalsTab() {
               className="border p-2 rounded-md"
               value={e.priority}
               onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)}
+              aria-label="Expense priority"
               title="Expense priority"
             >
               <option value={1}>High</option>
@@ -357,14 +359,14 @@ export default function ExpensesGoalsTab() {
             </select>
             <button
               onClick={() => removeExpense(i)}
-              className="text-red-600 hover:text-red-800"
+              className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
               aria-label="Remove expense"
             >✖</button>
           </div>
         ))}
         <button
           onClick={addExpense}
-          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add expense"
           title="Add expense"
         >
@@ -411,14 +413,14 @@ export default function ExpensesGoalsTab() {
             />
             <button
               onClick={() => removeGoal(i)}
-              className="text-red-600 hover:text-red-800"
+              className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
               aria-label="Remove goal"
             >✖</button>
           </div>
         ))}
         <button
           onClick={addGoal}
-          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add goal"
           title="Add goal"
         >
@@ -506,14 +508,14 @@ export default function ExpensesGoalsTab() {
             <div className="text-right">{l.pv.toFixed(2)}</div>
             <button
               onClick={() => removeLiability(i)}
-              className="text-red-600 hover:text-red-800"
+              className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
               aria-label="Remove liability"
             >✖</button>
           </div>
         ))}
         <button
           onClick={addLiability}
-          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add liability"
           title="Add liability"
         >
@@ -524,7 +526,7 @@ export default function ExpensesGoalsTab() {
       {/* PV Summary Bar Chart */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-2">PV Summary</h2>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={300} role="img" aria-label="PV summary bar chart">
           <BarChart data={pvSummaryData} margin={{ top:20, right:30, left:0, bottom:20 }}>
             <XAxis dataKey="category" />
             <YAxis tickFormatter={v =>
@@ -545,7 +547,7 @@ export default function ExpensesGoalsTab() {
         {liabilityDetails.map(l => (
           <div key={l.id} className="mb-8">
             <h3 className="text-lg font-semibold">{l.name}</h3>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={200} role="img" aria-label="Loan amortization chart">
               <BarChart data={l.schedule}>
                 <XAxis dataKey="year" />
                 <YAxis tickFormatter={v =>
@@ -602,7 +604,7 @@ export default function ExpensesGoalsTab() {
       <div className="text-right">
         <button
           onClick={exportJSON}
-          className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50"
+          className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Export to JSON"
           title="Export to JSON"
         >

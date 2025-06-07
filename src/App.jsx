@@ -34,7 +34,7 @@ export default function App() {
             aria-selected={activeTab === tab}
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1 rounded-t ${
+            className={`px-3 py-1 rounded-t focus:outline-none focus:ring-2 focus:ring-amber-500 ${
               activeTab === tab
                 ? 'bg-white shadow text-amber-700'
                 : 'text-slate-500 hover:text-amber-700'
