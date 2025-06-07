@@ -401,7 +401,7 @@ export default function IncomeTab() {
 
               <button
                 onClick={() => removeIncome(i)}
-                className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                className="absolute top-2 right-2 text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
                 aria-label="Remove income source"
               >✖</button>
             </div>
@@ -409,7 +409,7 @@ export default function IncomeTab() {
         </div>
         <button
           onClick={addIncome}
-          className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+          className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add income source"
           title="Add income source"
         >
@@ -630,7 +630,7 @@ export default function IncomeTab() {
         <h2 className="text-lg font-bold text-amber-700 mb-2">
           Projected Income by {chartView === 'monthly' ? 'Month' : 'Year'}
         </h2>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" role="img" aria-label="Projected income chart">
           <BarChart data={incomeData}>
             <XAxis dataKey="year" />
             <YAxis />
@@ -654,7 +654,7 @@ export default function IncomeTab() {
       <section>
         <button
           onClick={exportJSON}
-          className="bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+          className="bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Export income to JSON"
           title="Export income to JSON"
         >
@@ -662,7 +662,7 @@ export default function IncomeTab() {
         </button>
         <button
           onClick={exportCSV}
-          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Export CSV"
           title="Export CSV"
         >
@@ -670,7 +670,7 @@ export default function IncomeTab() {
         </button>
         <button
           onClick={triggerPrint}
-          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50"
+          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Print"
           title="Print"
         >
