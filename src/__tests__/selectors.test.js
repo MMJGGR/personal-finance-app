@@ -1,5 +1,6 @@
 import {
   selectAnnualIncome,
+  selectAnnualIncomePV,
   selectAnnualOutflow,
   selectDiscountedNet,
   selectCumulativePV
@@ -28,6 +29,12 @@ test('annual income sums per year', () => {
 test('annual outflow includes goals', () => {
   const out = selectAnnualOutflow(baseState)
   expect(out).toEqual([6000, 7200])
+})
+
+test('annual income PV discounts each year', () => {
+  const pv = selectAnnualIncomePV(baseState)
+  expect(pv[0]).toBeCloseTo(12000 / 1.1)
+  expect(pv[1]).toBeCloseTo(12000 / (1.1 ** 2))
 })
 
 test('discounted net uses discount rate', () => {

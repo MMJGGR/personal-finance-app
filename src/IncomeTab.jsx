@@ -24,9 +24,7 @@ import generateLoanAdvice from './utils/loanAdvisoryEngine'
 import suggestLoanStrategies from './utils/suggestLoanStrategies'
 import AdviceDashboard from './AdviceDashboard'
 import AdequacyAlert from './AdequacyAlert'
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
+import IncomeChart from './IncomeChart'
 import { formatCurrency } from './utils/formatters'
 import storage from './utils/storage'
 
@@ -59,7 +57,6 @@ export default function IncomeTab() {
     setIncomePV,
   } = useFinance();
 
-  const [chartView, setChartView] = useState('yearly');
   const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
 
   // Keep local discount rate in sync with global settings
@@ -215,70 +212,7 @@ export default function IncomeTab() {
     [totalIncomePV, discountRate, monthlyObligations]
   )
 
-  // 3. Build projection data for chart
-  const incomeData = useMemo(() => {
-    const planEnd = startYear + years - 1
-    if (chartView === 'monthly') {
-      return Array.from({ length: years * 12 }, (_, idx) => {
-        const yrIndex = Math.floor(idx / 12)
-        const month = (idx % 12) + 1
-        const yearVal = startYear + yrIndex
-        const entry = {
-          year: `${yearVal}-${String(month).padStart(2, '0')}`,
-        }
-        incomeSources.forEach((src, sIdx) => {
-          const isSalary = String(src.type).toLowerCase() === 'salary'
-          const retireLimit =
-            startYear + (settings.retirementAge - profile.age) - 1
-          const srcEnd =
-            src.endYear ??
-            (isSalary ? Math.min(planEnd, retireLimit) : planEnd)
-          if (
-            yearVal < (src.startYear ?? startYear) ||
-            yearVal > srcEnd
-          ) {
-            entry[src.name || `Source ${sIdx + 1}`] = 0
-            return
-          }
-          const yearIdx = yearVal - (src.startYear ?? startYear)
-          const annual =
-            src.amount * src.frequency * Math.pow(1 + src.growth / 100, yearIdx)
-          entry[src.name || `Source ${sIdx + 1}`] = Number(
-            (annual / 12).toFixed(2)
-          )
-        })
-        return entry
-      })
-    }
-    return Array.from({ length: years }, (_, i) => {
-      const year = startYear + i
-      const entry = { year: `${year}` }
-      incomeSources.forEach((src, sIdx) => {
-        const isSalary = String(src.type).toLowerCase() === 'salary'
-        const retireLimit =
-          startYear + (settings.retirementAge - profile.age) - 1
-        const srcEnd =
-          src.endYear ??
-          (isSalary ? Math.min(planEnd, retireLimit) : planEnd)
-        if (
-          year < (src.startYear ?? startYear) ||
-          year > srcEnd
-        ) {
-          entry[src.name || `Source ${sIdx + 1}`] = 0
-          return
-        }
-        const yearIdx = year - (src.startYear ?? startYear)
-        entry[src.name || `Source ${sIdx + 1}`] = Number(
-          (
-            src.amount *
-            src.frequency *
-            Math.pow(1 + src.growth / 100, yearIdx)
-          ).toFixed(2)
-        )
-      })
-      return entry
-    })
-  }, [incomeSources, startYear, years, chartView, settings.retirementAge, profile.age])
+  // 3. Build projection data for chart (moved to IncomeChart component)
 
   // 4. Sync totalPV back into context & localStorage
   useEffect(() => {
@@ -349,9 +283,23 @@ export default function IncomeTab() {
 
   const exportCSV = () => {
     const columns = ['Period', ...incomeSources.map((src, i) => src.name || `Source ${i + 1}`)]
-    const rows = incomeData.map(row =>
-      columns.map(col => (col === 'Period' ? row.year : row[col]))
-    )
+    const rows = Array.from({ length: years }, (_, idx) => {
+      const year = startYear + idx
+      const cells = [year]
+      incomeSources.forEach(src => {
+        const isSalary = String(src.type).toLowerCase() === 'salary'
+        const retireLimit = startYear + (settings.retirementAge - profile.age) - 1
+        const end = src.endYear ?? (isSalary ? Math.min(startYear + years - 1, retireLimit) : startYear + years - 1)
+        if (year < (src.startYear ?? startYear) || year > end) {
+          cells.push(0)
+        } else {
+          const yearIdx = year - (src.startYear ?? startYear)
+          const amt = src.amount * src.frequency * Math.pow(1 + src.growth / 100, yearIdx)
+          cells.push(Number(amt.toFixed(2)))
+        }
+      })
+      return cells
+    })
     const csv = buildIncomeCSV(profile, columns, rows)
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -377,11 +325,7 @@ export default function IncomeTab() {
 
   const triggerPrint = () => window.print();
 
-  // Chart palette (aligned with warm amber theme)
-  const chartColors = [
-    '#FBBF24','#F59E0B','#FDBA74','#FB923C',
-    '#F472B6','#C084FC','#34D399','#60A5FA',
-  ];
+
 
   // --- Render ---
   return (
@@ -550,16 +494,6 @@ export default function IncomeTab() {
             title="Projection years"
           />
 
-          <label className="block text-sm font-medium mt-4">Chart View</label>
-          <select
-            className="w-full border p-2 rounded-md"
-            value={chartView}
-            onChange={e => setChartView(e.target.value)}
-            aria-label="Chart view"
-          >
-            <option value="yearly">Yearly</option>
-            <option value="monthly">Monthly</option>
-          </select>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-md">
@@ -725,29 +659,7 @@ export default function IncomeTab() {
       )}
 
       {/* Projection Chart */}
-      <section className="bg-white p-4 rounded-xl shadow-md h-80">
-        <h2 className="text-lg font-bold text-amber-700 mb-2">
-          Projected Income by {chartView === 'monthly' ? 'Month' : 'Year'}
-        </h2>
-        <ResponsiveContainer width="100%" height="100%" role="img" aria-label="Projected income chart">
-          <BarChart data={incomeData}>
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip formatter={value =>
-              formatCurrency(value, settings.locale, settings.currency)
-            } />
-            <Legend />
-            {incomeSources.map((src, i) => (
-              <Bar
-                key={i}
-                dataKey={src.name || `Source ${i+1}`}
-                stackId="a"
-                fill={chartColors[i % chartColors.length]}
-              />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      </section>
+      <IncomeChart />
 
       <AdequacyAlert />
 
