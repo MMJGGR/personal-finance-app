@@ -87,17 +87,26 @@ export default function IncomeTab() {
   const pvPerStream = useMemo(
     () =>
       incomeSources.map(src => {
-        const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100);
-        return calculatePV(
+        const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
+        const planStart = startYear
+        const planEnd = startYear + years - 1
+        const srcStart = Math.max(src.startYear ?? planStart, planStart)
+        const srcEnd = src.endYear ?? planEnd
+        const effectiveEnd = Math.min(srcEnd, planEnd)
+        if (effectiveEnd < srcStart) return 0
+        const activeYears = effectiveEnd - srcStart + 1
+        const pvImmediate = calculatePV(
           afterTaxAmt,
           src.frequency,
           src.growth,
           discountRate,
-          years
-        );
+          activeYears
+        )
+        const offset = srcStart - planStart
+        return pvImmediate / Math.pow(1 + discountRate / 100, offset)
       }),
-    [incomeSources, discountRate, years]
-  );
+    [incomeSources, discountRate, years, startYear]
+  )
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
   const totalIncomePV = totalPV
 
@@ -195,38 +204,53 @@ export default function IncomeTab() {
   const incomeData = useMemo(() => {
     if (chartView === 'monthly') {
       return Array.from({ length: years * 12 }, (_, idx) => {
-        const yrIndex = Math.floor(idx / 12);
-        const month = (idx % 12) + 1;
+        const yrIndex = Math.floor(idx / 12)
+        const month = (idx % 12) + 1
+        const yearVal = startYear + yrIndex
         const entry = {
-          year: `${startYear + yrIndex}-${String(month).padStart(2, '0')}`,
-        };
+          year: `${yearVal}-${String(month).padStart(2, '0')}`,
+        }
         incomeSources.forEach((src, sIdx) => {
+          if (
+            yearVal < (src.startYear ?? startYear) ||
+            (src.endYear && yearVal > src.endYear)
+          ) {
+            entry[src.name || `Source ${sIdx + 1}`] = 0
+            return
+          }
+          const yearIdx = yearVal - (src.startYear ?? startYear)
           const annual =
-            src.amount *
-            src.frequency *
-            Math.pow(1 + src.growth / 100, yrIndex);
+            src.amount * src.frequency * Math.pow(1 + src.growth / 100, yearIdx)
           entry[src.name || `Source ${sIdx + 1}`] = Number(
             (annual / 12).toFixed(2)
-          );
-        });
-        return entry;
-      });
+          )
+        })
+        return entry
+      })
     }
     return Array.from({ length: years }, (_, i) => {
-      const year = startYear + i;
-      const entry = { year: `${year}` };
+      const year = startYear + i
+      const entry = { year: `${year}` }
       incomeSources.forEach((src, sIdx) => {
+        if (
+          year < (src.startYear ?? startYear) ||
+          (src.endYear && year > src.endYear)
+        ) {
+          entry[src.name || `Source ${sIdx + 1}`] = 0
+          return
+        }
+        const yearIdx = year - (src.startYear ?? startYear)
         entry[src.name || `Source ${sIdx + 1}`] = Number(
           (
             src.amount *
             src.frequency *
-            Math.pow(1 + src.growth / 100, i)
+            Math.pow(1 + src.growth / 100, yearIdx)
           ).toFixed(2)
-        );
-      });
-      return entry;
-    });
-  }, [incomeSources, startYear, years, chartView]);
+        )
+      })
+      return entry
+    })
+  }, [incomeSources, startYear, years, chartView])
 
   // 4. Sync totalPV back into context & localStorage
   useEffect(() => {
@@ -238,18 +262,22 @@ export default function IncomeTab() {
   // --- Handlers for form inputs ---
   const onFieldChange = (idx, field, raw) => {
     const updated = incomeSources.map((src, i) => {
-      if (i !== idx) return src;
+      if (i !== idx) return src
       if (field === 'name' || field === 'type') {
-        return { ...src, [field]: raw };
+        return { ...src, [field]: raw }
       }
-      const num = parseFloat(raw);
+      if (field === 'startYear' || field === 'endYear') {
+        const yr = raw ? parseInt(raw.slice(0, 4)) : ''
+        return { ...src, [field]: yr || null }
+      }
+      const num = parseFloat(raw)
       if (field === 'frequency') {
-        return { ...src, [field]: isNaN(num) ? 1 : Math.max(1, num) };
+        return { ...src, [field]: isNaN(num) ? 1 : Math.max(1, num) }
       }
-      return { ...src, [field]: isNaN(num) ? 0 : Math.max(0, num) };
-    });
-    setIncomeSources(updated);
-  };
+      return { ...src, [field]: isNaN(num) ? 0 : Math.max(0, num) }
+    })
+    setIncomeSources(updated)
+  }
 
   const addIncome = () => {
     setIncomeSources([
@@ -261,6 +289,8 @@ export default function IncomeTab() {
         frequency: 1,
         growth: 0,
         taxRate: 0,
+        startYear: startYear,
+        endYear: null,
       },
     ]);
   };
@@ -417,6 +447,24 @@ export default function IncomeTab() {
                 step={0.1}
                 required
                 title="Income tax rate"
+              />
+
+              <label className="block text-sm font-medium mt-2">Start Year</label>
+              <input
+                type="date"
+                className="w-full border p-2 rounded-md"
+                value={`${src.startYear}-01-01`}
+                onChange={e => onFieldChange(i, 'startYear', e.target.value)}
+                title="Start year"
+              />
+
+              <label className="block text-sm font-medium mt-2">End Year</label>
+              <input
+                type="date"
+                className="w-full border p-2 rounded-md"
+                value={src.endYear ? `${src.endYear}-12-31` : ''}
+                onChange={e => onFieldChange(i, 'endYear', e.target.value)}
+                title="End year"
               />
 
               <button

@@ -109,6 +109,7 @@ export function FinanceProvider({ children }) {
   // === IncomeTab state ===
   const [incomeSources, setIncomeSources] = useState(() => {
     const s = storage.get('incomeSources')
+    const now = new Date().getFullYear()
     const defaults = [{
       name: 'Salary',
       type: 'Employment',
@@ -116,8 +117,24 @@ export function FinanceProvider({ children }) {
       frequency: 12,
       growth: 5,
       taxRate: 30,
+      startYear: now,
+      endYear: null,
     }]
-    return s ? safeParse(s, defaults) : defaults
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        const migrated = parsed.map(src => ({
+          startYear: src.startYear ?? now,
+          endYear: src.endYear ?? null,
+          ...src,
+        }))
+        storage.set('incomeSources', JSON.stringify(migrated))
+        return migrated
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return defaults
   })
   const [startYear, setStartYear] = useState(() => {
     const s = storage.get('incomeStartYear')
@@ -432,19 +449,28 @@ export function FinanceProvider({ children }) {
   const incomePvValue = useMemo(() => {
     const rate = settings.discountRate ?? discountRate
     const inflation = settings.inflationRate ?? 0
+    const planStart = startYear
+    const planEnd = startYear + years - 1
     return incomeSources.reduce((sum, src) => {
       const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
       const growth = (src.growth || 0) - inflation
-      const pv = calculatePV(
+      const srcStart = Math.max(src.startYear ?? planStart, planStart)
+      const srcEnd = src.endYear ?? planEnd
+      const effectiveEnd = Math.min(srcEnd, planEnd)
+      if (effectiveEnd < srcStart) return sum
+      const activeYears = effectiveEnd - srcStart + 1
+      const pvImmediate = calculatePV(
         afterTaxAmt,
         src.frequency,
         growth,
         rate,
-        years
+        activeYears
       )
-      return sum + pv
+      const offsetYears = srcStart - planStart
+      const discounted = pvImmediate / Math.pow(1 + rate / 100, offsetYears)
+      return sum + discounted
     }, 0)
-  }, [incomeSources, settings.discountRate, settings.inflationRate, discountRate, years])
+  }, [incomeSources, settings.discountRate, settings.inflationRate, discountRate, years, startYear])
 
   const recalcIncomePV = useCallback(() => {
     setIncomePV(incomePvValue)
