@@ -285,8 +285,9 @@ export function FinanceProvider({ children }) {
       discretionaryCutThreshold: 0,
       survivalThresholdMonths: 0,
       bufferPct: 0,
+      retirementAge: 65,
     }
-    const loaded = s ? safeParse(s, defaults) : defaults
+    const loaded = s ? { ...defaults, ...safeParse(s, {}) } : defaults
     if (!loaded.currency) {
       const nat = profile.nationality
       loaded.currency = DEFAULT_CURRENCY_MAP[nat] || 'KES'
@@ -509,7 +510,12 @@ export function FinanceProvider({ children }) {
       const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
       const growth = src.growth || 0
       const srcStart = Math.max(src.startYear ?? planStart, planStart)
-      const srcEnd = src.endYear ?? planEnd
+      const isSalary = String(src.type).toLowerCase() === 'salary'
+      const retireLimit = startYear + (settings.retirementAge - profile.age) - 1
+      let srcEnd = src.endYear ?? planEnd
+      if (src.endYear == null && isSalary) {
+        srcEnd = Math.min(srcEnd, retireLimit)
+      }
       const effectiveEnd = Math.min(srcEnd, planEnd)
       if (effectiveEnd < srcStart) return sum
       const activeYears = effectiveEnd - srcStart + 1
@@ -524,7 +530,7 @@ export function FinanceProvider({ children }) {
       const discounted = pvImmediate / Math.pow(1 + rate / 100, offsetYears)
       return sum + discounted
     }, 0)
-  }, [incomeSources, settings.discountRate, settings.inflationRate, discountRate, years, startYear])
+  }, [incomeSources, settings.discountRate, settings.inflationRate, settings.retirementAge, profile.age, discountRate, years, startYear])
 
   const recalcIncomePV = useCallback(() => {
     setIncomePV(incomePvValue)
@@ -676,6 +682,7 @@ export function FinanceProvider({ children }) {
           discretionaryCutThreshold: 0,
           survivalThresholdMonths: 0,
           bufferPct: 0,
+          retirementAge: 65,
           ...parsed,
         })
       }

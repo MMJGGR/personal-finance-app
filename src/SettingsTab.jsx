@@ -122,6 +122,21 @@ export default function SettingsTab() {
           />
         </label>
 
+        {/* Retirement Age */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Retirement Age</span>
+          <input
+            type="number"
+            min={0}
+            value={form.retirementAge}
+            onChange={e =>
+              handleChange('retirementAge', Math.max(0, parseInt(e.target.value) || 0))
+            }
+            className="w-full border rounded-md p-2"
+            title="Retirement age"
+          />
+        </label>
+
         {/* Buffer Percentage */}
         <label className="block">
           <span className="text-sm text-slate-600">Buffer Percentage (%)</span>
