@@ -35,6 +35,14 @@ export const selectAnnualIncome = createSelector(
   }
 )
 
+export const selectAnnualIncomePV = createSelector(
+  [selectAnnualIncome, getDiscountRate],
+  (income, rate) => {
+    const r = rate / 100
+    return income.map((amt, idx) => amt / Math.pow(1 + r, idx + 1))
+  }
+)
+
 export const selectAnnualOutflow = createSelector(
   [getExpenses, getGoals, getStartYear, getYears],
   (expenses, goals, startYear, years) => {

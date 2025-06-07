@@ -11,6 +11,7 @@ import React, {
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import {
   selectAnnualIncome,
+  selectAnnualIncomePV,
   selectAnnualOutflow,
   selectDiscountedNet,
   selectCumulativePV
@@ -486,6 +487,17 @@ export function FinanceProvider({ children }) {
     [incomeSources, startYear, years, settings, profile]
   )
 
+  const annualIncomePV = useMemo(
+    () =>
+      selectAnnualIncomePV({
+        incomeSources,
+        startYear,
+        years,
+        settings
+      }),
+    [incomeSources, startYear, years, settings]
+  )
+
   const annualOutflow = useMemo(
     () =>
       selectAnnualOutflow({
@@ -828,6 +840,7 @@ export function FinanceProvider({ children }) {
       monthlySurplusNominal,
       monthlyIncomeNominal,
       annualIncome,
+      annualIncomePV,
       annualOutflow,
       discountedNet,
       cumulativePV,
