@@ -24,6 +24,16 @@ npm run preview
 
 The project uses [React](https://react.dev/) with [Vite](https://vitejs.dev/) for the build system. Styling is powered by Tailwind CSS and ESLint provides linting rules.
 
+## Linting and Testing
+
+Before running `npm run lint` or `npm test` make sure all development dependencies are installed:
+
+```bash
+npm install
+```
+
+This ensures that ESLint and Jest are available locally.
+
 ## Configuration
 
 Application settings are stored in local storage and can be modified under the **Settings** tab.  Available keys include:
