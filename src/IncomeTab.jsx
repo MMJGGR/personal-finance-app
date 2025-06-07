@@ -239,8 +239,11 @@ export default function IncomeTab() {
       if (field === 'name' || field === 'type') {
         return { ...src, [field]: raw };
       }
-      const val = parseFloat(raw);
-      return { ...src, [field]: isNaN(val) ? 0 : Math.max(0, val) };
+      const num = parseFloat(raw);
+      if (field === 'frequency') {
+        return { ...src, [field]: isNaN(num) ? 1 : Math.max(1, num) };
+      }
+      return { ...src, [field]: isNaN(num) ? 0 : Math.max(0, num) };
     });
     setIncomeSources(updated);
   };
@@ -363,7 +366,7 @@ export default function IncomeTab() {
                 className="w-full border p-2 rounded-md invalid:border-red-500"
                 value={src.frequency}
                 onChange={e => onFieldChange(i, 'frequency', e.target.value)}
-                min={0}
+                min={1}
                 step={1}
                 required
                 title="Payments per year"
