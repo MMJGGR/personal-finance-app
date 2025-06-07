@@ -105,3 +105,29 @@ export function calculateLoanNPV(
 
   return pvPayments - principal;
 }
+
+/**
+ * Estimate the future value of a present amount using annual compounding.
+ *
+ * @param {number} amount - Present value.
+ * @param {number} rate   - Annual growth rate (percent).
+ * @param {number} years  - Number of years to compound.
+ * @returns {number} Future value after compounding.
+ */
+export function estimateFutureValue(amount, rate, years) {
+  const r = rate / 100
+  return amount * Math.pow(1 + r, years)
+}
+
+/**
+ * Discount a future amount back to today's value using annual compounding.
+ *
+ * @param {number} amount - Future value to discount.
+ * @param {number} rate   - Annual discount rate (percent).
+ * @param {number} years  - Years until the amount is received.
+ * @returns {number} Present value of the future amount.
+ */
+export function discountToPresent(amount, rate, years) {
+  const r = rate / 100
+  return amount / Math.pow(1 + r, years)
+}
