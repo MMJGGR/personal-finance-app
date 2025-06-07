@@ -1,11 +1,13 @@
 // src/App.jsx
-import React, { useState } from 'react'
-import IncomeTab from './IncomeTab'
-import ExpensesGoalsTab from './ExpensesGoalsTab'
-import BalanceSheetTab from './BalanceSheetTab'
-import ProfileTab from './ProfileTab'
-import SettingsTab from './SettingsTab'
-import InsuranceTab from './InsuranceTab'
+import React, { Suspense, useState } from 'react'
+import Spinner from './Spinner.jsx'
+
+const IncomeTab = React.lazy(() => import('./IncomeTab.jsx'))
+const ExpensesGoalsTab = React.lazy(() => import('./ExpensesGoalsTab.jsx'))
+const BalanceSheetTab = React.lazy(() => import('./BalanceSheetTab.jsx'))
+const ProfileTab = React.lazy(() => import('./ProfileTab.jsx'))
+const SettingsTab = React.lazy(() => import('./SettingsTab.jsx'))
+const InsuranceTab = React.lazy(() => import('./InsuranceTab.jsx'))
 
 
 const tabs = ['Income', 'Expenses & Goals', 'Balance Sheet', 'Profile', 'Insurance', 'Settings']
@@ -49,7 +51,9 @@ export default function App() {
       </nav>
 
       <div className="bg-white p-4 rounded shadow min-h-[300px]">
-        <Active />
+        <Suspense fallback={<Spinner />}>
+          <Active />
+        </Suspense>
       </div>
     </div>
   )
