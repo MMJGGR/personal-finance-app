@@ -239,7 +239,11 @@ export default function BalanceSheetTab() {
           </div>
           {assetsList.map((item, i) => (
             <React.Fragment key={item.id}>
-              <div className="grid grid-cols-4 gap-2 mb-1 items-center">
+              <div
+                className={`grid grid-cols-4 gap-2 mb-1 items-center ${
+                  item.id === 'pv-income' ? 'italic bg-slate-100' : ''
+                }`}
+              >
                 <button
                   onClick={() => toggleAsset(item.id)}
                   aria-expanded={expandedAssets[item.id] ? 'true' : 'false'}
@@ -253,6 +257,7 @@ export default function BalanceSheetTab() {
                   value={item.name}
                   onChange={e => updateItem(setAssetsList, assetsList, i, 'name', e.target.value)}
                   disabled={item.id === 'pv-income'}
+                  aria-disabled={item.id === 'pv-income' ? 'true' : undefined}
                   title="Asset name"
                 />
                 <input
@@ -261,6 +266,7 @@ export default function BalanceSheetTab() {
                   value={item.amount}
                   onChange={e => updateItem(setAssetsList, assetsList, i, 'amount', e.target.value)}
                   disabled={item.id === 'pv-income'}
+                  aria-disabled={item.id === 'pv-income' ? 'true' : undefined}
                   title="Asset amount"
                 />
                 <select
@@ -268,6 +274,7 @@ export default function BalanceSheetTab() {
                   value={item.type}
                   onChange={e => updateItem(setAssetsList, assetsList, i, 'type', e.target.value)}
                   disabled={item.id === 'pv-income'}
+                  aria-disabled={item.id === 'pv-income' ? 'true' : undefined}
                   title="Asset type"
                 >
                   <option value=""></option>
@@ -316,12 +323,18 @@ export default function BalanceSheetTab() {
         <div>
           <h3 className="text-md font-medium mb-2">Liabilities</h3>
           {liabilitiesList.map((item, i) => (
-            <div key={item.id} className="grid grid-cols-2 gap-2 mb-2 items-center">
+            <div
+              key={item.id}
+              className={`grid grid-cols-2 gap-2 mb-2 items-center ${
+                item.id === 'pv-expenses' ? 'italic bg-slate-100' : ''
+              }`}
+            >
               <input
                 className="border p-2 rounded-md"
                 value={item.name}
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'name', e.target.value)}
                 disabled={item.id === 'pv-expenses'}
+                aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
                 title="Liability name"
               />
               <input
@@ -329,6 +342,8 @@ export default function BalanceSheetTab() {
                 className="border p-2 rounded-md"
                 value={item.amount}
                 onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'amount', e.target.value)}
+                disabled={item.id === 'pv-expenses'}
+                aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
                 title="Liability amount"
               />
             </div>
