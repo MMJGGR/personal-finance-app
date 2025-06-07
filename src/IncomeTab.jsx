@@ -25,6 +25,7 @@ import AdviceDashboard from './AdviceDashboard'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
+import { formatCurrency } from './utils/formatters'
 
 export default function IncomeTab() {
   const {
@@ -467,17 +468,13 @@ export default function IncomeTab() {
             Monthly Expenses (from Expenses tab):
             <span className="font-semibold text-amber-700">
               {' '}
-              {monthlyExpense.toLocaleString(settings.locale, {
-                style: 'currency', currency: settings.currency
-              })}
+              {formatCurrency(monthlyExpense, settings.locale, settings.currency)}
             </span>
           </p>
           <p className="text-sm italic text-slate-500 mt-1">
             PV-Adjusted Monthly Expense:&nbsp;
             <span className="font-semibold text-amber-700">
-              {monthlyPVExpense.toLocaleString(settings.locale, {
-                style: 'currency', currency: settings.currency
-              })}
+              {formatCurrency(monthlyPVExpense, settings.locale, settings.currency)}
             </span>
           </p>
         </div>
@@ -556,9 +553,7 @@ export default function IncomeTab() {
             <li key={i}>
               {src.name || `Source ${i+1}`}:&nbsp;
               <span className="text-green-600 font-semibold">
-                {pvPerStream[i].toLocaleString(settings.locale, {
-                  style: 'currency', currency: settings.currency
-                })}
+                {formatCurrency(pvPerStream[i], settings.locale, settings.currency)}
               </span>
             </li>
           ))}
@@ -566,9 +561,7 @@ export default function IncomeTab() {
         <p className="mt-4 font-semibold">
           Total PV:&nbsp;
           <span className="text-green-600 text-xl">
-            {totalPV.toLocaleString(settings.locale, {
-              style: 'currency', currency: settings.currency
-            })}
+            {formatCurrency(totalPV, settings.locale, settings.currency)}
           </span>
         </p>
         <p className="text-sm mt-2" title="Months covered ignoring discounting">
@@ -624,11 +617,7 @@ export default function IncomeTab() {
             {discretionaryAdvice.map((d, i) => (
               <li key={i}>
                 Cut <strong>{d.name}</strong> (~
-                {d.amount.toLocaleString(settings.locale, {
-                  style: 'currency',
-                  currency: settings.currency,
-                  maximumFractionDigits: 0
-                })}
+                {formatCurrency(d.amount, settings.locale, settings.currency)}
                 /mo)
               </li>
             ))}
@@ -646,9 +635,7 @@ export default function IncomeTab() {
             <XAxis dataKey="year" />
             <YAxis />
             <Tooltip formatter={value =>
-              value.toLocaleString(settings.locale, {
-                style: 'currency', currency: settings.currency
-              })
+              formatCurrency(value, settings.locale, settings.currency)
             } />
             <Legend />
             {incomeSources.map((src, i) => (

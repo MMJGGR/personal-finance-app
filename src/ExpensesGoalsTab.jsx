@@ -1,6 +1,7 @@
 // src/ExpensesGoalsTab.jsx
 
 import React, { useMemo, useEffect } from 'react'
+import { formatCurrency } from './utils/formatters'
 import { useFinance } from './FinanceContext'
 import { calculatePV, calculateLoanNPV } from './utils/financeUtils'
 import { FREQUENCIES, FREQUENCY_LABELS } from './constants'
@@ -527,10 +528,10 @@ export default function ExpensesGoalsTab() {
           <BarChart data={pvSummaryData} margin={{ top:20, right:30, left:0, bottom:20 }}>
             <XAxis dataKey="category" />
             <YAxis tickFormatter={v =>
-              v.toLocaleString(settings.locale,{style:'currency',currency:settings.currency})
+              formatCurrency(v, settings.locale, settings.currency)
             }/>
             <Tooltip formatter={v =>
-              v.toLocaleString(settings.locale,{style:'currency',currency:settings.currency})
+              formatCurrency(v, settings.locale, settings.currency)
             }/>
             <Legend />
             <Bar dataKey="value" fill={COLORS[1]} name="Present Value" />
@@ -548,10 +549,10 @@ export default function ExpensesGoalsTab() {
               <BarChart data={l.schedule}>
                 <XAxis dataKey="year" />
                 <YAxis tickFormatter={v =>
-                  v.toLocaleString(settings.locale,{style:'currency',currency:settings.currency})
+                  formatCurrency(v, settings.locale, settings.currency)
                 }/>
                 <Tooltip formatter={v =>
-                  v.toLocaleString(settings.locale,{style:'currency',currency:settings.currency})
+                  formatCurrency(v, settings.locale, settings.currency)
                 }/>
                 <Legend verticalAlign="bottom" />
                 <Bar dataKey="principalPaid" stackId="a" name="Principal" fill={PRINCIPAL_COLOR} />
@@ -573,9 +574,7 @@ export default function ExpensesGoalsTab() {
           <div key={i} className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
             <span className="text-sm text-gray-500">{it.label}</span>
             <span className="mt-2 text-lg font-semibold text-amber-700">
-              {it.value.toLocaleString(settings.locale,{
-                style:'currency',currency:settings.currency,maximumFractionDigits:0
-              })}
+              {formatCurrency(it.value, settings.locale, settings.currency)}
             </span>
           </div>
         ))}
@@ -589,11 +588,7 @@ export default function ExpensesGoalsTab() {
               <li key={i}>
                 Pay <strong>{s.name}</strong> early to save&nbsp;
                 <span className="text-amber-700 font-semibold">
-                  {s.interestSaved.toLocaleString(settings.locale, {
-                    style: 'currency',
-                    currency: settings.currency,
-                    maximumFractionDigits: 0
-                  })}
+                  {formatCurrency(s.interestSaved, settings.locale, settings.currency)}
                 </span>
                 {s.paymentsSaved > 0 && ` and cut ${s.paymentsSaved} payments`}
                 .
