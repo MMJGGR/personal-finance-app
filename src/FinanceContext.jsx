@@ -11,6 +11,12 @@ import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
 
+const DEFAULT_CURRENCY_MAP = {
+  Kenyan: 'KES',
+  American: 'USD',
+  French: 'EUR'
+}
+
 function safeParse(str, fallback) {
   try {
     return JSON.parse(str)
@@ -247,14 +253,19 @@ export function FinanceProvider({ children }) {
     const defaults = {
       inflationRate: 5,
       expectedReturn: 8,
-      currency: 'KES',
+      currency: '',
       locale: 'en-KE',
       apiEndpoint: '',
       discretionaryCutThreshold: 0,
       survivalThresholdMonths: 0,
       bufferPct: 0,
     }
-    return s ? safeParse(s, defaults) : defaults
+    const loaded = s ? safeParse(s, defaults) : defaults
+    if (!loaded.currency) {
+      const nat = profile.nationality
+      loaded.currency = DEFAULT_CURRENCY_MAP[nat] || 'KES'
+    }
+    return loaded
   })
 
   // === Risk scoring ===
@@ -286,18 +297,30 @@ export function FinanceProvider({ children }) {
   }, [strategy])
 
   // === Updaters that persist to localStorage ===
+  const updateSettings = useCallback(updated => {
+    setSettings(updated)
+    localStorage.setItem('settings', JSON.stringify(updated))
+  }, [])
+
   const updateProfile = useCallback(updated => {
     setProfile(updated)
     localStorage.setItem('profile', JSON.stringify(updated))
     const score = calculateRiskScore(updated)
     setRiskScore(score)
     localStorage.setItem('riskScore', score)
+    if (!settings.currency) {
+      const cur = DEFAULT_CURRENCY_MAP[updated.nationality]
+      if (cur) updateSettings({ ...settings, currency: cur })
+    }
   }, [])
 
-  const updateSettings = useCallback(updated => {
-    setSettings(updated)
-    localStorage.setItem('settings', JSON.stringify(updated))
-  }, [])
+  // Derive default currency when none chosen
+  useEffect(() => {
+    if (!settings.currency) {
+      const cur = DEFAULT_CURRENCY_MAP[profile.nationality] || 'KES'
+      updateSettings({ ...settings, currency: cur })
+    }
+  }, [profile.nationality, settings.currency])
 
   // === Load default Hadi persona if no data present ===
   useEffect(() => {
