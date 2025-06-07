@@ -478,13 +478,22 @@ export function FinanceProvider({ children }) {
     const ep = localStorage.getItem('expensesPV')
     if (ep) setExpensesPV(+ep)
 
+    const rs = localStorage.getItem('riskScore')
+
     const sProf = localStorage.getItem('profile')
+    let loadedProfile = null
     if (sProf) {
       const p = safeParse(sProf, null)
       if (p) {
+        loadedProfile = p
         setProfile(p)
-        setRiskScore(calculateRiskScore(p))
       }
+    }
+
+    if (rs) {
+      setRiskScore(+rs)
+    } else if (loadedProfile) {
+      setRiskScore(calculateRiskScore(loadedProfile))
     }
 
     const sSet = localStorage.getItem('settings')
