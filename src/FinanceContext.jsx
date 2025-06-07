@@ -424,6 +424,28 @@ export function FinanceProvider({ children }) {
     setIncludeLiabilitiesNPV,
   ])
 
+  // Auto-populate salary end year using retirement age
+  useEffect(() => {
+    setIncomeSources(prev => {
+      const diff = (settings.retirementAge ?? 65) - (profile.age ?? 0)
+      let changed = false
+      const next = prev.map(src => {
+        const t = String(src.type || '').toLowerCase()
+        const isSalary = t === 'salary' || t === 'employment'
+        if (isSalary && src.endYear == null) {
+          const base = src.startYear ?? startYear
+          const end = base + diff
+          if (src.endYear !== end) {
+            changed = true
+            return { ...src, endYear: end }
+          }
+        }
+        return src
+      })
+      return changed ? next : prev
+    })
+  }, [profile.age, settings.retirementAge, startYear])
+
   // === Persist state slices ===
   useEffect(() => { storage.set('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
   useEffect(() => { storage.set('incomeStartYear', String(startYear)) }, [startYear])

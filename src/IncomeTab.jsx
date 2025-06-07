@@ -62,6 +62,13 @@ export default function IncomeTab() {
   const [chartView, setChartView] = useState('yearly');
   const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
 
+  // Keep local discount rate in sync with global settings
+  useEffect(() => {
+    if (settings.discountRate !== undefined && settings.discountRate !== discountRate) {
+      setDiscountRate(settings.discountRate)
+    }
+  }, [settings.discountRate])
+
   const currentYear = new Date().getFullYear();
   const pvGoals = useMemo(
     () =>
