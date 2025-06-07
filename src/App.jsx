@@ -5,14 +5,16 @@ import ExpensesGoalsTab from './ExpensesGoalsTab'
 import BalanceSheetTab from './BalanceSheetTab'
 import ProfileTab from './ProfileTab'
 import SettingsTab from './SettingsTab'
+import InsuranceTab from './InsuranceTab'
 
 
-const tabs = ['Income', 'Expenses & Goals', 'Balance Sheet', 'Profile','Settings']
+const tabs = ['Income', 'Expenses & Goals', 'Balance Sheet', 'Profile', 'Insurance', 'Settings']
 const components = {
   Income: IncomeTab,
   'Expenses & Goals': ExpensesGoalsTab,
   'Balance Sheet': BalanceSheetTab,
   Profile: ProfileTab,
+  Insurance: InsuranceTab,
   Settings: SettingsTab,
 }
 
