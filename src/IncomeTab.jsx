@@ -12,6 +12,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from './FinanceContext';
 import { calculatePV } from './utils/financeUtils';
+import { buildCSV } from './utils/csvUtils'
 import {
   calculateNominalSurvival,
   calculatePVSurvival,
@@ -282,11 +283,11 @@ export default function IncomeTab() {
   };
 
   const exportCSV = () => {
-    const columns = ['Period', ...incomeSources.map((src, i) => src.name || `Source ${i + 1}`)];
+    const columns = ['Period', ...incomeSources.map((src, i) => src.name || `Source ${i + 1}`)]
     const rows = incomeData.map(row =>
-      columns.map(col => (col === 'Period' ? row.year : row[col])).join(',')
-    );
-    const csv = [columns.join(','), ...rows].join('\n');
+      columns.map(col => (col === 'Period' ? row.year : row[col]))
+    )
+    const csv = buildCSV(columns, rows)
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
