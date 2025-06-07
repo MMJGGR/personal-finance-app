@@ -210,20 +210,20 @@ export function FinanceProvider({ children }) {
   const [profile, setProfile] = useState(() => {
     const s = localStorage.getItem('profile')
     const defaults = {
-      name: '',
-      email: '',
-      phone: '',
+      name: '', // TODO: unused - pending integration
+      email: '', // TODO: unused - pending integration
+      phone: '', // TODO: unused - pending integration
       age: 30,
-      maritalStatus: '',
-      numDependents: 0,
-      residentialAddress: '',
-      nationality: '',
-      idNumber: '',
-      taxResidence: '',
-      employmentStatus: '',
+      maritalStatus: '', // TODO: unused - pending integration
+      numDependents: 0, // TODO: unused - pending integration
+      residentialAddress: '', // TODO: unused - pending integration
+      nationality: '', // TODO: unused - pending integration
+      idNumber: '', // TODO: unused - pending integration
+      taxResidence: '', // TODO: unused - pending integration
+      employmentStatus: '', // TODO: unused - pending integration
       annualIncome: 0,
       liquidNetWorth: 0,
-      sourceOfFunds: '',
+      sourceOfFunds: '', // TODO: unused - pending integration
       investmentKnowledge: '',
       lossResponse: '',
       investmentHorizon: '',
