@@ -38,8 +38,8 @@ export const selectAnnualIncome = createSelector(
 export const selectAnnualIncomePV = createSelector(
   [selectAnnualIncome, getDiscountRate],
   (income, rate) => {
-    const r = rate / 100
-    return income.map((amt, idx) => amt / Math.pow(1 + r, idx + 1))
+    const discount = 1 + rate / 100
+    return income.map((amt, idx) => amt / Math.pow(discount, idx + 1))
   }
 )
 
