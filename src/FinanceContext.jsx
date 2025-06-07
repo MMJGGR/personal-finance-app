@@ -1,6 +1,12 @@
 // src/FinanceContext.jsx
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import { riskScoreMap } from './riskScoreConfig'
 
@@ -264,17 +270,18 @@ export function FinanceProvider({ children }) {
   }
 
   // === Updaters that persist to localStorage ===
-  const updateProfile = updated => {
+  const updateProfile = useCallback(updated => {
     setProfile(updated)
     localStorage.setItem('profile', JSON.stringify(updated))
     const score = calculateRiskScore(updated)
     setRiskScore(score)
     localStorage.setItem('riskScore', score)
-  }
-  const updateSettings = updated => {
+  }, [])
+
+  const updateSettings = useCallback(updated => {
     setSettings(updated)
     localStorage.setItem('settings', JSON.stringify(updated))
-  }
+  }, [])
 
   // === Load default Hadi persona if no data present ===
   useEffect(() => {
@@ -337,7 +344,19 @@ export function FinanceProvider({ children }) {
       }
     }
     loadSeed()
-  }, [])
+  }, [
+    updateProfile,
+    setIncomeSources,
+    setExpensesList,
+    setGoalsList,
+    setAssetsList,
+    setLiabilitiesList,
+    updateSettings,
+    setIncludeMediumPV,
+    setIncludeLowPV,
+    setIncludeGoalsPV,
+    setIncludeLiabilitiesNPV,
+  ])
 
   // === Persist state slices ===
   useEffect(() => { localStorage.setItem('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
