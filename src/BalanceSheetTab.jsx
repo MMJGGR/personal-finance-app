@@ -1,6 +1,19 @@
-import React, { useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import React, { useEffect, useState, useMemo } from 'react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts'
 import { useFinance } from './FinanceContext'
+import LTCMA from './ltcmaAssumptions'
+import InvestmentStrategies from './investmentStrategies'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
@@ -13,7 +26,52 @@ export default function BalanceSheetTab() {
     createAsset,
     liabilitiesList,
     setLiabilitiesList,
+    goalsList,
+    discountRate,
+    humanCapitalShare,
   } = useFinance()
+
+  const [strategy, setStrategy] = useState('')
+
+  const assetReturn = useMemo(() => {
+    const total = assetsList.reduce((s, a) => s + Number(a.amount || 0), 0)
+    if (total === 0) return 0
+    return assetsList.reduce(
+      (sum, a) =>
+        sum + ((Number(a.amount || 0) / total) * (Number(a.expectedReturn || 0))),
+      0
+    )
+  }, [assetsList])
+
+  const assetVol = useMemo(() => {
+    const total = assetsList.reduce((s, a) => s + Number(a.amount || 0), 0)
+    if (total === 0) return 0
+    return assetsList.reduce(
+      (sum, a) =>
+        sum + ((Number(a.amount || 0) / total) * (Number(a.volatility || 0))),
+      0
+    )
+  }, [assetsList])
+
+  const strategyReturn = useMemo(() => {
+    if (!strategy) return 0
+    const weights = InvestmentStrategies[strategy]
+    const totalW = Object.values(weights).reduce((a, b) => a + b, 0)
+    return Object.entries(weights).reduce(
+      (sum, [t, w]) => sum + ((w / totalW) * (LTCMA[t]?.expectedReturn || 0)),
+      0
+    )
+  }, [strategy])
+
+  const strategyVol = useMemo(() => {
+    if (!strategy) return 0
+    const weights = InvestmentStrategies[strategy]
+    const totalW = Object.values(weights).reduce((a, b) => a + b, 0)
+    return Object.entries(weights).reduce(
+      (sum, [t, w]) => sum + ((w / totalW) * (LTCMA[t]?.volatility || 0)),
+      0
+    )
+  }, [strategy])
 
   // Keep PV of Lifetime Income in sync with context changes
   useEffect(() => {
@@ -42,9 +100,28 @@ export default function BalanceSheetTab() {
   }, [expensesPV, setLiabilitiesList])
 
   const totalAssets = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
-  const totalLiabilities = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || 0), 0)
+  const totalLiabilities = liabilitiesList.reduce((sum, l) => sum + Number(l.amount || l.principal || 0), 0)
   const netWorth = totalAssets - totalLiabilities
   const debtAssetRatio = totalAssets > 0 ? totalLiabilities / totalAssets : 0
+
+  const currentYear = new Date().getFullYear()
+  const pvGoals = useMemo(
+    () =>
+      goalsList.reduce((sum, g) => {
+        const yrs = Math.max(0, g.targetYear - currentYear)
+        return sum + g.amount / Math.pow(1 + discountRate / 100, yrs)
+      }, 0),
+    [goalsList, discountRate, currentYear]
+  )
+
+  const pvLiabilities = useMemo(
+    () =>
+      liabilitiesList.reduce(
+        (sum, l) => sum + Number(l.amount || l.principal || 0),
+        0
+      ),
+    [liabilitiesList]
+  )
 
   const addAsset = () =>
     setAssetsList([...assetsList, createAsset()])
@@ -72,6 +149,10 @@ export default function BalanceSheetTab() {
       ...list[index],
       [field]: field === 'amount' ? Number(value) : value,
     }
+    if (setList === setAssetsList && field === 'type' && LTCMA[value]) {
+      updatedItem.expectedReturn = LTCMA[value].expectedReturn
+      updatedItem.volatility = LTCMA[value].volatility
+    }
     const updated = list.map((it, i) => (i === index ? updatedItem : it))
     if (setList === setAssetsList && !validateAsset(updatedItem, index, list)) return
     setList(updated)
@@ -83,22 +164,70 @@ export default function BalanceSheetTab() {
     { name: 'Net Worth', value: netWorth }
   ]
 
-  const pieData = [
-    ...assetsList.map(a => ({ name: a.name, value: a.amount })),
-    ...liabilitiesList.map(l => ({ name: l.name, value: -l.amount }))
+  const assetPieData = assetsList.map(a => ({
+    name: a.name,
+    value: Number(a.amount || 0),
+  }))
+
+  const liabilityPieData = liabilitiesList.map(l => ({
+    name: l.name,
+    value: Number(l.amount || l.principal || 0),
+  }))
+
+  const humanVsFinancial = [
+    { name: 'Human Capital', value: incomePV },
+    { name: 'Financial Capital', value: totalAssets - incomePV },
+  ]
+
+  const summaryRows = [
+    { label: 'Income PV', value: incomePV },
+    { label: 'Expenses PV', value: expensesPV },
+    { label: 'Goals PV', value: pvGoals },
+    { label: 'Liabilities PV', value: pvLiabilities },
+    { label: 'Debt/Asset Ratio', value: debtAssetRatio },
+    { label: 'Human Cap Share', value: humanCapitalShare },
+    { label: 'Portfolio Return', value: assetReturn },
+    { label: 'Portfolio Vol', value: assetVol },
   ]
 
   return (
     <div className="space-y-6 p-6">
       <h2 className="text-xl font-semibold text-amber-700">Lifetime Balance Sheet</h2>
 
+      <div className="mb-4 space-x-2">
+        <label className="font-medium">Strategy:</label>
+        <select
+          className="border p-2 rounded-md"
+          value={strategy}
+          onChange={e => setStrategy(e.target.value)}
+        >
+          <option value="">-- Select --</option>
+          {Object.keys(InvestmentStrategies).map(s => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+        {strategy && (
+          <span className="text-sm text-slate-700">
+            {strategyReturn.toFixed(1)}% / {strategyVol.toFixed(1)}%
+          </span>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h3 className="text-md font-medium mb-2">Assets</h3>
+          <div className="grid grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+            <div>Name</div>
+            <div className="text-right">Amt</div>
+            <div>Type</div>
+            <div className="text-right">Ret %</div>
+            <div className="text-right">Vol %</div>
+            <div className="text-right">Horizon</div>
+          </div>
           {assetsList.map((item, i) => (
-            <div key={item.id} className="flex space-x-2 mb-2">
+            <div key={item.id} className="grid grid-cols-6 gap-2 mb-1 items-center">
               <input
-                className="border p-2 rounded-md w-1/2"
+                className="border p-2 rounded-md"
                 value={item.name}
                 onChange={e => updateItem(setAssetsList, assetsList, i, 'name', e.target.value)}
                 disabled={item.id === 'pv-income'}
@@ -106,10 +235,43 @@ export default function BalanceSheetTab() {
               />
               <input
                 type="number"
-                className="border p-2 rounded-md w-1/2"
+                className="border p-2 rounded-md text-right"
                 value={item.amount}
                 onChange={e => updateItem(setAssetsList, assetsList, i, 'amount', e.target.value)}
                 title="Asset amount"
+              />
+              <select
+                className="border p-2 rounded-md"
+                value={item.type}
+                onChange={e => updateItem(setAssetsList, assetsList, i, 'type', e.target.value)}
+                disabled={item.id === 'pv-income'}
+                title="Asset type"
+              >
+                <option value=""></option>
+                {Object.keys(LTCMA).map(t => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                className="border p-2 rounded-md text-right"
+                value={item.expectedReturn}
+                onChange={e => updateItem(setAssetsList, assetsList, i, 'expectedReturn', e.target.value)}
+                title="Expected return"
+              />
+              <input
+                type="number"
+                className="border p-2 rounded-md text-right"
+                value={item.volatility}
+                onChange={e => updateItem(setAssetsList, assetsList, i, 'volatility', e.target.value)}
+                title="Volatility"
+              />
+              <input
+                type="number"
+                className="border p-2 rounded-md text-right"
+                value={item.horizonYears ?? ''}
+                onChange={e => updateItem(setAssetsList, assetsList, i, 'horizonYears', e.target.value)}
+                title="Horizon years"
               />
             </div>
           ))}
@@ -161,6 +323,21 @@ export default function BalanceSheetTab() {
         )}
       </div>
 
+      <table className="w-full text-sm mb-4">
+        <tbody>
+          {summaryRows.map(row => (
+            <tr key={row.label} className="border-b last:border-none">
+              <td className="py-1 pr-2 text-slate-700">{row.label}</td>
+              <td className="py-1 text-right">
+                {typeof row.value === 'number'
+                  ? row.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                  : row.value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h4 className="font-semibold text-slate-700 mb-2">Balance Sheet Overview</h4>
@@ -174,19 +351,48 @@ export default function BalanceSheetTab() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
         <div className="bg-white p-4 rounded-xl shadow-md">
-          <h4 className="font-semibold text-slate-700 mb-2">Asset/Liability Composition</h4>
+          <h4 className="font-semibold text-slate-700 mb-2">Asset Allocation</h4>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                {pieData.map((_, index) => (
+              <Pie data={assetPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                {assetPieData.map((_, index) => (
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
               <Legend />
             </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-4 rounded-xl shadow-md">
+          <h4 className="font-semibold text-slate-700 mb-2">Liability Allocation</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie data={liabilityPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                {liabilityPieData.map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl shadow-md">
+          <h4 className="font-semibold text-slate-700 mb-2">Human vs Financial Capital</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={humanVsFinancial}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#f59e0b" />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
