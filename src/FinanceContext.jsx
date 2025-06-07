@@ -276,11 +276,12 @@ export function FinanceProvider({ children }) {
   )
 
   useEffect(() => {
-    if (!strategy) {
+    const stored = localStorage.getItem('strategy')
+    if (!stored) {
       const derived = deriveStrategy(riskScore, profile.investmentHorizon)
       setStrategy(derived)
     }
-  }, [riskScore, profile.investmentHorizon, strategy])
+  }, [riskScore, profile.investmentHorizon])
 
   useEffect(() => {
     if (strategy) localStorage.setItem('strategy', strategy)
