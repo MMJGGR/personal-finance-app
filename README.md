@@ -22,7 +22,21 @@ npm run preview
 
 ## Tooling
 
+
 The project uses [React](https://react.dev/) with [Vite](https://vitejs.dev/) for the build system. Styling is powered by Tailwind CSS and ESLint provides linting rules.
+
+## Error Handling
+
+The entire application is wrapped in `AppErrorBoundary`, a thin wrapper around
+`react-error-boundary`. If any component fails during render an unobtrusive
+message is shown:
+
+```
+Oops—something went wrong. Please refresh or try a different tab.
+```
+
+Refreshing the page or navigating to another tab will usually recover. You can
+customize the fallback by editing `src/AppErrorBoundary.jsx`.
 
 ## Linting and Testing
 
@@ -74,6 +88,27 @@ console.log(advice.dti, advice.survival)
 ```
 
 `calcDiscretionaryAdvice` suggests low‑priority expenses to cut when the monthly surplus falls below the configured threshold. `suggestLoanStrategies` ranks liabilities by interest saved when paying them off early.
+
+## Local Storage Helper
+
+The `storage` module under `src/utils` wraps `localStorage` and publishes events
+whenever a key changes. Subscribe to updates with `storage.subscribe(key, cb)`
+and clean up the returned unsubscribe function when done:
+
+```javascript
+import storage from './src/utils/storage'
+
+const unsubscribe = storage.subscribe('example', v => {
+  console.log('example changed to', v)
+})
+
+storage.set('example', '42')
+// callback fires with "42"
+unsubscribe()
+```
+
+Both `set` and `remove` notify subscribers so components stay in sync across
+tabs or reloads.
 
 ## Investment Strategy
 
