@@ -1,6 +1,16 @@
 import React from 'react'
 
-const sections = ['Income', 'Expenses & Goals', 'Balance Sheet', 'Profile', 'Insurance', 'Settings']
+const sections = [
+  'Income',
+  'Expenses & Goals',
+  'Balance Sheet',
+  'Investments',
+  'Retirement',
+  'Strategy',
+  'Profile',
+  'Insurance',
+  'Settings',
+]
 
 export default function Sidebar({ activeSection, onChange }) {
   return (
