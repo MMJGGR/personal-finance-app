@@ -32,17 +32,19 @@ export default function App() {
   const Active = components[activeTab]
 
   return (
-    <div className="min-h-screen flex">
-      <Sidebar activeTab={activeTab} onChange={setActiveTab} />
-      <div className="flex-1">
-        <Header setActiveTab={setActiveTab} />
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="bg-white p-4 rounded shadow min-h-[300px]">
-            <Suspense fallback={<Spinner />}>
-              <Active />
-            </Suspense>
+    <div className="min-h-screen flex flex-col">
+      <Header setActiveTab={setActiveTab} />
+      <div className="flex flex-1">
+        <Sidebar activeTab={activeTab} onChange={setActiveTab} />
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white p-4 rounded shadow min-h-[300px]">
+              <Suspense fallback={<Spinner />}>
+                <Active />
+              </Suspense>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   )
