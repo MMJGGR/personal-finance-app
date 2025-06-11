@@ -23,13 +23,13 @@ function UserMenu() {
 export default function Header({ setActiveTab }) {
   return (
     <header className="bg-amber-400 text-white h-16 flex items-center justify-between px-6">
-      <h1 className="text-2xl font-bold">Personal Finance Planner</h1>
+      <h1 className="text-2xl font-bold leading-none">Personal Finance Planner</h1>
       <div className="flex items-center space-x-2">
         <button
           id="preferences-button"
           onClick={() => setActiveTab('Preferences')}
           aria-label="Preferences"
-          className="p-2 h-8 w-8 flex items-center justify-center rounded hover:bg-amber-300"
+          className="my-auto p-2 h-8 w-8 flex items-center justify-center rounded hover:bg-amber-300"
         >
           ⚙️
         </button>
