@@ -14,7 +14,7 @@ const sections = [
 
 export default function Sidebar({ activeTab, onChange }) {
   return (
-    <nav role="tablist" className="space-y-2 p-4 bg-white border-r min-w-[160px]">
+    <nav role="tablist" className="space-y-2 p-4 bg-white border-r w-64">
       {sections.map(sec => (
         <button
           key={sec}
