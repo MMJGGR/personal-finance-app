@@ -8,7 +8,7 @@ const IncomeTab = React.lazy(() => import('./components/Income/IncomeTab.jsx'))
 const ExpensesGoalsTab = React.lazy(() => import('./components/ExpensesGoals/ExpensesGoalsTab.jsx'))
 const BalanceSheetTab = React.lazy(() => import('./components/BalanceSheet/BalanceSheetTab.jsx'))
 const ProfileTab = React.lazy(() => import('./components/Profile/ProfileTab.jsx'))
-const SettingsTab = React.lazy(() => import('./components/Settings/SettingsTab.jsx'))
+const PreferencesTab = React.lazy(() => import('./components/Settings/PreferencesTab.jsx'))
 const InsuranceTab = React.lazy(() => import('./components/Insurance/InsuranceTab.jsx'))
 const InvestmentsTab = React.lazy(() => import('./components/Investments/InvestmentsTab.jsx'))
 const RetirementTab = React.lazy(() => import('./components/Retirement/RetirementTab.jsx'))
@@ -24,7 +24,7 @@ const components = {
   Strategy: StrategyTab,
   Profile: ProfileTab,
   Insurance: InsuranceTab,
-  Settings: SettingsTab,
+  Settings: PreferencesTab,
 }
 
 export default function App() {
