@@ -1,16 +1,17 @@
 // src/App.jsx
 import React, { Suspense, useState } from 'react'
 import Spinner from './Spinner.jsx'
+import Header from './components/layout/Header.jsx'
+import Sidebar from './components/layout/Sidebar.jsx'
 
-const IncomeTab = React.lazy(() => import('./IncomeTab.jsx'))
-const ExpensesGoalsTab = React.lazy(() => import('./ExpensesGoalsTab.jsx'))
-const BalanceSheetTab = React.lazy(() => import('./BalanceSheetTab.jsx'))
-const ProfileTab = React.lazy(() => import('./ProfileTab.jsx'))
-const SettingsTab = React.lazy(() => import('./SettingsTab.jsx'))
-const InsuranceTab = React.lazy(() => import('./InsuranceTab.jsx'))
+const IncomeTab = React.lazy(() => import('./components/Income/IncomeTab.jsx'))
+const ExpensesGoalsTab = React.lazy(() => import('./components/ExpensesGoals/ExpensesGoalsTab.jsx'))
+const BalanceSheetTab = React.lazy(() => import('./components/BalanceSheet/BalanceSheetTab.jsx'))
+const ProfileTab = React.lazy(() => import('./components/Profile/ProfileTab.jsx'))
+const SettingsTab = React.lazy(() => import('./components/Settings/SettingsTab.jsx'))
+const InsuranceTab = React.lazy(() => import('./components/Insurance/InsuranceTab.jsx'))
 
 
-const tabs = ['Income', 'Expenses & Goals', 'Balance Sheet', 'Profile', 'Insurance', 'Settings']
 const components = {
   Income: IncomeTab,
   'Expenses & Goals': ExpensesGoalsTab,
@@ -21,39 +22,21 @@ const components = {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('Income')
-  const Active = components[activeTab]
+  const [activeSection, setActiveSection] = useState('Income')
+  const Active = components[activeSection]
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Personal Finance Planner</h1>
-
-      <nav
-        role="tablist"
-        className="flex space-x-4 border-b pb-2 mb-4 overflow-x-auto"
-      >
-        {tabs.map(tab => (
-          <button
-            role="tab"
-            aria-selected={activeTab === tab}
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1 rounded-t focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-              activeTab === tab
-                ? 'bg-white shadow text-amber-700'
-                : 'text-slate-500 hover:text-amber-700'
-            }`}
-            title={tab}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
-
-      <div className="bg-white p-4 rounded shadow min-h-[300px]">
-        <Suspense fallback={<Spinner />}>
-          <Active />
-        </Suspense>
+    <div className="min-h-screen flex">
+      <Sidebar activeSection={activeSection} onChange={setActiveSection} />
+      <div className="flex-1">
+        <Header />
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="bg-white p-4 rounded shadow min-h-[300px]">
+            <Suspense fallback={<Spinner />}>
+              <Active />
+            </Suspense>
+          </div>
+        </div>
       </div>
     </div>
   )

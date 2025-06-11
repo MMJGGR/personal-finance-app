@@ -1,7 +1,7 @@
 import React from 'react'
-import { useFinance } from './FinanceContext'
-import { computeEmergencyFund, computeLifeCover } from './utils/insuranceUtils'
-import { formatCurrency } from './utils/formatters'
+import { useFinance } from '../../FinanceContext'
+import { computeEmergencyFund, computeLifeCover } from '../../utils/insuranceUtils'
+import { formatCurrency } from '../../utils/formatters'
 
 export default function InsuranceTab() {
   const { monthlyExpense, profile, settings } = useFinance()

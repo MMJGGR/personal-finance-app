@@ -1,16 +1,16 @@
 // src/ExpensesGoalsTab.jsx
 
 import React, { useMemo, useEffect } from 'react'
-import { formatCurrency } from './utils/formatters'
-import { useFinance } from './FinanceContext'
-import { calculatePV, calculateLoanNPV } from './utils/financeUtils'
-import { FREQUENCIES, FREQUENCY_LABELS } from './constants'
-import suggestLoanStrategies from './utils/suggestLoanStrategies'
-import generateLoanAdvice from './utils/loanAdvisoryEngine'
-import AdviceDashboard from './AdviceDashboard'
-import calcDiscretionaryAdvice from './utils/discretionaryUtils'
-import { buildPlanJSON, buildPlanCSV, submitProfile } from './utils/exportHelpers'
-import storage from './utils/storage'
+import { formatCurrency } from '../../utils/formatters'
+import { useFinance } from '../../FinanceContext'
+import { calculatePV, calculateLoanNPV } from '../../utils/financeUtils'
+import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants'
+import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
+import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
+import AdviceDashboard from '../../AdviceDashboard'
+import calcDiscretionaryAdvice from '../../utils/discretionaryUtils'
+import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
+import storage from '../../utils/storage'
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend

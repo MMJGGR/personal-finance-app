@@ -10,23 +10,23 @@
  */
 
 import React, { useMemo, useEffect, useState } from 'react';
-import { FREQUENCIES, FREQUENCY_LABELS } from './constants';
-import { useFinance } from './FinanceContext';
-import { calculatePV } from './utils/financeUtils';
-import { buildIncomeJSON, buildIncomeCSV, submitProfile } from './utils/exportHelpers'
+import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants';
+import { useFinance } from '../../FinanceContext';
+import { calculatePV } from '../../utils/financeUtils';
+import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
 import {
   calculateNominalSurvival,
   calculatePVSurvival,
   calculatePVObligationSurvival
-} from './utils/survivalMetrics';
-import calcDiscretionaryAdvice from './utils/discretionaryUtils';
-import generateLoanAdvice from './utils/loanAdvisoryEngine'
-import suggestLoanStrategies from './utils/suggestLoanStrategies'
-import AdviceDashboard from './AdviceDashboard'
-import AdequacyAlert from './AdequacyAlert'
-import IncomeChart from './IncomeChart'
-import { formatCurrency } from './utils/formatters'
-import storage from './utils/storage'
+} from '../../utils/survivalMetrics';
+import calcDiscretionaryAdvice from '../../utils/discretionaryUtils';
+import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
+import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
+import AdviceDashboard from '../../AdviceDashboard'
+import AdequacyAlert from '../../AdequacyAlert'
+import IncomeChart from '../../IncomeChart'
+import { formatCurrency } from '../../utils/formatters'
+import storage from '../../utils/storage'
 
 export default function IncomeTab() {
   const {
