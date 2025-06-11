@@ -12,24 +12,30 @@ const sections = [
   'Insurance',
 ]
 
-export default function Sidebar({ activeTab, onChange }) {
+export default function Sidebar({ activeTab, onSelect }) {
   return (
-    <nav role="tablist" className="space-y-2 p-4 bg-white border-r w-64">
-      {sections.map(sec => (
-        <button
-          key={sec}
-          role="tab"
-          aria-selected={activeTab === sec}
-          onClick={() => onChange(sec)}
-          className={`block w-full text-left px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-            activeTab === sec ? 'bg-amber-50 text-amber-700 font-medium' : 'text-slate-700 hover:text-amber-700 hover:bg-amber-50'
-          }`}
-          title={sec}
-        >
-          {sec}
-        </button>
-      ))}
-    </nav>
+    <aside className="w-72 bg-white border-r overflow-y-auto">
+      <div className="p-6">
+        <h2 className="text-lg font-medium text-amber-400 mb-4">Getting Started</h2>
+        <nav className="space-y-2" role="tablist">
+          {sections.map(tab => (
+            <button
+              key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
+              onClick={() => onSelect(tab)}
+              className={`block w-full text-left px-4 py-2 rounded ${
+                activeTab === tab
+                  ? 'bg-amber-50 font-medium'
+                  : 'hover:bg-amber-50 text-slate-700'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </aside>
   )
 }
 

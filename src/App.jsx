@@ -14,7 +14,6 @@ const InvestmentsTab = React.lazy(() => import('./components/Investments/Investm
 const RetirementTab = React.lazy(() => import('./components/Retirement/RetirementTab.jsx'))
 const StrategyTab = React.lazy(() => import('./tabs/StrategyTab.jsx'))
 
-
 const components = {
   Profile: ProfileTab,
   Preferences: PreferencesTab,
@@ -34,16 +33,12 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header setActiveTab={setActiveTab} />
-      <div className="flex flex-1">
-        <Sidebar activeTab={activeTab} onChange={setActiveTab} />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white p-4 rounded shadow min-h-[300px]">
-              <Suspense fallback={<Spinner />}>
-                <Active />
-              </Suspense>
-            </div>
-          </div>
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar activeTab={activeTab} onSelect={setActiveTab} />
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+          <Suspense fallback={<Spinner />}>
+            <Active />
+          </Suspense>
         </main>
       </div>
     </div>
