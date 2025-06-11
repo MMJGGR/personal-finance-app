@@ -10,12 +10,18 @@ const BalanceSheetTab = React.lazy(() => import('./components/BalanceSheet/Balan
 const ProfileTab = React.lazy(() => import('./components/Profile/ProfileTab.jsx'))
 const SettingsTab = React.lazy(() => import('./components/Settings/SettingsTab.jsx'))
 const InsuranceTab = React.lazy(() => import('./components/Insurance/InsuranceTab.jsx'))
+const InvestmentsTab = React.lazy(() => import('./components/Investments/InvestmentsTab.jsx'))
+const RetirementTab = React.lazy(() => import('./components/Retirement/RetirementTab.jsx'))
+const StrategyTab = React.lazy(() => import('./components/Strategy/StrategyTab.jsx'))
 
 
 const components = {
   Income: IncomeTab,
   'Expenses & Goals': ExpensesGoalsTab,
   'Balance Sheet': BalanceSheetTab,
+  Investments: InvestmentsTab,
+  Retirement: RetirementTab,
+  Strategy: StrategyTab,
   Profile: ProfileTab,
   Insurance: InsuranceTab,
   Settings: SettingsTab,
