@@ -394,7 +394,7 @@ export default function ExpensesGoalsTab() {
         ))}
         <button
           onClick={addExpense}
-          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="mt-2 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add expense"
           title="Add expense"
         >
@@ -448,7 +448,7 @@ export default function ExpensesGoalsTab() {
         ))}
         <button
           onClick={addGoal}
-          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="mt-2 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add goal"
           title="Add goal"
         >
@@ -543,7 +543,7 @@ export default function ExpensesGoalsTab() {
         ))}
         <button
           onClick={addLiability}
-          className="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="mt-2 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add liability"
           title="Add liability"
         >

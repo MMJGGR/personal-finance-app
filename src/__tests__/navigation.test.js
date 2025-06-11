@@ -14,13 +14,13 @@ test('sidebar navigation updates active section', async () => {
     </FinanceProvider>
   )
 
-  await screen.findByText(/Income Sources/i)
+  await screen.findByText(/Client Profile/i)
 
-  fireEvent.click(screen.getByRole('tab', { name: /Profile/i }))
-  const profileHeading = await screen.findByText(/Client Profile/i)
-  expect(profileHeading).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('tab', { name: /Income/i }))
+  const incomeHeading = await screen.findByText(/Income Sources/i)
+  expect(incomeHeading).toBeInTheDocument()
 
-  fireEvent.click(screen.getByRole('tab', { name: /Settings/i }))
+  fireEvent.click(screen.getByRole('tab', { name: /Preferences/i }))
   const settingsHeading = await screen.findByText(/Global Settings/i)
   expect(settingsHeading).toBeInTheDocument()
 })

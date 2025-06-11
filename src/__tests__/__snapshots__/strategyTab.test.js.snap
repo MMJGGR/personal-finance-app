@@ -1,9 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`strategy tab placeholder snapshot 1`] = `
-<h2
-  class="text-2xl font-bold text-amber-700"
+<div
+  class="bg-white rounded-xl shadow p-4"
 >
-  Strategy
-</h2>
+  <h2
+    class="text-2xl font-semibold mb-2 text-amber-400"
+  >
+    Strategy
+  </h2>
+  <div
+    class="h-40 flex items-center justify-center text-gray-400"
+  >
+    [Financial Strategy Recommendations & Scenarios]
+  </div>
+</div>
 `;

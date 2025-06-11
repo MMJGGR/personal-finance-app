@@ -1,8 +1,8 @@
-// src/SettingsTab.jsx
+// src/PreferencesTab.jsx
 import React, { useState, useEffect } from 'react'
-import { useFinance } from '../../FinanceContext'
+import { useFinance } from '../FinanceContext'
 
-export default function SettingsTab() {
+export default function PreferencesTab() {
   const {
     settings,
     updateSettings,
