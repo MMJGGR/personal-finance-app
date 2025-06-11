@@ -4,7 +4,7 @@ function UserMenu() {
   const [open, setOpen] = useState(false)
   return (
     <div className="relative">
-      <button onClick={() => setOpen(o => !o)} className="px-3 py-1 bg-white text-amber-400 rounded-md">
+      <button onClick={() => setOpen(o => !o)} className="px-3 py-2 bg-white text-amber-400 rounded-md">
         Menu
       </button>
       {open && (
@@ -22,14 +22,14 @@ function UserMenu() {
 
 export default function Header({ setActiveTab }) {
   return (
-    <header className="bg-amber-400 text-white p-4 flex items-center justify-between">
+    <header className="bg-amber-400 text-white h-16 flex items-center justify-between px-6">
       <h1 className="text-2xl font-bold">Personal Finance Planner</h1>
       <div className="flex items-center space-x-2">
         <button
           id="preferences-button"
           onClick={() => setActiveTab('Preferences')}
           aria-label="Preferences"
-          className="p-2 rounded hover:bg-amber-300"
+          className="p-2 h-8 w-8 flex items-center justify-center rounded hover:bg-amber-300"
         >
           ⚙️
         </button>
