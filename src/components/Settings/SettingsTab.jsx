@@ -1,6 +1,6 @@
 // src/SettingsTab.jsx
 import React, { useState, useEffect } from 'react'
-import { useFinance } from './FinanceContext'
+import { useFinance } from '../../FinanceContext'
 
 export default function SettingsTab() {
   const {

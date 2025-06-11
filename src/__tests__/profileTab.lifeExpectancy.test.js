@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { FinanceProvider } from '../FinanceContext'
-import ProfileTab from '../ProfileTab'
+import ProfileTab from '../components/Profile/ProfileTab'
 
 beforeAll(() => {
   // ensure ResizeObserver not required

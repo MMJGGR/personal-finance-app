@@ -1,6 +1,6 @@
 // src/ProfileTab.jsx
 import React, { useState, useEffect } from 'react'
-import { useFinance } from './FinanceContext'
+import { useFinance } from '../../FinanceContext'
 
 export default function ProfileTab() {
   const { profile, updateProfile, riskScore } = useFinance()

@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { FinanceProvider } from '../FinanceContext'
-import InsuranceTab from '../InsuranceTab'
+import InsuranceTab from '../components/Insurance/InsuranceTab'
 
 beforeAll(() => {
   global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }

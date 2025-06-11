@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { FinanceProvider } from '../FinanceContext'
-import IncomeTab from '../IncomeTab'
+import IncomeTab from '../components/Income/IncomeTab'
 import { FREQUENCY_LABELS } from '../constants'
 
 beforeAll(() => {

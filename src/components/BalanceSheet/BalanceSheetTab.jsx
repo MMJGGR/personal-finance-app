@@ -11,11 +11,11 @@ import {
   Pie,
   Cell,
 } from 'recharts'
-import { useFinance } from './FinanceContext'
-import LTCMA from './ltcmaAssumptions'
-import InvestmentStrategies from './investmentStrategies'
-import { formatCurrency } from './utils/formatters'
-import AdequacyAlert from './AdequacyAlert'
+import { useFinance } from '../../FinanceContext'
+import LTCMA from '../../ltcmaAssumptions'
+import InvestmentStrategies from '../../investmentStrategies'
+import { formatCurrency } from '../../utils/formatters'
+import AdequacyAlert from '../../AdequacyAlert'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
