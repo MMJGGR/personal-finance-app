@@ -14,9 +14,9 @@ test('lazy loaded tabs render with Suspense fallback', async () => {
     </FinanceProvider>
   )
   // default tab should load
-  await screen.findByText(/Income Sources/i)
+  await screen.findByText(/Client Profile/i)
 
-  fireEvent.click(screen.getByRole('tab', { name: /Settings/i }))
+  fireEvent.click(screen.getByRole('tab', { name: /Preferences/i }))
 
   // Spinner should appear while loading
   expect(screen.getByRole('status')).toBeInTheDocument()

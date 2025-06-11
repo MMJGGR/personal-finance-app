@@ -28,7 +28,7 @@ export default function IncomeChart() {
         <button
           onClick={() => setMode('nominal')}
           className={`px-3 py-1 rounded-full text-sm mr-2 ${
-            mode === 'nominal' ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-700'
+            mode === 'nominal' ? 'bg-amber-400 text-white' : 'bg-slate-200 text-slate-700'
           }`}
         >
           Nominal
@@ -36,7 +36,7 @@ export default function IncomeChart() {
         <button
           onClick={() => setMode('discounted')}
           className={`px-3 py-1 rounded-full text-sm ${
-            mode === 'discounted' ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-700'
+            mode === 'discounted' ? 'bg-amber-400 text-white' : 'bg-slate-200 text-slate-700'
           }`}
         >
           Discounted

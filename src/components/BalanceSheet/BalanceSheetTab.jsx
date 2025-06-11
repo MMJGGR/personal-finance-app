@@ -329,7 +329,7 @@ export default function BalanceSheetTab() {
           ))}
           <button
             onClick={addAsset}
-            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="bg-amber-400 text-white px-4 py-2 rounded-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
             aria-label="Add asset"
             title="Add asset"
           >
@@ -371,7 +371,7 @@ export default function BalanceSheetTab() {
           ))}
           <button
             onClick={addLiability}
-            className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="bg-amber-400 text-white px-4 py-2 rounded-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
             aria-label="Add liability"
             title="Add liability"
           >

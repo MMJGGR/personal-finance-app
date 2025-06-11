@@ -446,7 +446,7 @@ export default function IncomeTab() {
         </div>
         <button
           onClick={addIncome}
-          className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="mt-4 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Add income source"
           title="Add income source"
         >
