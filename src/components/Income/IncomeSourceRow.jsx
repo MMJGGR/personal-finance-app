@@ -132,11 +132,8 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
       <label className="block text-sm font-medium mt-2">
         <input
           type="checkbox"
-          className="mr-1"
           checked={income.active}
           onChange={e => updateIncome(index, 'active', e.target.checked)}
-          aria-label="Include this income in projection"
-          title="Include this income in projection"
         />
         Include in Projection
       </label>

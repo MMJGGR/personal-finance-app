@@ -30,7 +30,7 @@ test('income source interactions and advisory', () => {
   window.confirm = jest.fn(() => true)
   fireEvent.click(screen.getAllByRole('button', { name: /Delete/ })[2])
   
-  const toggles = screen.getAllByLabelText('Include this income in projection')
+  const toggles = screen.getAllByLabelText('Include in Projection')
   fireEvent.click(toggles[1])
   expect(screen.getByText(/Total PV/)).toHaveTextContent('1,000')
   expect(screen.getByText(/Stability/)).toHaveTextContent('100%')

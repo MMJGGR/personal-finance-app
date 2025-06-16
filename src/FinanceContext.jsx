@@ -118,6 +118,7 @@ export function FinanceProvider({ children }) {
     const s = storage.get('incomeSources')
     const now = new Date().getFullYear()
     const defaults = [{
+      id: crypto.randomUUID(),
       name: 'Salary',
       type: 'Employment',
       amount: 10000,
@@ -133,6 +134,7 @@ export function FinanceProvider({ children }) {
       try {
         const parsed = JSON.parse(s)
         const migrated = parsed.map(src => ({
+          id: src.id || crypto.randomUUID(),
           startYear: src.startYear ?? now,
           endYear: src.endYear ?? null,
           linkedAssetId: src.linkedAssetId ?? '',

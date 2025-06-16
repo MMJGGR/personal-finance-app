@@ -1,41 +1,35 @@
 import React from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 
-export function generateIncomeTimeline(sources = [], start = 0, end = 0) {
-  const rows = Array.from({ length: end - start + 1 }, (_, i) => ({ year: start + i }))
-  sources.forEach((src, idx) => {
-    if (!src.active) return
-    const key = src.name || `Source ${idx + 1}`
-    src.projection?.forEach(p => {
-      const row = rows[p.year - start]
-      if (row) row[key] = (row[key] || 0) + p.amount
-    })
-  })
-  rows.forEach(r => {
-    sources.forEach((src, idx) => {
-      const key = src.name || `Source ${idx + 1}`
-      if (r[key] == null) r[key] = 0
-    })
-  })
-  return rows
-}
+const COLORS = ['#fbbf24', '#f59e0b', '#d97706', '#92400e', '#78350f']
 
-export default function IncomeTimelineChart({ data, locale, currency }) {
+export default function IncomeTimelineChart({ data = [], incomeSources = [], locale, currency }) {
   const format = v => formatCurrency(v, locale, currency)
   return (
-    <ResponsiveContainer width="100%" height={300} role="img" aria-label="Income timeline chart">
-      <LineChart data={data}>
-        <XAxis dataKey="year" />
-        <YAxis />
-        <Tooltip formatter={format} />
-        <Legend />
-        {Object.keys(data[0] || {})
-          .filter(k => k !== 'year')
-          .map(k => (
-            <Line key={k} type="monotone" dataKey={k} stroke="#f59e0b" name={k} />
-          ))}
-      </LineChart>
-    </ResponsiveContainer>
+    <BarChart data={data} width={1000} height={500} role="img" aria-label="Income timeline chart">
+      <XAxis dataKey="year" />
+      <YAxis />
+      <Tooltip formatter={format} />
+      <Legend />
+
+      {incomeSources.filter(s => s.active).map((s, idx) => (
+        <Bar
+          key={s.id}
+          dataKey={s.id}
+          name={s.name}
+          stackId="income"
+          fill={COLORS[idx % COLORS.length]}
+        />
+      ))}
+
+      <Line
+        type="monotone"
+        dataKey="expenses"
+        name="Expenses"
+        stroke="#ef4444"
+        strokeWidth={2}
+      />
+    </BarChart>
   )
 }
