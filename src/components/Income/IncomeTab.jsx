@@ -9,22 +9,16 @@
  * Outputs (context): incomePV (updated each render)
  */
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useFinance } from '../../FinanceContext';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
-import {
-  calculateNominalSurvival,
-  calculatePVSurvival,
-  calculatePVObligationSurvival
-} from '../../utils/survivalMetrics';
+import { calculatePV, generateIncomeTimeline, findLinkedAsset } from './helpers';
 import calcDiscretionaryAdvice from '../../utils/discretionaryUtils';
 import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
 import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import AdviceDashboard from '../../AdviceDashboard'
-import AdequacyAlert from '../../AdequacyAlert'
 import IncomeSourceRow from './IncomeSourceRow'
 import IncomeTimelineChart from './IncomeTimelineChart'
-import { getIncomeProjection } from '../../utils/incomeProjection'
 
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
@@ -34,25 +28,16 @@ export default function IncomeTab() {
   const {
     incomeSources, setIncomeSources,
     monthlyExpense,
-    monthlyPVHigh,
-    monthlyPVMedium,
-    monthlyPVLow,
-    includeMediumPV,
-    includeLowPV,
-    includeGoalsPV,
-    includeLiabilitiesNPV,
     monthlySurplusNominal,
     monthlyIncomeNominal,
     profile,
     settings,
     expensesList,
-    goalsList,
     liabilitiesList,
     assetsList,
     setIncomePV,
   } = useFinance();
 
-  const [excludedForInterrupt] = useState([]);
 
   const startYear = settings.startYear ?? new Date().getFullYear();
   const discountRate = settings.discountRate ?? 0;
@@ -66,79 +51,77 @@ export default function IncomeTab() {
     }
   }, [settings.retirementAge, profile.lifeExpectancy, profile.age])
 
-  const currentYear = new Date().getFullYear();
-  const pvGoals = useMemo(
-    () =>
-      goalsList.reduce((sum, g) => {
-        const yrs = Math.max(0, g.targetYear - currentYear);
-        return sum + g.amount / Math.pow(1 + discountRate / 100, yrs);
-      }, 0),
-    [goalsList, discountRate, currentYear]
-  );
-
-  const pvLiabilities = useMemo(
-    () =>
-      liabilitiesList.reduce((sum, l) => {
-        const n = l.termYears * l.paymentsPerYear;
-        const i = (l.interestRate / 100) / l.paymentsPerYear;
-        if (n === 0) return sum;
-        const payment = i === 0 ? l.principal / n : (i * l.principal) / (1 - Math.pow(1 + i, -n));
-        const pv = i === 0 ? l.principal : payment * (1 - Math.pow(1 + i, -n)) / i;
-        return sum + pv;
-      }, 0),
-    [liabilitiesList]
-  );
-
   // 1. Compute PV per stream & total
-  const pvPerStream = useMemo(
+  const pvResults = useMemo(
     () =>
-      incomeSources.map(src => {
-        if (src.active === false) return 0
-        const linked = assetsList.find(a => a.id === src.linkedAssetId)
-        const projection = getIncomeProjection(src, assumptions, linked)
-        const planEnd = startYear + years - 1
-        return projection.reduce((sum, p) => {
-          if (p.year < startYear || p.year > planEnd) return sum
-          const t = p.year - startYear
-          return sum + p.amount / Math.pow(1 + discountRate / 100, t)
-        }, 0)
-      }),
-    [incomeSources, assetsList, assumptions, discountRate, startYear, years]
+      incomeSources.map(s =>
+        s.active
+          ? calculatePV(
+              s,
+              discountRate,
+              years,
+              assumptions,
+              findLinkedAsset(s.linkedAssetId, assetsList)
+            )
+          : { gross: 0, net: 0 }
+      ),
+    [incomeSources, discountRate, years, assumptions, assetsList]
   )
-  const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
-  const totalIncomePV = totalPV
+
+  const totalGrossPV = useMemo(
+    () => pvResults.reduce((sum, p) => sum + p.gross, 0),
+    [pvResults]
+  )
+  const totalNetPV = useMemo(
+    () => pvResults.reduce((sum, p) => sum + p.net, 0),
+    [pvResults]
+  )
 
 
-  const timelineData = useMemo(() => {
-    const now = new Date().getFullYear()
-    const lastYear = assumptions.deathAge
-    const rows = Array.from({ length: lastYear - now + 1 }, (_, i) => ({
-      year: now + i,
-      expenses: monthlyExpense * 12,
-    }))
-    incomeSources.forEach(src => {
-      if (!src.active) return
-      const linked = assetsList.find(a => a.id === src.linkedAssetId)
-      const proj = getIncomeProjection(src, assumptions, linked)
-      proj.forEach(p => {
-        const row = rows[p.year - now]
-        if (row) row[src.id] = (row[src.id] || 0) + p.amount
-      })
-    })
-    return rows
-  }, [incomeSources, assetsList, assumptions, monthlyExpense])
+  const timelineData = useMemo(
+    () =>
+      generateIncomeTimeline(
+        incomeSources,
+        years,
+        assumptions,
+        assetsList
+      ).map(r => ({ ...r, expenses: monthlyExpense * 12 })),
+    [incomeSources, years, assumptions, assetsList, monthlyExpense]
+  )
+
+  const gaps = useMemo(
+    () => timelineData.filter(t => t.net < monthlyExpense * 12),
+    [timelineData, monthlyExpense]
+  )
+
+  const liquidAssets = useMemo(
+    () =>
+      assetsList.reduce(
+        (sum, a) =>
+          a.liquid || a.type === 'Cash' || a.type === 'Savings'
+            ? sum + Number(a.amount || 0)
+            : sum,
+        0
+      ),
+    [assetsList]
+  )
+
+  const liquidityCoverage = useMemo(
+    () => (monthlyExpense > 0 ? liquidAssets / monthlyExpense : Infinity),
+    [liquidAssets, monthlyExpense]
+  )
 
   const loanAdvice = useMemo(
     () =>
       generateLoanAdvice(
         liabilitiesList,
-        { ...profile, totalPV: totalIncomePV },
+        { ...profile, totalPV: totalGrossPV },
         monthlyIncomeNominal,
         monthlyExpense,
         discountRate,
         years
       ),
-    [liabilitiesList, profile, totalIncomePV, monthlyIncomeNominal, monthlyExpense, discountRate, years]
+    [liabilitiesList, profile, totalGrossPV, monthlyIncomeNominal, monthlyExpense, discountRate, years]
   );
 
   const loanStrategies = useMemo(
@@ -146,32 +129,6 @@ export default function IncomeTab() {
     [liabilitiesList]
   );
 
-  const nominalSurvivalMonths = useMemo(
-    () =>
-      calculateNominalSurvival(
-        totalIncomePV,
-        discountRate,
-        years,
-        monthlyExpense
-      ),
-    [totalIncomePV, discountRate, years, monthlyExpense]
-  )
-
-  const pvSurvivalMonths = useMemo(
-    () =>
-      calculatePVSurvival(
-        totalIncomePV,
-        discountRate,
-        monthlyExpense,
-        years
-      ),
-    [totalIncomePV, discountRate, monthlyExpense, years]
-  )
-
-  const simpleSurvivalMonths = useMemo(
-    () => (monthlyExpense > 0 ? Math.floor(totalIncomePV / monthlyExpense) : Infinity),
-    [totalIncomePV, monthlyExpense]
-  )
 
   const stabilityScore = useMemo(() => {
     const total = incomeSources.reduce(
@@ -198,52 +155,15 @@ export default function IncomeTab() {
     [expensesList, monthlyExpense, monthlySurplusNominal, settings]
   );
 
-  const interruptionPV = useMemo(
-    () =>
-      pvPerStream.reduce(
-        (sum, pv, idx) =>
-          excludedForInterrupt.includes(idx) ? sum : sum + pv,
-        0
-      ),
-    [pvPerStream, excludedForInterrupt]
-  );
-
-  // 2. Compute interruption months with optional obligations
-  const monthlyObligations = useMemo(() => {
-    const expPart =
-      monthlyPVHigh +
-      (includeMediumPV ? monthlyPVMedium : 0) +
-      (includeLowPV ? monthlyPVLow : 0);
-    const goalsPart = includeGoalsPV && years > 0 ? pvGoals / (years * 12) : 0;
-    const liabPart = includeLiabilitiesNPV && years > 0 ? pvLiabilities / (years * 12) : 0;
-    return expPart + goalsPart + liabPart;
-  }, [includeMediumPV, includeLowPV, includeGoalsPV, includeLiabilitiesNPV, pvGoals, pvLiabilities, monthlyPVHigh, monthlyPVMedium, monthlyPVLow, years]);
-
-  const _interruptionMonths = useMemo(
-    () =>
-      monthlyObligations > 0
-        ? Math.floor(interruptionPV / monthlyObligations)
-        : Infinity,
-    [interruptionPV, monthlyObligations]
-  );
-
-  const pvObligationSurvivalMonths = useMemo(
-    () =>
-      calculatePVObligationSurvival(
-        totalIncomePV,
-        discountRate,
-        monthlyObligations
-      ),
-    [totalIncomePV, discountRate, monthlyObligations]
-  )
+  // 2. Compute interruption months with optional obligations (removed)
 
   // 3. Build projection data for chart
 
-  // 4. Sync totalPV back into context & localStorage
+  // 4. Sync PV back into context & localStorage
   useEffect(() => {
-    setIncomePV(totalPV);
-    storage.set('incomePV', totalPV.toString());
-  }, [totalPV, setIncomePV]);
+    setIncomePV(totalGrossPV);
+    storage.set('incomePV', totalGrossPV.toString());
+  }, [totalGrossPV, setIncomePV]);
 
 
   // --- Handlers for form inputs ---
@@ -313,8 +233,8 @@ export default function IncomeTab() {
       discountRate,
       years,
       monthlyExpense,
-      pvPerStream,
-      totalPV,
+      pvResults,
+      totalGrossPV,
       timelineData
     )
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -361,8 +281,8 @@ export default function IncomeTab() {
       discountRate,
       years,
       monthlyExpense,
-      pvPerStream,
-      totalPV,
+      pvResults,
+      totalGrossPV,
       timelineData
     )
     submitProfile(payload, settings)
@@ -417,59 +337,32 @@ export default function IncomeTab() {
         <ul className="text-sm space-y-1">
           {incomeSources.map((src, i) => (
             <li key={i}>
-              {src.name || `Source ${i+1}`}:&nbsp;
+              {src.name || `Source ${i + 1}`}:&nbsp;
+              <span className="text-amber-700 font-semibold">
+                {formatCurrency(pvResults[i].gross, settings.locale, settings.currency)}
+              </span>{' '}
               <span className="text-green-600 font-semibold">
-                {formatCurrency(pvPerStream[i], settings.locale, settings.currency)}
+                (after tax {formatCurrency(pvResults[i].net, settings.locale, settings.currency)})
               </span>
             </li>
           ))}
         </ul>
         <p className="mt-4 font-semibold">
-          Total PV:&nbsp;
-          <span className="text-green-600 text-xl">
-            {formatCurrency(totalPV, settings.locale, settings.currency)}
+          Total PV (Gross):&nbsp;
+          <span className="text-amber-700 text-xl">
+            {formatCurrency(totalGrossPV, settings.locale, settings.currency)}
           </span>
         </p>
-        <p className="text-sm mt-2" title="Months covered ignoring discounting">
-          Nominal Survival:&nbsp;
-          <strong>{nominalSurvivalMonths === Infinity ? '∞' : nominalSurvivalMonths}</strong>
-          {nominalSurvivalMonths === Infinity ? '' : '\u00A0months'}
-          {nominalSurvivalMonths === Infinity && ' (No expenses)'}
+        <p className="font-semibold">
+          Total PV (After Tax):&nbsp;
+          <span className="text-green-600 text-xl">
+            {formatCurrency(totalNetPV, settings.locale, settings.currency)}
+          </span>
+          <span className="ml-2 px-2 rounded bg-green-200 text-green-800">Stability: {(stabilityScore * 100).toFixed(0)}%</span>
         </p>
-        <p className="text-sm" title="Months covered when discounting each month">
-          PV Survival:&nbsp;
-          <strong>{pvSurvivalMonths === Infinity ? '∞' : pvSurvivalMonths}</strong>
-          {pvSurvivalMonths === Infinity ? '' : '\u00A0months'}
-          {pvSurvivalMonths === Infinity && ' (No expenses)'}
+        <p className="text-sm mt-2">
+          Liquidity Coverage: <span className={`${liquidityCoverage < 6 ? 'text-red-500' : liquidityCoverage < 12 ? 'text-yellow-500' : 'text-green-600'}`}>{liquidityCoverage.toFixed(1)} months</span>
         </p>
-        <p className="text-sm" title="Months with PV obligations included">
-          PV Survival (Obligations):&nbsp;
-          <strong>
-            {pvObligationSurvivalMonths === Infinity ? '∞' : pvObligationSurvivalMonths}
-          </strong>
-          {pvObligationSurvivalMonths === Infinity ? '' : '\u00A0months'}
-          {pvObligationSurvivalMonths === Infinity && ' (No obligations)'}
-        </p>
-        <p className="text-sm" title="Months remaining income covers obligations">
-          Interruption Months:&nbsp;
-          <strong>{_interruptionMonths === Infinity ? '∞' : _interruptionMonths}</strong>
-          {_interruptionMonths === Infinity ? '' : '\u00A0months'}
-          {_interruptionMonths === Infinity && ' (No obligations)'}
-        </p>
-        <p className="text-sm" title="Weighted by income type">
-          Stability: <strong>{(stabilityScore * 100).toFixed(0)}%</strong>
-        </p>
-        {(() => {
-          const survivalColor =
-            simpleSurvivalMonths < 6
-              ? 'bg-red-500'
-              : simpleSurvivalMonths < 12
-              ? 'bg-yellow-400'
-              : 'bg-green-500';
-          return (
-            <span className={`mt-2 inline-block px-2 py-1 rounded text-white ${survivalColor}`}> {simpleSurvivalMonths === Infinity ? '∞' : simpleSurvivalMonths} months</span>
-          );
-        })()}
       </section>
 
       {discretionaryAdvice.length > 0 && (
@@ -493,12 +386,10 @@ export default function IncomeTab() {
         data={timelineData}
         locale={settings.locale}
         currency={settings.currency}
-        incomeSources={incomeSources}
       />
 
-      <AdequacyAlert />
-      {stabilityScore < 0.6 && pvSurvivalMonths < 6 && (
-        <AdequacyAlert message="Consider income protection or a larger emergency fund." />
+      {gaps.length > 0 && (
+        <p className="text-red-600 font-bold mt-2">Warning: Income shortfall in {gaps[0].year} to {gaps[gaps.length - 1].year}</p>
       )}
 
       {/* Export */}
