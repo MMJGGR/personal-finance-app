@@ -12,7 +12,7 @@ import { useFinance } from './FinanceContext'
 import { formatCurrency } from './utils/formatters'
 
 export default function IncomeChart() {
-  const { startYear, years, annualIncome, annualIncomePV, settings } = useFinance()
+  const { startYear, annualIncome, annualIncomePV, settings } = useFinance()
   const [mode, setMode] = useState('nominal')
   const data = useMemo(() => {
     const vals = mode === 'nominal' ? annualIncome : annualIncomePV

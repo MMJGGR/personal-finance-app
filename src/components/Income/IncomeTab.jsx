@@ -11,7 +11,6 @@
 
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from '../../FinanceContext';
-import { calculatePV } from '../../utils/financeUtils';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
 import {
   calculateNominalSurvival,
@@ -25,7 +24,8 @@ import AdviceDashboard from '../../AdviceDashboard'
 import AdequacyAlert from '../../AdequacyAlert'
 import IncomeChart from '../../IncomeChart'
 import IncomeSourceRow from './IncomeSourceRow'
-import IncomeTimelineChart, { generateIncomeTimeline } from './IncomeTimelineChart'
+import IncomeTimelineChart from './IncomeTimelineChart'
+import { getIncomeProjection } from '../../utils/incomeProjection'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
@@ -36,18 +36,13 @@ export default function IncomeTab() {
   const {
     incomeSources, setIncomeSources,
     monthlyExpense,
-    monthlyPVExpense,
     monthlyPVHigh,
     monthlyPVMedium,
     monthlyPVLow,
     includeMediumPV,
-    setIncludeMediumPV,
     includeLowPV,
-    setIncludeLowPV,
     includeGoalsPV,
-    setIncludeGoalsPV,
     includeLiabilitiesNPV,
-    setIncludeLiabilitiesNPV,
     monthlySurplusNominal,
     monthlyIncomeNominal,
     profile,
@@ -55,14 +50,23 @@ export default function IncomeTab() {
     expensesList,
     goalsList,
     liabilitiesList,
+    assetsList,
     setIncomePV,
   } = useFinance();
 
-  const [excludedForInterrupt, setExcludedForInterrupt] = useState([]);
+  const [excludedForInterrupt] = useState([]);
 
   const startYear = settings.startYear ?? new Date().getFullYear();
   const discountRate = settings.discountRate ?? 0;
   const years = settings.projectionYears ?? 1;
+
+  const assumptions = useMemo(() => {
+    const nowYear = new Date().getFullYear()
+    return {
+      retirementAge: nowYear + (settings.retirementAge - profile.age),
+      deathAge: nowYear + (profile.lifeExpectancy - profile.age),
+    }
+  }, [settings.retirementAge, profile.lifeExpectancy, profile.age])
 
   const currentYear = new Date().getFullYear();
   const pvGoals = useMemo(
@@ -92,31 +96,16 @@ export default function IncomeTab() {
     () =>
       incomeSources.map(src => {
         if (src.active === false) return 0
-        const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
-        const planStart = startYear
+        const linked = assetsList.find(a => a.id === src.linkedAssetId)
+        const projection = getIncomeProjection(src, assumptions, linked)
         const planEnd = startYear + years - 1
-        const srcStart = Math.max(src.startYear ?? planStart, planStart)
-        const isSalary = String(src.type).toLowerCase() === 'salary'
-        const retireLimit =
-          startYear + (settings.retirementAge - profile.age) - 1
-        let srcEnd = src.endYear ?? planEnd
-        if (src.endYear == null && isSalary) {
-          srcEnd = Math.min(srcEnd, retireLimit)
-        }
-        const effectiveEnd = Math.min(srcEnd, planEnd)
-        if (effectiveEnd < srcStart) return 0
-        const activeYears = effectiveEnd - srcStart + 1
-        const pvImmediate = calculatePV(
-          afterTaxAmt,
-          src.frequency,
-          src.growth,
-          discountRate,
-          activeYears
-        )
-        const offset = srcStart - planStart
-        return pvImmediate / Math.pow(1 + discountRate / 100, offset)
+        return projection.reduce((sum, p) => {
+          if (p.year < startYear || p.year > planEnd) return sum
+          const t = p.year - startYear
+          return sum + p.amount / Math.pow(1 + discountRate / 100, t)
+        }, 0)
       }),
-    [incomeSources, discountRate, years, startYear, settings.retirementAge, profile.age]
+    [incomeSources, assetsList, assumptions, discountRate, startYear, years]
   )
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
   const totalIncomePV = totalPV
@@ -130,10 +119,26 @@ export default function IncomeTab() {
     [incomeSources, pvPerStream]
   )
 
-  const timelineData = useMemo(
-    () => generateIncomeTimeline(incomeSources, years),
-    [incomeSources, years]
-  )
+  const timelineData = useMemo(() => {
+    const allProjections = []
+    const now = new Date().getFullYear()
+    const lastYear = assumptions.deathAge
+    for (let y = now; y <= lastYear; y++) {
+      allProjections.push({ year: y, total: 0 })
+    }
+    incomeSources.forEach(src => {
+      if (!src.active) return
+      const linked = assetsList.find(a => a.id === src.linkedAssetId)
+      const proj = getIncomeProjection(src, assumptions, linked)
+      proj.forEach(p => {
+        const idx = allProjections.findIndex(item => item.year === p.year)
+        if (idx !== -1) {
+          allProjections[idx].total += p.amount
+        }
+      })
+    })
+    return allProjections
+  }, [incomeSources, assetsList, assumptions])
 
   const loanAdvice = useMemo(
     () =>
@@ -255,12 +260,21 @@ export default function IncomeTab() {
       if (field === 'name' || field === 'type') {
         return { ...src, [field]: raw }
       }
+      if (field === 'linkedAssetId') {
+        return { ...src, linkedAssetId: raw }
+      }
       if (field === 'active') {
         return { ...src, active: raw }
       }
       if (field === 'startYear' || field === 'endYear') {
-        const yr = raw ? parseInt(raw.slice(0, 4)) : ''
-        return { ...src, [field]: yr || null }
+        const yr = Number(raw)
+        let val = isNaN(yr) ? null : yr
+        const other = field === 'startYear' ? src.endYear : src.startYear
+        if (val != null && other != null) {
+          if (field === 'startYear' && val > other) val = other
+          if (field === 'endYear' && other > val) val = other
+        }
+        return { ...src, [field]: val }
       }
       const num = parseFloat(raw)
       if (field === 'frequency') {
@@ -283,6 +297,7 @@ export default function IncomeTab() {
         taxRate: 0,
         startYear: startYear,
         endYear: null,
+        linkedAssetId: '',
         active: true,
       },
     ]);

@@ -126,6 +126,7 @@ export function FinanceProvider({ children }) {
       taxRate: 30,
       startYear: now,
       endYear: null,
+      linkedAssetId: '',
       active: true,
     }]
     if (s) {
@@ -134,6 +135,7 @@ export function FinanceProvider({ children }) {
         const migrated = parsed.map(src => ({
           startYear: src.startYear ?? now,
           endYear: src.endYear ?? null,
+          linkedAssetId: src.linkedAssetId ?? '',
           active: src.active !== false,
           ...src,
         }))

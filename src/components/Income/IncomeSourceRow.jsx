@@ -23,8 +23,9 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         title="Income type"
       >
         <option value="Salary">Salary</option>
-        <option value="Freelance">Freelance</option>
-        <option value="Bonus">Bonus</option>
+        <option value="Rental">Rental</option>
+        <option value="Bond">Bond</option>
+        <option value="Dividend">Dividend</option>
       </select>
 
       <label className="block text-sm font-medium mt-2">Amount ({currency})</label>
@@ -94,22 +95,32 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
 
       <label className="block text-sm font-medium mt-2">Start Year</label>
       <input
-        type="date"
+        type="number"
         className="w-full border p-2 rounded-md"
-        value={`${income.startYear}-01-01`}
+        value={income.startYear}
         onChange={e => updateIncome(index, 'startYear', e.target.value)}
         aria-label="Start year"
         title="Start year"
       />
 
-      <label className="block text-sm font-medium mt-2">End Year</label>
+      <label className="block text-sm font-medium mt-2">End Year (optional)</label>
       <input
-        type="date"
+        type="number"
         className="w-full border p-2 rounded-md"
-        value={income.endYear ? `${income.endYear}-01-01` : ''}
+        value={income.endYear ?? ''}
         onChange={e => updateIncome(index, 'endYear', e.target.value)}
         aria-label="End year"
         title="End year"
+      />
+
+      <label className="block text-sm font-medium mt-2">Linked Asset ID (optional)</label>
+      <input
+        type="text"
+        className="w-full border p-2 rounded-md"
+        value={income.linkedAssetId || ''}
+        onChange={e => updateIncome(index, 'linkedAssetId', e.target.value)}
+        aria-label="Linked Asset ID (optional)"
+        title="Linked Asset ID"
       />
 
       <label className="block text-sm font-medium mt-2">
