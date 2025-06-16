@@ -7,7 +7,6 @@ import { calculatePV, calculateLoanNPV } from '../../utils/financeUtils'
 import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants'
 import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
-import AdviceDashboard from '../../AdviceDashboard'
 import calcDiscretionaryAdvice from '../../utils/discretionaryUtils'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
@@ -310,11 +309,6 @@ export default function ExpensesGoalsTab() {
 
   return (
     <div className="space-y-8 p-6">
-      <AdviceDashboard
-        advice={loanAdvice}
-        discretionaryAdvice={discretionaryAdvice}
-        loanStrategies={loanStrategies}
-      />
 
       {/* Expenses CRUD */}
       <section>
