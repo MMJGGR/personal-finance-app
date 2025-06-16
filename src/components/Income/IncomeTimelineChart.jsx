@@ -2,16 +2,23 @@ import React from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 
-export function generateIncomeTimeline(sources, years) {
-  const timeline = Array.from({ length: years }, (_, i) => ({ year: i + 1, total: 0 }))
-  sources.forEach(src => {
+export function generateIncomeTimeline(sources = [], start = 0, end = 0) {
+  const rows = Array.from({ length: end - start + 1 }, (_, i) => ({ year: start + i }))
+  sources.forEach((src, idx) => {
     if (!src.active) return
-    for (let i = 0; i < years; i++) {
-      const grown = src.amount * src.frequency * Math.pow(1 + src.growth / 100, i)
-      timeline[i].total += grown
-    }
+    const key = src.name || `Source ${idx + 1}`
+    src.projection?.forEach(p => {
+      const row = rows[p.year - start]
+      if (row) row[key] = (row[key] || 0) + p.amount
+    })
   })
-  return timeline
+  rows.forEach(r => {
+    sources.forEach((src, idx) => {
+      const key = src.name || `Source ${idx + 1}`
+      if (r[key] == null) r[key] = 0
+    })
+  })
+  return rows
 }
 
 export default function IncomeTimelineChart({ data, locale, currency }) {
@@ -23,7 +30,11 @@ export default function IncomeTimelineChart({ data, locale, currency }) {
         <YAxis />
         <Tooltip formatter={format} />
         <Legend />
-        <Line type="monotone" dataKey="total" stroke="#f59e0b" name="Income" />
+        {Object.keys(data[0] || {})
+          .filter(k => k !== 'year')
+          .map(k => (
+            <Line key={k} type="monotone" dataKey={k} stroke="#f59e0b" name={k} />
+          ))}
       </LineChart>
     </ResponsiveContainer>
   )
