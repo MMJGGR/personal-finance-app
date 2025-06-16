@@ -35,7 +35,7 @@ export function buildIncomeCSV(profile, columns = [], rows = []) {
   return header + '\n' + data
 }
 
-export function buildPlanJSON(profile, discountRate, lifeYears, expensesList, pvExpenses, goalsList, pvGoals, liabilities, totalLiabilitiesPV, totalRequired) {
+export function buildPlanJSON(profile, discountRate, lifeYears, expensesList, pvExpenses, goalsList, pvGoals, liabilities, totalLiabilitiesPV, totalRequired, timeline = []) {
   return {
     generatedAt: new Date().toISOString(),
     profile,
@@ -50,6 +50,7 @@ export function buildPlanJSON(profile, discountRate, lifeYears, expensesList, pv
     }),
     totalLiabilitiesPV,
     totalRequired,
+    timeline,
   }
 }
 
