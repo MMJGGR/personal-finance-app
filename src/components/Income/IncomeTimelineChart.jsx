@@ -1,30 +1,46 @@
 import React from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Line,
+  ResponsiveContainer,
+} from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 
-export function generateIncomeTimeline(sources, years) {
-  const timeline = Array.from({ length: years }, (_, i) => ({ year: i + 1, total: 0 }))
-  sources.forEach(src => {
-    if (!src.active) return
-    for (let i = 0; i < years; i++) {
-      const grown = src.amount * src.frequency * Math.pow(1 + src.growth / 100, i)
-      timeline[i].total += grown
-    }
-  })
-  return timeline
-}
+const COLORS = ['#fbbf24', '#f59e0b', '#d97706', '#92400e', '#78350f']
 
-export default function IncomeTimelineChart({ data, locale, currency }) {
+export default function IncomeTimelineChart({ data = [], incomeSources = [], locale, currency }) {
   const format = v => formatCurrency(v, locale, currency)
+  const active = incomeSources.filter(s => s.active)
+
   return (
-    <ResponsiveContainer width="100%" height={300} role="img" aria-label="Income timeline chart">
-      <LineChart data={data}>
+    <ResponsiveContainer width="100%" height={500} role="img" aria-label="Income timeline chart">
+      <BarChart data={data}>
         <XAxis dataKey="year" />
         <YAxis />
         <Tooltip formatter={format} />
         <Legend />
-        <Line type="monotone" dataKey="total" stroke="#f59e0b" name="Income" />
-      </LineChart>
+        {active.map((s, idx) => (
+          <Bar
+            key={s.id}
+            dataKey={s.id}
+            name={s.name}
+            stackId="income"
+            fill={COLORS[idx % COLORS.length]}
+          />
+        ))}
+        <Line
+          type="monotone"
+          dataKey="expenses"
+          name="Expenses"
+          stroke="#ef4444"
+          strokeWidth={2}
+        />
+      </BarChart>
     </ResponsiveContainer>
   )
 }

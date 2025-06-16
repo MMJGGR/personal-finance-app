@@ -22,15 +22,13 @@ import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
 import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import AdviceDashboard from '../../AdviceDashboard'
 import AdequacyAlert from '../../AdequacyAlert'
-import IncomeChart from '../../IncomeChart'
 import IncomeSourceRow from './IncomeSourceRow'
 import IncomeTimelineChart from './IncomeTimelineChart'
 import { getIncomeProjection } from '../../utils/incomeProjection'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { frequencyToPayments } from '../../utils/financeUtils'
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
 
-const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
 export default function IncomeTab() {
   const {
@@ -120,25 +118,42 @@ export default function IncomeTab() {
   )
 
   const timelineData = useMemo(() => {
-    const allProjections = []
     const now = new Date().getFullYear()
     const lastYear = assumptions.deathAge
-    for (let y = now; y <= lastYear; y++) {
-      allProjections.push({ year: y, total: 0 })
-    }
-    incomeSources.forEach(src => {
-      if (!src.active) return
+    const len = lastYear - now + 1
+    const rows = Array.from({ length: len }, (_, i) => ({ year: now + i, expenses: 0 }))
+
+    const activeStreams = incomeSources.filter(s => s.active)
+
+    activeStreams.forEach(src => {
       const linked = assetsList.find(a => a.id === src.linkedAssetId)
       const proj = getIncomeProjection(src, assumptions, linked)
       proj.forEach(p => {
-        const idx = allProjections.findIndex(item => item.year === p.year)
-        if (idx !== -1) {
-          allProjections[idx].total += p.amount
-        }
+        const row = rows[p.year - now]
+        if (row) row[src.id] = (row[src.id] || 0) + p.amount
       })
     })
-    return allProjections
-  }, [incomeSources, assetsList, assumptions])
+
+    rows.forEach((row, idx) => {
+      const year = row.year
+      const expTotal = expensesList.reduce((sum, e) => {
+        const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
+        const growth = e.growth || 0
+        const base = (Number(e.amount) || 0) * ppy
+        return sum + base * Math.pow(1 + growth / 100, idx)
+      }, 0)
+      const goalsTotal = goalsList.reduce(
+        (s, g) => s + (g.targetYear === year ? Number(g.amount) || 0 : 0),
+        0
+      )
+      row.expenses = expTotal + goalsTotal
+      activeStreams.forEach(s => {
+        if (row[s.id] == null) row[s.id] = 0
+      })
+    })
+
+    return rows
+  }, [incomeSources, assetsList, assumptions, expensesList, goalsList])
 
   const loanAdvice = useMemo(
     () =>
@@ -178,6 +193,11 @@ export default function IncomeTab() {
         years
       ),
     [totalIncomePV, discountRate, monthlyExpense, years]
+  )
+
+  const simpleSurvivalMonths = useMemo(
+    () => (monthlyExpense > 0 ? Math.floor(totalIncomePV / monthlyExpense) : Infinity),
+    [totalIncomePV, monthlyExpense]
   )
 
   const stabilityScore = useMemo(() => {
@@ -244,9 +264,7 @@ export default function IncomeTab() {
     [totalIncomePV, discountRate, monthlyObligations]
   )
 
-  // 3. Build projection data for chart (moved to IncomeChart component)
-
-  // 4. Sync totalPV back into context & localStorage
+  // 3. Sync totalPV back into context & localStorage
   useEffect(() => {
     setIncomePV(totalPV);
     storage.set('incomePV', totalPV.toString());
@@ -289,6 +307,7 @@ export default function IncomeTab() {
     setIncomeSources([
       ...incomeSources,
       {
+        id: crypto.randomUUID(),
         name: '',
         type: 'Other',
         amount: 0,
@@ -320,7 +339,8 @@ export default function IncomeTab() {
       years,
       monthlyExpense,
       pvPerStream,
-      totalPV
+      totalPV,
+      timelineData
     )
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -367,7 +387,8 @@ export default function IncomeTab() {
       years,
       monthlyExpense,
       pvPerStream,
-      totalPV
+      totalPV,
+      timelineData
     )
     submitProfile(payload, settings)
   };
@@ -384,9 +405,6 @@ export default function IncomeTab() {
         discretionaryAdvice={discretionaryAdvice}
         loanStrategies={loanStrategies}
       />
-      <a href="#adequacy-alert" className="text-sm underline text-amber-700 block">
-        View Funding Gaps
-      </a>
       {/* Income Streams Form */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>
@@ -402,6 +420,7 @@ export default function IncomeTab() {
               updateIncome={updateIncome}
               deleteIncome={deleteIncome}
               currency={settings.currency}
+              assetsList={assetsList}
             />
           ))}
         </div>
@@ -467,13 +486,13 @@ export default function IncomeTab() {
         </p>
         {(() => {
           const survivalColor =
-            pvSurvivalMonths < 6
+            simpleSurvivalMonths < 6
               ? 'bg-red-500'
-              : pvSurvivalMonths < 12
+              : simpleSurvivalMonths < 12
               ? 'bg-yellow-400'
               : 'bg-green-500';
           return (
-            <span className={`mt-2 inline-block px-2 py-1 rounded text-white ${survivalColor}`}> {pvSurvivalMonths.toFixed(1)} months</span>
+            <span className={`mt-2 inline-block px-2 py-1 rounded text-white ${survivalColor}`}> {simpleSurvivalMonths === Infinity ? '∞' : simpleSurvivalMonths} months</span>
           );
         })()}
       </section>
@@ -495,21 +514,12 @@ export default function IncomeTab() {
       )}
 
       {/* Projection Chart */}
-      <IncomeChart />
-      <IncomeTimelineChart data={timelineData} locale={settings.locale} currency={settings.currency} />
-      <div className="bg-white p-4 rounded-xl shadow-md">
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-              {pieData.map((_, index) => (
-                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+      <IncomeTimelineChart
+        data={timelineData}
+        incomeSources={incomeSources}
+        locale={settings.locale}
+        currency={settings.currency}
+      />
 
       <AdequacyAlert />
       {stabilityScore < 0.6 && pvSurvivalMonths < 6 && (

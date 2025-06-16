@@ -1,6 +1,16 @@
 import { buildCSV, quoteCSV } from './csvUtils'
 
-export function buildIncomeJSON(profile, startYear, incomeSources, discountRate, years, monthlyExpense, pvPerStream, totalPV) {
+export function buildIncomeJSON(
+  profile,
+  startYear,
+  incomeSources,
+  discountRate,
+  years,
+  monthlyExpense,
+  pvPerStream,
+  totalPV,
+  timeline = []
+) {
   return {
     generatedAt: new Date().toISOString(),
     profile,
@@ -9,6 +19,7 @@ export function buildIncomeJSON(profile, startYear, incomeSources, discountRate,
     assumptions: { discountRate, years, monthlyExpense },
     pvPerStream,
     totalPV,
+    timeline,
   }
 }
 
