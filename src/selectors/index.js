@@ -16,6 +16,7 @@ export const selectAnnualIncome = createSelector(
     return Array.from({ length: years }, (_, idx) => {
       const year = startYear + idx
       return sources.reduce((sum, src) => {
+        if (src.active === false) return sum
         const afterTax = (Number(src.amount) || 0) * (1 - (src.taxRate || 0) / 100)
         const freq = typeof src.frequency === 'number' ? src.frequency : 0
         const sStart = src.startYear ?? startYear

@@ -126,6 +126,7 @@ export function FinanceProvider({ children }) {
       taxRate: 30,
       startYear: now,
       endYear: null,
+      active: true,
     }]
     if (s) {
       try {
@@ -133,6 +134,7 @@ export function FinanceProvider({ children }) {
         const migrated = parsed.map(src => ({
           startYear: src.startYear ?? now,
           endYear: src.endYear ?? null,
+          active: src.active !== false,
           ...src,
         }))
         storage.set('incomeSources', JSON.stringify(migrated))
@@ -479,6 +481,7 @@ export function FinanceProvider({ children }) {
 
   useEffect(() => {
     const monthlyIncome = incomeSources.reduce((sum, src) => {
+      if (src.active === false) return sum
       const afterTax = src.amount * (1 - (src.taxRate || 0) / 100)
       return sum + (afterTax * src.frequency) / 12
     }, 0)
@@ -574,6 +577,7 @@ export function FinanceProvider({ children }) {
     const planStart = startYear
     const planEnd = startYear + years - 1
     return incomeSources.reduce((sum, src) => {
+      if (src.active === false) return sum
       const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
       const growth = src.growth || 0
       const srcStart = Math.max(src.startYear ?? planStart, planStart)
