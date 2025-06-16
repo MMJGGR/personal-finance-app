@@ -10,7 +10,6 @@
  */
 
 import React, { useMemo, useEffect, useState } from 'react';
-import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants';
 import { useFinance } from '../../FinanceContext';
 import { calculatePV } from '../../utils/financeUtils';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
@@ -25,8 +24,13 @@ import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import AdviceDashboard from '../../AdviceDashboard'
 import AdequacyAlert from '../../AdequacyAlert'
 import IncomeChart from '../../IncomeChart'
+import IncomeSourceRow from './IncomeSourceRow'
+import IncomeTimelineChart, { generateIncomeTimeline } from './IncomeTimelineChart'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
+
+const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
 export default function IncomeTab() {
   const {
@@ -87,6 +91,7 @@ export default function IncomeTab() {
   const pvPerStream = useMemo(
     () =>
       incomeSources.map(src => {
+        if (src.active === false) return 0
         const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
         const planStart = startYear
         const planEnd = startYear + years - 1
@@ -115,6 +120,20 @@ export default function IncomeTab() {
   )
   const totalPV = useMemo(() => pvPerStream.reduce((a, b) => a + b, 0), [pvPerStream])
   const totalIncomePV = totalPV
+
+  const pieData = useMemo(
+    () =>
+      incomeSources.map((src, i) => ({
+        name: src.name || `Source ${i + 1}`,
+        value: pvPerStream[i] || 0,
+      })),
+    [incomeSources, pvPerStream]
+  )
+
+  const timelineData = useMemo(
+    () => generateIncomeTimeline(incomeSources, years),
+    [incomeSources, years]
+  )
 
   const loanAdvice = useMemo(
     () =>
@@ -155,6 +174,20 @@ export default function IncomeTab() {
       ),
     [totalIncomePV, discountRate, monthlyExpense, years]
   )
+
+  const stabilityScore = useMemo(() => {
+    const total = incomeSources.reduce(
+      (sum, s) => (s.active === false ? sum : sum + s.amount * s.frequency),
+      0
+    )
+    if (total === 0) return 0
+    const weighted = incomeSources.reduce((sum, s) => {
+      if (s.active === false) return sum
+      const weight = s.type === 'Salary' ? 1 : s.type === 'Freelance' ? 0.6 : 0.3
+      return sum + weight * s.amount * s.frequency
+    }, 0)
+    return weighted / total
+  }, [incomeSources])
 
   const discretionaryAdvice = useMemo(
     () =>
@@ -222,6 +255,9 @@ export default function IncomeTab() {
       if (field === 'name' || field === 'type') {
         return { ...src, [field]: raw }
       }
+      if (field === 'active') {
+        return { ...src, active: raw }
+      }
       if (field === 'startYear' || field === 'endYear') {
         const yr = raw ? parseInt(raw.slice(0, 4)) : ''
         return { ...src, [field]: yr || null }
@@ -247,6 +283,7 @@ export default function IncomeTab() {
         taxRate: 0,
         startYear: startYear,
         endYear: null,
+        active: true,
       },
     ]);
   };
@@ -254,6 +291,9 @@ export default function IncomeTab() {
   const removeIncome = (idx) => {
     setIncomeSources(incomeSources.filter((_, i) => i !== idx));
   };
+
+  const updateIncome = onFieldChange;
+  const deleteIncome = removeIncome;
 
   // --- Export JSON payload ---
   const exportJSON = () => {
@@ -340,108 +380,14 @@ export default function IncomeTab() {
             <p className="italic text-slate-500 col-span-full text-center">No income sources yet</p>
           )}
           {incomeSources.map((src, i) => (
-            <div
+            <IncomeSourceRow
               key={i}
-              className="bg-white p-4 rounded-xl shadow-md relative transition-all"
-            >
-              <label className="block text-sm font-medium">Source Name</label>
-              <input
-                type="text"
-                className="w-full border p-2 rounded-md invalid:border-red-500"
-                value={src.name}
-                onChange={e => onFieldChange(i, 'name', e.target.value)}
-                required
-                title="Source name"
-              />
-
-              <label className="block text-sm font-medium mt-2">Type</label>
-              <select
-                className="w-full border p-2 rounded-md"
-                value={src.type}
-                onChange={e => onFieldChange(i, 'type', e.target.value)}
-                aria-label="Income type"
-                title="Income type"
-              >
-                <option>Employment</option>
-                <option>Business</option>
-                <option>Rental</option>
-                <option>Investment</option>
-                <option>Other</option>
-              </select>
-
-              <label className="block text-sm font-medium mt-2">Amount ({settings.currency})</label>
-              <input
-                type="number"
-                className="w-full border p-2 rounded-md invalid:border-red-500"
-                value={src.amount}
-                onChange={e => onFieldChange(i, 'amount', e.target.value)}
-                min={0}
-                step={0.01}
-                required
-                title="Amount per payment"
-              />
-
-              <label className="block text-sm font-medium mt-2">Frequency (/yr)</label>
-              <select
-                className="w-full border p-2 rounded-md"
-                value={src.frequency}
-                onChange={e => onFieldChange(i, 'frequency', e.target.value)}
-                title="Payments per year"
-              >
-                {FREQUENCY_LABELS.map(label => (
-                  <option key={label} value={FREQUENCIES[label]}>{label}</option>
-                ))}
-              </select>
-
-              <label className="block text-sm font-medium mt-2">Growth Rate (%)</label>
-              <input
-                type="number"
-                className="w-full border p-2 rounded-md invalid:border-red-500"
-                value={src.growth}
-                onChange={e => onFieldChange(i, 'growth', e.target.value)}
-                step={0.1}
-                min={-100}
-                max={100}
-                title="Annual growth rate"
-              />
-
-              <label className="block text-sm font-medium mt-2">Tax Rate (%)</label>
-              <input
-                type="number"
-                className="w-full border p-2 rounded-md invalid:border-red-500"
-                value={src.taxRate}
-                onChange={e => onFieldChange(i, 'taxRate', e.target.value)}
-                min={0}
-                max={100}
-                step={0.1}
-                required
-                title="Income tax rate"
-              />
-
-              <label className="block text-sm font-medium mt-2">Start Year</label>
-              <input
-                type="date"
-                className="w-full border p-2 rounded-md"
-                value={`${src.startYear}-01-01`}
-                onChange={e => onFieldChange(i, 'startYear', e.target.value)}
-                title="Start year"
-              />
-
-              <label className="block text-sm font-medium mt-2">End Year</label>
-              <input
-                type="date"
-                className="w-full border p-2 rounded-md"
-                value={src.endYear ? `${src.endYear}-12-31` : ''}
-                onChange={e => onFieldChange(i, 'endYear', e.target.value)}
-                title="End year"
-              />
-
-              <button
-                onClick={() => removeIncome(i)}
-                className="absolute top-2 right-2 text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Remove income source"
-              >✖</button>
-            </div>
+              income={src}
+              index={i}
+              updateIncome={updateIncome}
+              deleteIncome={deleteIncome}
+              currency={settings.currency}
+            />
           ))}
         </div>
         <button
@@ -501,21 +447,18 @@ export default function IncomeTab() {
           {_interruptionMonths === Infinity ? '' : '\u00A0months'}
           {_interruptionMonths === Infinity && ' (No obligations)'}
         </p>
+        <p className="text-sm" title="Weighted by income type">
+          Stability: <strong>{(stabilityScore * 100).toFixed(0)}%</strong>
+        </p>
         {(() => {
-          const color =
+          const survivalColor =
             pvSurvivalMonths < 6
-              ? 'bg-red-200 text-red-800'
+              ? 'bg-red-500'
               : pvSurvivalMonths < 12
-              ? 'bg-orange-200 text-orange-800'
-              : 'bg-green-200 text-green-800';
-          const label =
-            pvSurvivalMonths < 6
-              ? 'At risk'
-              : pvSurvivalMonths < 12
-              ? 'Caution'
-              : 'Comfortable';
+              ? 'bg-yellow-400'
+              : 'bg-green-500';
           return (
-            <span className={`mt-2 inline-block px-2 py-1 rounded ${color}`}>{label}</span>
+            <span className={`mt-2 inline-block px-2 py-1 rounded text-white ${survivalColor}`}> {pvSurvivalMonths.toFixed(1)} months</span>
           );
         })()}
       </section>
@@ -538,8 +481,25 @@ export default function IncomeTab() {
 
       {/* Projection Chart */}
       <IncomeChart />
+      <IncomeTimelineChart data={timelineData} locale={settings.locale} currency={settings.currency} />
+      <div className="bg-white p-4 rounded-xl shadow-md">
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+              {pieData.map((_, index) => (
+                <Cell key={index} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
 
       <AdequacyAlert />
+      {stabilityScore < 0.6 && pvSurvivalMonths < 6 && (
+        <AdequacyAlert message="Consider income protection or a larger emergency fund." />
+      )}
 
       {/* Export */}
       <section>

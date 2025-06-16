@@ -46,3 +46,13 @@ test('shows funding gaps table', async () => {
   expect(screen.getAllByRole('row')).toHaveLength(3)
   expect(container.firstChild).toMatchSnapshot()
 })
+
+test('renders custom message when provided', () => {
+  render(
+    <FinanceProvider>
+      <AdequacyAlert message="Consider insurance" />
+    </FinanceProvider>
+  )
+  expect(screen.getByText('Adequacy Alert')).toBeInTheDocument()
+  expect(screen.getByText('Consider insurance')).toBeInTheDocument()
+})

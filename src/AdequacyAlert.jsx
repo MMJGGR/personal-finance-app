@@ -3,7 +3,7 @@ import { useFinance } from './FinanceContext'
 import { computeFundingGaps } from './engines/adequacy'
 import { formatCurrency } from './utils/formatters'
 
-export default function AdequacyAlert() {
+export default function AdequacyAlert({ message }) {
   const { cumulativePV, startYear, settings } = useFinance()
   const gaps = useMemo(() => computeFundingGaps(cumulativePV), [cumulativePV])
   const rows = useMemo(
@@ -13,6 +13,17 @@ export default function AdequacyAlert() {
         .filter(Boolean),
     [gaps, startYear]
   )
+  if (message) {
+    return (
+      <div
+        id="adequacy-alert"
+        className="bg-red-50 border border-red-300 p-4 rounded-lg"
+      >
+        <h3 className="text-red-700 font-semibold mb-2">Adequacy Alert</h3>
+        <p className="text-sm">{message}</p>
+      </div>
+    )
+  }
   if (rows.length === 0) return null
   return (
     <div
