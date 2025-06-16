@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function IncomeSourceRow({ income, index, updateIncome, deleteIncome, currency }) {
+export default function IncomeSourceRow({ income, index, updateIncome, deleteIncome, currency, assetsList = [] }) {
   return (
     <div className="bg-white p-4 rounded-xl shadow-md relative transition-all">
       <label className="block text-sm font-medium">Source Name</label>
@@ -113,15 +113,21 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         title="End year"
       />
 
-      <label className="block text-sm font-medium mt-2">Linked Asset ID (optional)</label>
-      <input
-        type="text"
+      <label className="block text-sm font-medium mt-2">Linked Asset (optional)</label>
+      <select
         className="w-full border p-2 rounded-md"
         value={income.linkedAssetId || ''}
         onChange={e => updateIncome(index, 'linkedAssetId', e.target.value)}
-        aria-label="Linked Asset ID (optional)"
-        title="Linked Asset ID"
-      />
+        aria-label="Linked asset"
+        title="Linked asset"
+      >
+        <option value=""></option>
+        {assetsList.map(a => (
+          <option key={a.id} value={a.id}>
+            {a.name || a.id}
+          </option>
+        ))}
+      </select>
 
       <label className="block text-sm font-medium mt-2">
         <input

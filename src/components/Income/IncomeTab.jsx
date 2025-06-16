@@ -120,24 +120,26 @@ export default function IncomeTab() {
   )
 
   const timelineData = useMemo(() => {
-    const allProjections = []
     const now = new Date().getFullYear()
     const lastYear = assumptions.deathAge
-    for (let y = now; y <= lastYear; y++) {
-      allProjections.push({ year: y, total: 0 })
-    }
-    incomeSources.forEach(src => {
+    const rows = Array.from({ length: lastYear - now + 1 }, (_, i) => ({ year: now + i }))
+    incomeSources.forEach((src, idx) => {
       if (!src.active) return
+      const key = src.name || `Source ${idx + 1}`
       const linked = assetsList.find(a => a.id === src.linkedAssetId)
       const proj = getIncomeProjection(src, assumptions, linked)
       proj.forEach(p => {
-        const idx = allProjections.findIndex(item => item.year === p.year)
-        if (idx !== -1) {
-          allProjections[idx].total += p.amount
-        }
+        const row = rows[p.year - now]
+        if (row) row[key] = (row[key] || 0) + p.amount
       })
     })
-    return allProjections
+    rows.forEach(row => {
+      incomeSources.forEach((src, idx) => {
+        const key = src.name || `Source ${idx + 1}`
+        if (row[key] == null) row[key] = 0
+      })
+    })
+    return rows
   }, [incomeSources, assetsList, assumptions])
 
   const loanAdvice = useMemo(
@@ -178,6 +180,11 @@ export default function IncomeTab() {
         years
       ),
     [totalIncomePV, discountRate, monthlyExpense, years]
+  )
+
+  const simpleSurvivalMonths = useMemo(
+    () => (monthlyExpense > 0 ? Math.floor(totalIncomePV / monthlyExpense) : Infinity),
+    [totalIncomePV, monthlyExpense]
   )
 
   const stabilityScore = useMemo(() => {
@@ -320,7 +327,8 @@ export default function IncomeTab() {
       years,
       monthlyExpense,
       pvPerStream,
-      totalPV
+      totalPV,
+      timelineData
     )
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -367,7 +375,8 @@ export default function IncomeTab() {
       years,
       monthlyExpense,
       pvPerStream,
-      totalPV
+      totalPV,
+      timelineData
     )
     submitProfile(payload, settings)
   };
@@ -384,9 +393,6 @@ export default function IncomeTab() {
         discretionaryAdvice={discretionaryAdvice}
         loanStrategies={loanStrategies}
       />
-      <a href="#adequacy-alert" className="text-sm underline text-amber-700 block">
-        View Funding Gaps
-      </a>
       {/* Income Streams Form */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>
@@ -402,6 +408,7 @@ export default function IncomeTab() {
               updateIncome={updateIncome}
               deleteIncome={deleteIncome}
               currency={settings.currency}
+              assetsList={assetsList}
             />
           ))}
         </div>
@@ -467,13 +474,13 @@ export default function IncomeTab() {
         </p>
         {(() => {
           const survivalColor =
-            pvSurvivalMonths < 6
+            simpleSurvivalMonths < 6
               ? 'bg-red-500'
-              : pvSurvivalMonths < 12
+              : simpleSurvivalMonths < 12
               ? 'bg-yellow-400'
               : 'bg-green-500';
           return (
-            <span className={`mt-2 inline-block px-2 py-1 rounded text-white ${survivalColor}`}> {pvSurvivalMonths.toFixed(1)} months</span>
+            <span className={`mt-2 inline-block px-2 py-1 rounded text-white ${survivalColor}`}> {simpleSurvivalMonths === Infinity ? '∞' : simpleSurvivalMonths} months</span>
           );
         })()}
       </section>
