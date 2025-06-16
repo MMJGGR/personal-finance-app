@@ -68,6 +68,10 @@ Income sources now store a `startYear` and optional `endYear` so each stream can
 begin or stop during the projection horizon. Salaries without an `endYear` use
 `retirementAge` as the latest possible year.
 
+Expenses and goals also track `startYear` and `endYear`. Recurring expenses can
+phase in or out while one-time goals typically use the same year for both
+fields.
+
 ## Hadi Persona Seed
 
 A sample user profile is provided in `public/hadiSeed.json`. When the app starts

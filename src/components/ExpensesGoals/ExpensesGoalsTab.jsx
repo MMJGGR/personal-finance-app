@@ -47,6 +47,17 @@ export default function ExpensesGoalsTab() {
       if (['name', 'category'].includes(field)) {
         return { ...e, [field]: raw }
       }
+      if (field === 'startYear' || field === 'endYear') {
+        const yr = parseInt(raw)
+        const val = isNaN(yr) ? null : yr
+        const other = field === 'startYear' ? e.endYear : e.startYear
+        let fixed = val
+        if (fixed != null && other != null) {
+          if (field === 'startYear' && fixed > other) fixed = other
+          if (field === 'endYear' && other > fixed) fixed = other
+        }
+        return { ...e, [field]: fixed }
+      }
       if (field === 'paymentsPerYear') {
         const ppy = parseInt(raw)
         if (!ppy || ppy < 1) {
@@ -63,9 +74,20 @@ export default function ExpensesGoalsTab() {
     }))
   }
   const addExpense = () => {
-    setExpensesList([...expensesList, {
-      name: '', amount: 0, paymentsPerYear: 12, growth: 0, category: 'Fixed', priority: 2
-    }])
+    const now = new Date().getFullYear()
+    setExpensesList([
+      ...expensesList,
+      {
+        name: '',
+        amount: 0,
+        paymentsPerYear: 12,
+        growth: 0,
+        category: 'Fixed',
+        priority: 2,
+        startYear: now,
+        endYear: now,
+      },
+    ])
   }
   const removeExpense = i =>
     setExpensesList(expensesList.filter((_, idx) => idx !== i))
@@ -77,15 +99,41 @@ export default function ExpensesGoalsTab() {
       if (field === 'name') return { ...g, name: raw }
       if (field === 'targetYear') {
         const yr = parseInt(raw) || currentYear
-        return { ...g, targetYear: Math.max(currentYear, yr) }
+        return {
+          ...g,
+          targetYear: Math.max(currentYear, yr),
+          startYear: Math.max(currentYear, yr),
+          endYear: Math.max(currentYear, yr),
+        }
+      }
+      if (field === 'startYear' || field === 'endYear') {
+        const yr = parseInt(raw)
+        const val = isNaN(yr) ? null : yr
+        const other = field === 'startYear' ? g.endYear : g.startYear
+        let fixed = val
+        if (fixed != null && other != null) {
+          if (field === 'startYear' && fixed > other) fixed = other
+          if (field === 'endYear' && other > fixed) fixed = other
+        }
+        const updates = { [field]: fixed }
+        if (field === 'startYear') updates.targetYear = fixed ?? g.targetYear
+        if (field === 'endYear') updates.targetYear = fixed ?? g.targetYear
+        return { ...g, ...updates }
       }
       return { ...g, amount: clamp(parseFloat(raw)) }
     }))
   }
   const addGoal = () => {
-    setGoalsList([...goalsList, {
-      name: '', amount: 0, targetYear: currentYear
-    }])
+    setGoalsList([
+      ...goalsList,
+      {
+        name: '',
+        amount: 0,
+        targetYear: currentYear,
+        startYear: currentYear,
+        endYear: currentYear,
+      },
+    ])
   }
   const removeGoal = i =>
     setGoalsList(goalsList.filter((_, idx) => idx !== i))
@@ -138,16 +186,24 @@ export default function ExpensesGoalsTab() {
 
   // --- 2) PV of Expenses over lifeYears ---
   const pvExpensesLife = useMemo(() => {
+    const horizonEnd = currentYear + lifeYears - 1
     return expensesList.reduce((sum, e) => {
-      return sum + calculatePV(
-        e.amount,
-        e.paymentsPerYear,
-        e.growth,
-        discountRate,
-        lifeYears
-      )
+      const start = e.startYear ?? currentYear
+      const end = e.endYear ?? horizonEnd
+      const first = Math.max(start, currentYear)
+      const last = Math.min(end, horizonEnd)
+      if (last < first) return sum
+      const growth = e.growth || 0
+      let pv = 0
+      for (let yr = first; yr <= last; yr++) {
+        const idx = yr - start
+        const cash = (e.amount * e.paymentsPerYear) * Math.pow(1 + growth / 100, idx)
+        const disc = yr - currentYear + 1
+        pv += cash / Math.pow(1 + discountRate / 100, disc)
+      }
+      return sum + pv
     }, 0)
-  }, [expensesList, discountRate, lifeYears])
+  }, [expensesList, discountRate, lifeYears, currentYear])
 
   useEffect(() => {
     setExpensesPV(pvExpensesLife)
@@ -156,11 +212,14 @@ export default function ExpensesGoalsTab() {
 
   // --- 3) PV of Goals ---
   const pvGoals = useMemo(() => {
+    const horizonEnd = currentYear + lifeYears - 1
     return goalsList.reduce((sum, g) => {
-      const yrs = Math.max(0, g.targetYear - currentYear)
-      return sum + g.amount / Math.pow(1 + discountRate/100, yrs)
+      const target = g.targetYear ?? g.startYear ?? currentYear
+      if (target < currentYear || target > horizonEnd) return sum
+      const yrs = target - currentYear
+      return sum + g.amount / Math.pow(1 + discountRate / 100, yrs)
     }, 0)
-  }, [goalsList, discountRate, currentYear])
+  }, [goalsList, discountRate, currentYear, lifeYears])
 
   // --- 4) Loan details & amortization ---
   const liabilityDetails = useMemo(() => {
@@ -285,20 +344,22 @@ export default function ExpensesGoalsTab() {
       {/* Expenses CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Expenses</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Amt ({settings.currency})</div>
           <div>Pay/Yr</div>
           <div className="text-right">Growth %</div>
           <div>Category</div>
           <div>Priority</div>
+          <div>Start</div>
+          <div>End</div>
           <div></div>
         </div>
         {expensesList.length === 0 && (
           <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
         )}
         {expensesList.map((e, i) => (
-          <div key={i} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Rent"
@@ -351,6 +412,20 @@ export default function ExpensesGoalsTab() {
               <option value={2}>Medium</option>
               <option value={3}>Low</option>
             </select>
+            <input
+              className="border p-2 rounded-md text-right"
+              type="number"
+              value={e.startYear ?? currentYear}
+              onChange={ev => handleExpenseChange(i, 'startYear', ev.target.value)}
+              title="Start year"
+            />
+            <input
+              className="border p-2 rounded-md text-right"
+              type="number"
+              value={e.endYear ?? ''}
+              onChange={ev => handleExpenseChange(i, 'endYear', ev.target.value)}
+              title="End year"
+            />
             <button
               onClick={() => removeExpense(i)}
               className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -371,17 +446,19 @@ export default function ExpensesGoalsTab() {
       {/* Goals CRUD */}
       <section>
         <h2 className="text-2xl font-bold text-amber-700 mb-2">Goals</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 font-semibold text-gray-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
           <div>Name</div>
           <div className="text-right">Amt ({settings.currency})</div>
           <div className="text-right">Target Yr</div>
+          <div>Start</div>
+          <div>End</div>
           <div></div>
         </div>
         {goalsList.length === 0 && (
           <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
         )}
         {goalsList.map((g, i) => (
-          <div key={i} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center mb-1">
+          <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
             <input
               className="border p-2 rounded-md"
               placeholder="Vacation"
@@ -404,6 +481,20 @@ export default function ExpensesGoalsTab() {
               value={g.targetYear}
               onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)}
               title="Target year"
+            />
+            <input
+              className="border p-2 rounded-md text-right"
+              type="number"
+              value={g.startYear}
+              onChange={ev => handleGoalChange(i, 'startYear', ev.target.value)}
+              title="Start year"
+            />
+            <input
+              className="border p-2 rounded-md text-right"
+              type="number"
+              value={g.endYear}
+              onChange={ev => handleGoalChange(i, 'endYear', ev.target.value)}
+              title="End year"
             />
             <button
               onClick={() => removeGoal(i)}
