@@ -69,3 +69,37 @@ test('salary without endYear ends at retirement age', async () => {
   expect(Number(screen.getByTestId('end').textContent)).toBe(current + diff - 1)
   expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(6000)
 })
+
+test('linked asset sale year caps income', () => {
+  const current = new Date().getFullYear()
+  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, startYear: current }))
+  localStorage.setItem('assetsList', JSON.stringify([
+    { id: 'a1', name: 'House', amount: 0, type: 'Property', purchaseYear: current, saleYear: current + 2, principal: 100000 }
+  ]))
+  localStorage.setItem('incomeSources', JSON.stringify([
+    { name: 'Rent', type: 'Rental', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: current, linkedAssetId: 'a1' }
+  ]))
+  render(
+    <FinanceProvider>
+      <PVDisplay years={5} />
+    </FinanceProvider>
+  )
+  expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(3000)
+})
+
+test('manual endYear overrides linked asset', () => {
+  const current = new Date().getFullYear()
+  localStorage.setItem('settings', JSON.stringify({ inflationRate: 0, startYear: current }))
+  localStorage.setItem('assetsList', JSON.stringify([
+    { id: 'a2', name: 'Bond', amount: 0, type: 'Bond', purchaseYear: current, saleYear: current + 1, principal: 10000 }
+  ]))
+  localStorage.setItem('incomeSources', JSON.stringify([
+    { name: 'Interest', type: 'Bond', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: current, endYear: current + 2, linkedAssetId: 'a2' }
+  ]))
+  render(
+    <FinanceProvider>
+      <PVDisplay years={5} />
+    </FinanceProvider>
+  )
+  expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(3000)
+})
