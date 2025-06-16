@@ -158,6 +158,7 @@ export function FinanceProvider({ children }) {
   // === Expenses & Goals state ===
   const [expensesList, setExpensesList] = useState(() => {
     const s = storage.get('expensesList')
+    const now = new Date().getFullYear()
     if (!s) return []
     try {
       const parsed = JSON.parse(s)
@@ -167,9 +168,11 @@ export function FinanceProvider({ children }) {
           paymentsPerYear = frequencyToPayments(exp.frequency) || 1
         }
         return {
+          startYear: exp.startYear ?? now,
+          endYear: exp.endYear ?? null,
           ...exp,
           paymentsPerYear,
-          priority: exp.priority ?? 2
+          priority: exp.priority ?? 2,
         }
       })
     } catch {
@@ -179,7 +182,18 @@ export function FinanceProvider({ children }) {
   })
   const [goalsList, setGoalsList] = useState(() => {
     const s = storage.get('goalsList')
-    return s ? safeParse(s, []) : []
+    const now = new Date().getFullYear()
+    if (!s) return []
+    try {
+      const parsed = JSON.parse(s)
+      return parsed.map(g => ({
+        startYear: g.startYear ?? g.targetYear ?? now,
+        endYear: g.endYear ?? g.targetYear ?? now,
+        ...g,
+      }))
+    } catch {
+      return []
+    }
   })
 
   // === Balance Sheet assets state ===
@@ -387,15 +401,27 @@ export function FinanceProvider({ children }) {
         if (seed.profile) updateProfile(seed.profile)
         if (Array.isArray(seed.incomeSources)) setIncomeSources(seed.incomeSources)
         if (Array.isArray(seed.expensesList)) {
+          const now = new Date().getFullYear()
           const list = seed.expensesList.map(e => ({
-            ...e,
             paymentsPerYear: typeof e.frequency === 'number'
               ? e.frequency
               : frequencyToPayments(e.frequency) || 1,
+            startYear: e.startYear ?? now,
+            endYear: e.endYear ?? null,
+            priority: e.priority ?? 2,
+            ...e,
           }))
           setExpensesList(list)
         }
-        if (Array.isArray(seed.goalsList)) setGoalsList(seed.goalsList)
+        if (Array.isArray(seed.goalsList)) {
+          const now = new Date().getFullYear()
+          const goals = seed.goalsList.map(g => ({
+            startYear: g.startYear ?? g.targetYear ?? now,
+            endYear: g.endYear ?? g.targetYear ?? now,
+            ...g,
+          }))
+          setGoalsList(goals)
+        }
         if (Array.isArray(seed.assetsList)) {
           const assets = seed.assetsList.map(a => ({
             id: a.id || crypto.randomUUID(),
@@ -637,15 +663,23 @@ export function FinanceProvider({ children }) {
     let medium = 0
     let low = 0
     const rate = settings.discountRate ?? discountRate
+    const horizonEnd = startYear + years - 1
     const totalPv = expensesList.reduce((sum, exp) => {
       const growth = exp.growth || 0
-      const pv = calculatePV(
-        exp.amount,
-        exp.paymentsPerYear,
-        growth,
-        rate,
-        years
-      )
+      const s = exp.startYear ?? startYear
+      const e = exp.endYear ?? horizonEnd
+      const first = Math.max(s, startYear)
+      const last = Math.min(e, horizonEnd)
+      if (last < first) return sum
+      let pv = 0
+      for (let yr = first; yr <= last; yr++) {
+        const idx = yr - s
+        const cash =
+          (exp.amount * exp.paymentsPerYear) *
+          Math.pow(1 + growth / 100, idx)
+        const disc = yr - startYear + 1
+        pv += cash / Math.pow(1 + rate / 100, disc)
+      }
       if (exp.priority === 1) high += pv
       else if (exp.priority === 2) medium += pv
       else low += pv
@@ -666,7 +700,7 @@ export function FinanceProvider({ children }) {
       mMedium,
       mLow,
     }
-  }, [expensesList, settings.discountRate, settings.inflationRate, discountRate, years])
+  }, [expensesList, settings.discountRate, settings.inflationRate, discountRate, years, startYear])
 
   const recalcExpensesPV = useCallback(() => {
     const { high, medium, low, totalPv, avgMonthly, mHigh, mMedium, mLow } = expensesPvData
@@ -791,12 +825,19 @@ export function FinanceProvider({ children }) {
     if (sExp) {
       try {
         const parsed = JSON.parse(sExp)
+        const now = new Date().getFullYear()
         setExpensesList(
           parsed.map(exp => {
-            if (typeof exp.paymentsPerYear === 'number') return exp
-            const ppy = frequencyToPayments(exp.frequency) || 1
-            const { frequency: _unused, ...rest } = exp
-            return { ...rest, paymentsPerYear: ppy }
+            const ppy = typeof exp.paymentsPerYear === 'number'
+              ? exp.paymentsPerYear
+              : frequencyToPayments(exp.frequency) || 1
+            return {
+              startYear: exp.startYear ?? now,
+              endYear: exp.endYear ?? null,
+              priority: exp.priority ?? 2,
+              ...exp,
+              paymentsPerYear: ppy,
+            }
           })
         )
       } catch {
@@ -805,8 +846,19 @@ export function FinanceProvider({ children }) {
     }
     const sG = storage.get('goalsList')
     if (sG) {
-      const parsed = safeParse(sG, null)
-      if (parsed) setGoalsList(parsed)
+      try {
+        const parsed = JSON.parse(sG)
+        const now = new Date().getFullYear()
+        setGoalsList(
+          parsed.map(g => ({
+            startYear: g.startYear ?? g.targetYear ?? now,
+            endYear: g.endYear ?? g.targetYear ?? now,
+            ...g,
+          }))
+        )
+      } catch {
+        // ignore malformed stored data
+      }
     }
 
     const sA = storage.get('assetsList')

@@ -49,11 +49,16 @@ export const selectAnnualOutflow = createSelector(
   (expenses, goals, startYear, years) => {
     return Array.from({ length: years }, (_, idx) => {
       const year = startYear + idx
+      const horizonEnd = startYear + years - 1
       const expTotal = expenses.reduce((sum, e) => {
         const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
         const growth = e.growth || 0
+        const s = e.startYear ?? startYear
+        const end = e.endYear ?? horizonEnd
+        if (year < s || year > end) return sum
+        const yrIdx = year - s
         const base = (Number(e.amount) || 0) * ppy
-        return sum + base * Math.pow(1 + growth / 100, idx)
+        return sum + base * Math.pow(1 + growth / 100, yrIdx)
       }, 0)
       const goalsTotal = goals.reduce(
         (s, g) => s + (g.targetYear === year ? Number(g.amount) || 0 : 0),
