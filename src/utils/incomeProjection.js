@@ -1,33 +1,39 @@
-export function getIncomeProjection(stream, assumptions = {}, linkedAsset) {
-  const now = new Date().getFullYear()
-  const start = Math.max(now, stream.startYear ?? now)
+export function getStreamEndYear(stream, assumptions = {}, linkedAsset) {
+  if (stream.endYear != null) return stream.endYear
+  if (linkedAsset?.saleYear) return linkedAsset.saleYear
 
-  let end
-  if (stream.endYear != null) {
-    end = stream.endYear
-  } else if (linkedAsset) {
-    if (linkedAsset.saleYear) {
-      end = linkedAsset.saleYear
-    } else if (linkedAsset.maturityYear) {
-      end = linkedAsset.maturityYear
-    } else if (stream.type === 'Rental') {
-      end = assumptions.deathAge
-    } else if (stream.type === 'Salary') {
-      end = assumptions.retirementAge
-    } else {
-      end = assumptions.deathAge
-    }
-  } else {
-    end = stream.type === 'Salary'
-      ? assumptions.retirementAge
-      : assumptions.deathAge
+  switch (stream.type) {
+    case 'Salary':
+      return assumptions.retirementAge
+    case 'Rental':
+      return assumptions.deathAge
+    case 'Bond':
+      return linkedAsset?.saleYear || linkedAsset?.maturityYear || assumptions.deathAge
+    case 'Dividend':
+      return linkedAsset?.saleYear || assumptions.deathAge
+    default:
+      return assumptions.retirementAge
   }
+}
+
+export function projectIncomeStream(
+  stream,
+  assumptions = {},
+  linkedAsset,
+  currentYear = new Date().getFullYear()
+) {
+  const start = Math.max(currentYear, stream.startYear ?? currentYear)
+  const end = getStreamEndYear(stream, assumptions, linkedAsset)
 
   const projection = []
   for (let y = start; y <= end; y++) {
     const t = y - start
-    const grown = stream.amount * stream.frequency * Math.pow(1 + (stream.growth || 0) / 100, t)
+    const grown =
+      stream.amount * stream.frequency * Math.pow(1 + (stream.growth || 0) / 100, t)
     projection.push({ year: y, amount: grown })
   }
+
   return projection
 }
+
+export const getIncomeProjection = projectIncomeStream

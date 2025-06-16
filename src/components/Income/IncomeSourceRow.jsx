@@ -108,7 +108,8 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         type="number"
         className="w-full border p-2 rounded-md"
         value={income.endYear ?? ''}
-        onChange={e => updateIncome(index, 'endYear', e.target.value)}
+        onChange={e => updateIncome(index, 'endYear', Number(e.target.value) || null)}
+        placeholder="Auto"
         aria-label="End year"
         title="End year"
       />
@@ -116,16 +117,14 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
       <label className="block text-sm font-medium mt-2">Linked Asset (optional)</label>
       <select
         className="w-full border p-2 rounded-md"
-        value={income.linkedAssetId || ''}
+        value={income.linkedAssetId}
         onChange={e => updateIncome(index, 'linkedAssetId', e.target.value)}
         aria-label="Linked asset"
         title="Linked asset"
       >
-        <option value=""></option>
-        {assetsList.map(a => (
-          <option key={a.id} value={a.id}>
-            {a.name || a.id}
-          </option>
+        <option value="">-- None --</option>
+        {assetsList.map(asset => (
+          <option key={asset.id} value={asset.id}>{asset.name || asset.type}</option>
         ))}
       </select>
 

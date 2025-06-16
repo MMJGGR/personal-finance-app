@@ -18,6 +18,7 @@ import {
 } from './selectors'
 import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
+import { getStreamEndYear } from './utils/incomeProjection'
 import storage from './utils/storage'
 
 const DEFAULT_CURRENCY_MAP = {
@@ -193,6 +194,9 @@ export function FinanceProvider({ children }) {
           expectedReturn: a.expectedReturn ?? 0,
           volatility: a.volatility ?? 0,
           horizonYears: a.horizonYears ?? 0,
+          purchaseYear: a.purchaseYear ?? new Date().getFullYear(),
+          saleYear: a.saleYear ?? null,
+          principal: a.principal ?? (a.amount || 0),
           ...a,
         }))
       } catch {
@@ -208,6 +212,9 @@ export function FinanceProvider({ children }) {
         expectedReturn: 2,
         volatility: 1,
         horizonYears: 0,
+        purchaseYear: new Date().getFullYear(),
+        saleYear: null,
+        principal: 500000,
       },
       {
         id: crypto.randomUUID(),
@@ -217,6 +224,9 @@ export function FinanceProvider({ children }) {
         expectedReturn: 8,
         volatility: 15,
         horizonYears: 5,
+        purchaseYear: new Date().getFullYear(),
+        saleYear: null,
+        principal: 1000000,
       },
       {
         id: 'pv-income',
@@ -226,6 +236,9 @@ export function FinanceProvider({ children }) {
         expectedReturn: 0,
         volatility: 0,
         horizonYears: 0,
+        purchaseYear: new Date().getFullYear(),
+        saleYear: null,
+        principal: 0,
       },
     ]
   })
@@ -277,6 +290,9 @@ export function FinanceProvider({ children }) {
     name: '',
     amount: 0,
     horizonYears: profile.lifeExpectancy - profile.age,
+    purchaseYear: new Date().getFullYear(),
+    saleYear: null,
+    principal: 0,
   })
 
   // === Settings state ===
@@ -580,20 +596,20 @@ export function FinanceProvider({ children }) {
     const rate = settings.discountRate ?? discountRate
     const planStart = startYear
     const planEnd = startYear + years - 1
+    const assumptions = {
+      retirementAge: startYear + (settings.retirementAge - profile.age) - 1,
+      deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
+    }
     return incomeSources.reduce((sum, src) => {
       if (src.active === false) return sum
       const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
       const growth = src.growth || 0
+      const linked = assetsList.find(a => a.id === src.linkedAssetId)
       const srcStart = Math.max(src.startYear ?? planStart, planStart)
-      const isSalary = String(src.type).toLowerCase() === 'salary'
-      const retireLimit = startYear + (settings.retirementAge - profile.age) - 1
-      let srcEnd = src.endYear ?? planEnd
-      if (src.endYear == null && isSalary) {
-        srcEnd = Math.min(srcEnd, retireLimit)
-      }
-      const effectiveEnd = Math.min(srcEnd, planEnd)
-      if (effectiveEnd < srcStart) return sum
-      const activeYears = effectiveEnd - srcStart + 1
+      let srcEnd = getStreamEndYear(src, assumptions, linked)
+      srcEnd = Math.min(srcEnd, planEnd)
+      if (srcEnd < srcStart) return sum
+      const activeYears = srcEnd - srcStart + 1
       const pvImmediate = calculatePV(
         afterTaxAmt,
         src.frequency,
@@ -605,7 +621,7 @@ export function FinanceProvider({ children }) {
       const discounted = pvImmediate / Math.pow(1 + rate / 100, offsetYears)
       return sum + discounted
     }, 0)
-  }, [incomeSources, settings.discountRate, settings.inflationRate, settings.retirementAge, profile.age, discountRate, years, startYear])
+  }, [incomeSources, assetsList, settings.discountRate, settings.inflationRate, settings.retirementAge, profile.age, profile.lifeExpectancy, discountRate, years, startYear])
 
   const recalcIncomePV = useCallback(() => {
     setIncomePV(incomePvValue)

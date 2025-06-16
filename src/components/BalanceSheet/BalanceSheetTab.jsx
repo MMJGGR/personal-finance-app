@@ -161,7 +161,10 @@ export default function BalanceSheetTab() {
   const updateItem = (setList, list, index, field, value) => {
     const updatedItem = {
       ...list[index],
-      [field]: field === 'amount' ? Number(value) : value,
+      [field]:
+        ['amount', 'expectedReturn', 'volatility', 'horizonYears', 'purchaseYear', 'saleYear', 'principal'].includes(field)
+          ? Number(value)
+          : value,
     }
     if (setList === setAssetsList && field === 'type' && LTCMA[value]) {
       updatedItem.expectedReturn = LTCMA[value].expectedReturn
@@ -322,6 +325,30 @@ export default function BalanceSheetTab() {
                     onChange={e => updateItem(setAssetsList, assetsList, i, 'horizonYears', e.target.value)}
                     aria-label="Horizon years"
                     title="Horizon years"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.purchaseYear ?? ''}
+                    onChange={e => updateItem(setAssetsList, assetsList, i, 'purchaseYear', e.target.value)}
+                    aria-label="Purchase year"
+                    title="Purchase year"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.saleYear ?? ''}
+                    onChange={e => updateItem(setAssetsList, assetsList, i, 'saleYear', e.target.value)}
+                    aria-label="Sale year"
+                    title="Sale year"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.principal ?? ''}
+                    onChange={e => updateItem(setAssetsList, assetsList, i, 'principal', e.target.value)}
+                    aria-label="Principal"
+                    title="Principal"
                   />
                 </div>
               )}
