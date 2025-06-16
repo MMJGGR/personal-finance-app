@@ -19,7 +19,7 @@ test('income CSV includes profile header', () => {
 
 test('plan JSON payload contains profile fields', () => {
   const profile = { email:'test@example.com', phone:'555-1234', residentialAddress:'123 St' }
-  const payload = buildPlanJSON(profile, 5, 20, [], 0, [], 0, [], 0, 0)
+  const payload = buildPlanJSON(profile, 5, 20, [], 0, [], 0, [], 0, 0, [])
   expect(payload.profile.email).toBe('test@example.com')
   expect(payload.profile.phone).toBe('555-1234')
   expect(payload.profile.residentialAddress).toBe('123 St')

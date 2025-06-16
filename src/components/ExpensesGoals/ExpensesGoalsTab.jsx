@@ -12,6 +12,7 @@ import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
 } from 'recharts'
+import CashflowTimelineChart from './CashflowTimelineChart'
 
 /**
  * ExpensesGoalsTab
@@ -25,14 +26,17 @@ import {
  */
 export default function ExpensesGoalsTab() {
   const currentYear = new Date().getFullYear()
-  const { 
+  const {
     discountRate,
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
     liabilitiesList, setLiabilitiesList,
     setExpensesPV,
     profile,
-    settings
+    settings,
+    startYear,
+    years,
+    annualIncome
   } = useFinance()
 
 
@@ -279,6 +283,65 @@ export default function ExpensesGoalsTab() {
     [liabilityDetails]
   )
 
+  // --- Combined cashflow timeline ---
+  const timelineData = useMemo(() => {
+    const arr = Array.from({ length: years }, (_, idx) => ({
+      year: startYear + idx,
+      income: annualIncome[idx] || 0,
+      expenses: 0,
+      goals: 0,
+      loans: 0,
+      netCashflow: 0,
+    }))
+    const horizonEnd = startYear + years - 1
+    expensesList.forEach(e => {
+      const s = e.startYear ?? startYear
+      const end = e.endYear ?? horizonEnd
+      const first = Math.max(startYear, s)
+      const last = Math.min(end, horizonEnd)
+      const growth = e.growth || 0
+      for (let yr = first; yr <= last; yr++) {
+        const idx = yr - startYear
+        const t = yr - s
+        const cash = (Number(e.amount) || 0) * (e.paymentsPerYear || 1) * Math.pow(1 + growth / 100, t)
+        arr[idx].expenses += cash
+      }
+    })
+    goalsList.forEach(g => {
+      const s = g.startYear ?? g.targetYear ?? startYear
+      const end = g.endYear ?? g.targetYear ?? s
+      const first = Math.max(startYear, s)
+      const last = Math.min(end, horizonEnd)
+      const growth = g.growth || 0
+      for (let yr = first; yr <= last; yr++) {
+        const idx = yr - startYear
+        const t = yr - s
+        const cash = Number(g.amount) || 0
+        arr[idx].goals += cash * Math.pow(1 + growth / 100, t)
+      }
+    })
+    liabilityDetails.forEach(l => {
+      l.schedule.forEach(sc => {
+        const idx = sc.year - startYear
+        if (idx >= 0 && idx < arr.length) {
+          arr[idx].loans += sc.principalPaid + sc.interestPaid
+        }
+      })
+    })
+    arr.forEach(row => {
+      row.netCashflow = row.income - row.expenses - row.goals - row.loans
+    })
+    return arr
+  }, [expensesList, goalsList, liabilityDetails, annualIncome, startYear, years])
+
+  const advisorWarnings = useMemo(
+    () =>
+      timelineData
+        .filter(r => r.netCashflow < 0)
+        .map(r => `Net Cashflow negative in ${r.year}: review expenses, goals or income.`),
+    [timelineData]
+  )
+
   // --- 5) PV Summary data ---
   const pvSummaryData = [
     { category: 'Expenses',     value: pvExpensesLife },
@@ -298,7 +361,8 @@ export default function ExpensesGoalsTab() {
       pvGoals,
       liabilityDetails,
       totalLiabilitiesPV,
-      totalRequired
+      totalRequired,
+      timelineData
     )
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url  = URL.createObjectURL(blob)
@@ -329,7 +393,8 @@ export default function ExpensesGoalsTab() {
       pvGoals,
       liabilityDetails,
       totalLiabilitiesPV,
-      totalRequired
+      totalRequired,
+      timelineData
     )
     submitProfile(payload, settings)
   }
@@ -441,6 +506,23 @@ export default function ExpensesGoalsTab() {
         >
           + Add Expense
         </button>
+      </section>
+
+      {/* Cashflow Timeline */}
+      <section>
+        <h2 className="text-xl font-bold text-amber-700 mb-2">Cashflow Timeline</h2>
+        <ResponsiveContainer width="100%" height={300} role="img" aria-label="Cashflow timeline chart">
+          <CashflowTimelineChart
+            data={timelineData}
+            locale={settings.locale}
+            currency={settings.currency}
+          />
+        </ResponsiveContainer>
+        {advisorWarnings.length > 0 && (
+          <ul className="mt-2 text-sm text-red-600 list-disc pl-5">
+            {advisorWarnings.map((w, i) => <li key={i}>{w}</li>)}
+          </ul>
+        )}
       </section>
 
       {/* Goals CRUD */}
