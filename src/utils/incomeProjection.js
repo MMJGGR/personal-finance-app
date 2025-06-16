@@ -9,6 +9,8 @@ export function getStreamEndYear(stream, assumptions = {}, linkedAsset) {
       return assumptions.deathAge
     case 'Bond':
       return linkedAsset?.maturityYear || assumptions.retirementAge
+    case 'Pension':
+      return assumptions.deathAge
     default:
       return assumptions.retirementAge
   }

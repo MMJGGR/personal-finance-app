@@ -34,17 +34,19 @@ export default function IncomeTab() {
   } = useFinance();
 
 
-  const startYear = settings.startYear ?? new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+  const startYear = settings.startYear ?? currentYear;
   const discountRate = settings.discountRate ?? 0;
-  const years = settings.projectionYears ?? 1;
 
-  const assumptions = useMemo(() => {
-    const nowYear = new Date().getFullYear()
-    return {
-      retirementAge: nowYear + (settings.retirementAge - profile.age),
-      deathAge: nowYear + (profile.lifeExpectancy - profile.age),
-    }
-  }, [settings.retirementAge, profile.lifeExpectancy, profile.age])
+  const assumptions = useMemo(
+    () => ({
+      retirementAge: currentYear + (settings.retirementAge - profile.age),
+      deathAge: currentYear + (profile.lifeExpectancy - profile.age),
+    }),
+    [currentYear, settings.retirementAge, profile.lifeExpectancy, profile.age]
+  )
+
+  const years = assumptions.deathAge - currentYear
 
   // 1. Compute PV per stream & total
   const pvResults = useMemo(
