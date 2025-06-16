@@ -6,9 +6,6 @@ import { useFinance } from '../../FinanceContext'
 import { calculatePV, calculateLoanNPV } from '../../utils/financeUtils'
 import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants'
 import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
-import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
-import AdviceDashboard from '../../AdviceDashboard'
-import calcDiscretionaryAdvice from '../../utils/discretionaryUtils'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
 import {
@@ -35,9 +32,6 @@ export default function ExpensesGoalsTab() {
     liabilitiesList, setLiabilitiesList,
     setExpensesPV,
     profile,
-    monthlyExpense,
-    monthlyIncomeNominal,
-    monthlySurplusNominal,
     settings
   } = useFinance()
 
@@ -220,29 +214,6 @@ export default function ExpensesGoalsTab() {
   const totalLiabilitiesPV = liabilityDetails.reduce((s, l) => s + l.pv, 0)
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
-  const loanAdvice = useMemo(
-    () =>
-      generateLoanAdvice(
-        liabilitiesList,
-        { ...profile, totalPV: pvExpensesLife },
-        monthlyIncomeNominal,
-        monthlyExpense,
-        discountRate,
-        lifeYears
-      ),
-    [liabilitiesList, profile, pvExpensesLife, monthlyIncomeNominal, monthlyExpense, discountRate, lifeYears]
-  )
-
-  const discretionaryAdvice = useMemo(
-    () =>
-      calcDiscretionaryAdvice(
-        expensesList,
-        monthlyExpense,
-        monthlySurplusNominal,
-        settings.discretionaryCutThreshold || 0
-      ),
-    [expensesList, monthlyExpense, monthlySurplusNominal, settings]
-  )
 
   const loanStrategies = useMemo(
     () => suggestLoanStrategies(liabilityDetails),
@@ -310,11 +281,6 @@ export default function ExpensesGoalsTab() {
 
   return (
     <div className="space-y-8 p-6">
-      <AdviceDashboard
-        advice={loanAdvice}
-        discretionaryAdvice={discretionaryAdvice}
-        loanStrategies={loanStrategies}
-      />
 
       {/* Expenses CRUD */}
       <section>

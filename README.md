@@ -148,22 +148,6 @@ import { buildIncomeJSON, buildPlanJSON, submitProfile } from './src/utils/expor
 
 Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
-## Cash-Flow Adequacy
-
-The file `src/engines/adequacy.js` exposes helpers for evaluating whether future
-cash flows cover upcoming expenses. `computeSurvivalMonths` delegates to the
-appropriate survival metric—nominal, PV or obligation based—while
-`computeFundingGaps` converts the cumulative present value stream into annual
-deficits. These functions power the Adequacy Alert described below.
-
-### Adequacy Alert
-
-The `AdequacyAlert` component consumes the `cumulativePV` array from
-`FinanceContext` and displays any funding gaps by year. It is rendered below the
-income projection chart on the **Income** tab and at the bottom of the
-**Balance Sheet** tab. A short "View Funding Gaps" link on each page scrolls to
-the alert when deficits exist.
-
 ## Income Views
 
 Above the income chart you'll find **Nominal** and **Discounted** buttons. Use
