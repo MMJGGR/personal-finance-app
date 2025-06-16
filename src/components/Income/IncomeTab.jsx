@@ -14,9 +14,6 @@ import { useFinance } from '../../FinanceContext';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
 import { calculatePV, generateIncomeTimeline, findLinkedAsset } from './helpers';
 import calcDiscretionaryAdvice from '../../utils/discretionaryUtils';
-import generateLoanAdvice from '../../utils/loanAdvisoryEngine'
-import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
-import AdviceDashboard from '../../AdviceDashboard'
 import IncomeSourceRow from './IncomeSourceRow'
 import IncomeTimelineChart from './IncomeTimelineChart'
 
@@ -29,11 +26,9 @@ export default function IncomeTab() {
     incomeSources, setIncomeSources,
     monthlyExpense,
     monthlySurplusNominal,
-    monthlyIncomeNominal,
     profile,
     settings,
     expensesList,
-    liabilitiesList,
     assetsList,
     setIncomePV,
   } = useFinance();
@@ -82,11 +77,11 @@ export default function IncomeTab() {
     () =>
       generateIncomeTimeline(
         incomeSources,
-        years,
-        assumptions,
-        assetsList
-      ).map(r => ({ ...r, expenses: monthlyExpense * 12 })),
-    [incomeSources, years, assumptions, assetsList, monthlyExpense]
+        { ...assumptions, annualExpenses: monthlyExpense * 12 },
+        assetsList,
+        years
+      ),
+    [incomeSources, assumptions, assetsList, years, monthlyExpense]
   )
 
   const gaps = useMemo(
@@ -111,23 +106,6 @@ export default function IncomeTab() {
     [liquidAssets, monthlyExpense]
   )
 
-  const loanAdvice = useMemo(
-    () =>
-      generateLoanAdvice(
-        liabilitiesList,
-        { ...profile, totalPV: totalGrossPV },
-        monthlyIncomeNominal,
-        monthlyExpense,
-        discountRate,
-        years
-      ),
-    [liabilitiesList, profile, totalGrossPV, monthlyIncomeNominal, monthlyExpense, discountRate, years]
-  );
-
-  const loanStrategies = useMemo(
-    () => suggestLoanStrategies(liabilitiesList),
-    [liabilitiesList]
-  );
 
 
   const stabilityScore = useMemo(() => {
@@ -295,11 +273,6 @@ export default function IncomeTab() {
   // --- Render ---
   return (
     <div className="space-y-8">
-      <AdviceDashboard
-        advice={loanAdvice}
-        discretionaryAdvice={discretionaryAdvice}
-        loanStrategies={loanStrategies}
-      />
       {/* Income Streams Form */}
       <section>
         <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>

@@ -18,16 +18,26 @@ export function calculatePV(stream, discountRate, years, assumptions, linkedAsse
   };
 }
 
-export function generateIncomeTimeline(sources, years, assumptions, assetsList = []) {
-  const startYear = new Date().getFullYear();
-  const timeline = Array.from({ length: years }, (_, i) => ({ year: startYear + i, gross: 0, net: 0 }));
+export function generateIncomeTimeline(sources, assumptions, assetsList = [], years) {
+  const timeline = [];
+  const currentYear = new Date().getFullYear();
+  for (let y = 0; y < years; y++) {
+    timeline.push({
+      year: currentYear + y,
+      gross: 0,
+      net: 0,
+      expenses: assumptions.annualExpenses || 0,
+    });
+  }
+
   sources.forEach(s => {
     if (!s.active) return;
-    const linkedAsset = findLinkedAsset(s.linkedAssetId, assetsList);
-    const start = Math.max(startYear, s.startYear);
+    const linkedAsset = assetsList.find(a => a.id === s.linkedAssetId);
+    const start = Math.max(currentYear, s.startYear);
     const end = getStreamEndYear(s, assumptions, linkedAsset);
+
     for (let y = start; y <= end; y++) {
-      const idx = y - startYear;
+      const idx = y - currentYear;
       if (idx >= 0 && idx < years) {
         const t = y - start;
         const grown = s.amount * s.frequency * Math.pow(1 + s.growth / 100, t);
@@ -36,6 +46,7 @@ export function generateIncomeTimeline(sources, years, assumptions, assetsList =
       }
     }
   });
+
   return timeline;
 }
 
