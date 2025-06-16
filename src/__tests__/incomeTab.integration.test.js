@@ -20,7 +20,7 @@ test('income source interactions and advisory', () => {
     </FinanceProvider>
   )
 
-  expect(screen.getByText(/Total PV/)).toHaveTextContent('1,500')
+  expect(screen.getByText(/Total PV \(Gross\)/)).toHaveTextContent('54,000')
   expect(screen.getByText(/Stability/)).toHaveTextContent('77%')
 
   fireEvent.click(screen.getByLabelText('Add income source'))
@@ -32,7 +32,7 @@ test('income source interactions and advisory', () => {
   
   const toggles = screen.getAllByLabelText('Include in Projection')
   fireEvent.click(toggles[1])
-  expect(screen.getByText(/Total PV/)).toHaveTextContent('1,000')
+  expect(screen.getByText(/Total PV \(Gross\)/)).toHaveTextContent('36,000')
   expect(screen.getByText(/Stability/)).toHaveTextContent('100%')
   fireEvent.click(toggles[0])
   expect(screen.getByText(/Stability/)).toHaveTextContent('0%')
