@@ -3,7 +3,7 @@
 import React, { useMemo, useEffect } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { useFinance } from '../../FinanceContext'
-import { calculatePV, calculateLoanNPV } from '../../utils/financeUtils'
+import { calculateLoanNPV } from '../../utils/financeUtils'
 import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants'
 import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
@@ -26,12 +26,15 @@ import CashflowTimelineChart from './CashflowTimelineChart'
  */
 export default function ExpensesGoalsTab() {
   const currentYear = new Date().getFullYear()
+  const defaultStart = currentYear
+  const defaultEnd = currentYear + 5
   const {
     discountRate,
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
     liabilitiesList, setLiabilitiesList,
     setExpensesPV,
+    setGoalsPV,
     profile,
     settings,
     startYear,
@@ -52,15 +55,16 @@ export default function ExpensesGoalsTab() {
         return { ...e, [field]: raw }
       }
       if (field === 'startYear' || field === 'endYear') {
-        const yr = parseInt(raw)
-        const val = isNaN(yr) ? null : yr
-        const other = field === 'startYear' ? e.endYear : e.startYear
-        let fixed = val
-        if (fixed != null && other != null) {
-          if (field === 'startYear' && fixed > other) fixed = other
-          if (field === 'endYear' && other > fixed) fixed = other
+        const val = parseInt(raw)
+        if (field === 'startYear' && e.endYear != null && val > e.endYear) {
+          alert('Start Year cannot be after End Year')
+          return e
         }
-        return { ...e, [field]: fixed }
+        if (field === 'endYear' && e.startYear != null && val < e.startYear) {
+          alert('End Year cannot be before Start Year')
+          return e
+        }
+        return { ...e, [field]: isNaN(val) ? null : val }
       }
       if (field === 'paymentsPerYear') {
         const ppy = parseInt(raw)
@@ -89,7 +93,7 @@ export default function ExpensesGoalsTab() {
         category: 'Fixed',
         priority: 2,
         startYear: now,
-        endYear: now,
+        endYear: now + 5,
       },
     ])
   }
@@ -111,17 +115,18 @@ export default function ExpensesGoalsTab() {
         }
       }
       if (field === 'startYear' || field === 'endYear') {
-        const yr = parseInt(raw)
-        const val = isNaN(yr) ? null : yr
-        const other = field === 'startYear' ? g.endYear : g.startYear
-        let fixed = val
-        if (fixed != null && other != null) {
-          if (field === 'startYear' && fixed > other) fixed = other
-          if (field === 'endYear' && other > fixed) fixed = other
+        const val = parseInt(raw)
+        if (field === 'startYear' && g.endYear != null && val > g.endYear) {
+          alert('Start Year cannot be after End Year')
+          return g
         }
-        const updates = { [field]: fixed }
-        if (field === 'startYear') updates.targetYear = fixed ?? g.targetYear
-        if (field === 'endYear') updates.targetYear = fixed ?? g.targetYear
+        if (field === 'endYear' && g.startYear != null && val < g.startYear) {
+          alert('End Year cannot be before Start Year')
+          return g
+        }
+        const updates = { [field]: isNaN(val) ? null : val }
+        if (field === 'startYear') updates.targetYear = isNaN(val) ? g.targetYear : val
+        if (field === 'endYear') updates.targetYear = isNaN(val) ? g.targetYear : val
         return { ...g, ...updates }
       }
       return { ...g, amount: clamp(parseFloat(raw)) }
@@ -135,7 +140,7 @@ export default function ExpensesGoalsTab() {
         amount: 0,
         targetYear: currentYear,
         startYear: currentYear,
-        endYear: currentYear,
+        endYear: currentYear + 5,
       },
     ])
   }
@@ -285,62 +290,62 @@ export default function ExpensesGoalsTab() {
 
   // --- Combined cashflow timeline ---
   const timelineData = useMemo(() => {
-    const arr = Array.from({ length: years }, (_, idx) => ({
-      year: startYear + idx,
-      income: annualIncome[idx] || 0,
-      expenses: 0,
-      goals: 0,
-      loans: 0,
-      netCashflow: 0,
-    }))
-    const horizonEnd = startYear + years - 1
-    expensesList.forEach(e => {
-      const s = e.startYear ?? startYear
-      const end = e.endYear ?? horizonEnd
-      const first = Math.max(startYear, s)
-      const last = Math.min(end, horizonEnd)
-      const growth = e.growth || 0
-      for (let yr = first; yr <= last; yr++) {
-        const idx = yr - startYear
-        const t = yr - s
-        const cash = (Number(e.amount) || 0) * (e.paymentsPerYear || 1) * Math.pow(1 + growth / 100, t)
-        arr[idx].expenses += cash
-      }
-    })
-    goalsList.forEach(g => {
-      const s = g.startYear ?? g.targetYear ?? startYear
-      const end = g.endYear ?? g.targetYear ?? s
-      const first = Math.max(startYear, s)
-      const last = Math.min(end, horizonEnd)
-      const growth = g.growth || 0
-      for (let yr = first; yr <= last; yr++) {
-        const idx = yr - startYear
-        const t = yr - s
-        const cash = Number(g.amount) || 0
-        arr[idx].goals += cash * Math.pow(1 + growth / 100, t)
-      }
-    })
-    liabilityDetails.forEach(l => {
-      l.schedule.forEach(sc => {
-        const idx = sc.year - startYear
-        if (idx >= 0 && idx < arr.length) {
-          arr[idx].loans += sc.principalPaid + sc.interestPaid
+    const minYear = startYear
+    const maxYear = startYear + years - 1
+    const timeline = []
+    for (let y = minYear; y <= maxYear; y++) {
+      const idx = y - startYear
+      let income = annualIncome[idx] || 0
+      let expenses = 0
+      let goals = 0
+      let loans = 0
+
+      expensesList.forEach(e => {
+        if (y >= (e.startYear ?? minYear) && y <= (e.endYear ?? maxYear)) {
+          const t = y - (e.startYear ?? minYear)
+          const freq = e.paymentsPerYear || 1
+          expenses += (Number(e.amount) || 0) * freq * Math.pow(1 + (e.growth || 0) / 100, t)
         }
       })
-    })
-    arr.forEach(row => {
-      row.netCashflow = row.income - row.expenses - row.goals - row.loans
-    })
-    return arr
+
+      goalsList.forEach(g => {
+        if (y >= (g.startYear ?? g.targetYear ?? minYear) && y <= (g.endYear ?? g.targetYear ?? minYear)) {
+          const t = y - (g.startYear ?? g.targetYear ?? minYear)
+          goals += (Number(g.amount) || 0) * Math.pow(1 + (g.growth || 0) / 100, t)
+        }
+      })
+
+      liabilityDetails.forEach(l => {
+        const match = l.schedule.find(sc => sc.year === y)
+        if (match) loans += match.principalPaid + match.interestPaid
+      })
+
+      const net = income - expenses - goals - loans
+      timeline.push({ year: y, income, expenses, goals, loans, net })
+    }
+    return timeline
   }, [expensesList, goalsList, liabilityDetails, annualIncome, startYear, years])
 
-  const advisorWarnings = useMemo(
-    () =>
-      timelineData
-        .filter(r => r.netCashflow < 0)
-        .map(r => `Net Cashflow negative in ${r.year}: review expenses, goals or income.`),
-    [timelineData]
-  )
+  const advisorWarnings = useMemo(() => {
+    const retireYear = startYear + (settings.retirementAge - profile.age)
+    const warnings = []
+    timelineData.forEach(row => {
+      if (row.net < 0) warnings.push(`Shortfall in ${row.year}`)
+      if (row.loans > row.income && row.year > retireYear) {
+        warnings.push(`Loan exceeds income after retirement in ${row.year}`)
+      }
+    })
+    return warnings
+  }, [timelineData, settings.retirementAge, profile.age, startYear])
+
+  useEffect(() => {
+    const expPV = timelineData.reduce((sum, r) => sum + r.expenses, 0)
+    const goalPV = timelineData.reduce((sum, r) => sum + r.goals, 0)
+    setExpensesPV(expPV)
+    if (typeof setGoalsPV === 'function') setGoalsPV(goalPV)
+    storage.set('expensesPV', expPV.toString())
+    storage.set('goalsPV', goalPV.toString())
+  }, [timelineData, setExpensesPV, setGoalsPV])
 
   // --- 5) PV Summary data ---
   const pvSummaryData = [
@@ -351,20 +356,14 @@ export default function ExpensesGoalsTab() {
 
   // --- Export JSON ---
   const exportJSON = () => {
-    const payload = buildPlanJSON(
-      profile,
-      discountRate,
-      lifeYears,
-      expensesList,
-      pvExpensesLife,
-      goalsList,
-      pvGoals,
-      liabilityDetails,
-      totalLiabilitiesPV,
-      totalRequired,
-      timelineData
-    )
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const exportPlan = {
+      income: annualIncome,
+      expenses: expensesList,
+      goals: goalsList,
+      loans: liabilitiesList,
+      timeline: timelineData,
+    }
+    const blob = new Blob([JSON.stringify(exportPlan, null, 2)], { type: 'application/json' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
@@ -480,15 +479,17 @@ export default function ExpensesGoalsTab() {
             <input
               className="border p-2 rounded-md text-right"
               type="number"
-              value={e.startYear ?? currentYear}
-              onChange={ev => handleExpenseChange(i, 'startYear', ev.target.value)}
+              placeholder="Start Year"
+              value={e.startYear ?? defaultStart}
+              onChange={ev => handleExpenseChange(i, 'startYear', parseInt(ev.target.value))}
               title="Start year"
             />
             <input
               className="border p-2 rounded-md text-right"
               type="number"
-              value={e.endYear ?? ''}
-              onChange={ev => handleExpenseChange(i, 'endYear', ev.target.value)}
+              placeholder="End Year"
+              value={e.endYear ?? defaultEnd}
+              onChange={ev => handleExpenseChange(i, 'endYear', parseInt(ev.target.value))}
               title="End year"
             />
             <button
@@ -567,15 +568,17 @@ export default function ExpensesGoalsTab() {
             <input
               className="border p-2 rounded-md text-right"
               type="number"
-              value={g.startYear}
-              onChange={ev => handleGoalChange(i, 'startYear', ev.target.value)}
+              placeholder="Start Year"
+              value={g.startYear ?? defaultStart}
+              onChange={ev => handleGoalChange(i, 'startYear', parseInt(ev.target.value))}
               title="Start year"
             />
             <input
               className="border p-2 rounded-md text-right"
               type="number"
-              value={g.endYear}
-              onChange={ev => handleGoalChange(i, 'endYear', ev.target.value)}
+              placeholder="End Year"
+              value={g.endYear ?? defaultEnd}
+              onChange={ev => handleGoalChange(i, 'endYear', parseInt(ev.target.value))}
               title="End year"
             />
             <button
