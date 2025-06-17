@@ -267,19 +267,20 @@ export default function ExpensesGoalsTab() {
   const liabilityDetails = useMemo(() => {
     return liabilitiesList.map(l => {
       const ratePerPeriod = (Number(l.interestRate) || 0) / 100 / l.paymentsPerYear
+      const start = new Date((l.startYear ?? currentYear), 0, 1).getTime()
       const sched = calculateLoanSchedule({
         principal: Number(l.principal) || 0,
         annualRate: ratePerPeriod * 12,
         termYears: (Number(l.termYears) || 0) * l.paymentsPerYear / 12,
         extraPayment: Number(l.extraPayment) || 0
-      })
+      }, start)
       const pv = presentValue(
         sched.payments.map(p => p.payment),
         (discountRate / 100) / l.paymentsPerYear
       )
       const scheduleMap = {}
-      sched.payments.forEach((p, idx) => {
-        const y = currentYear + Math.floor(idx / l.paymentsPerYear) + 1
+      sched.payments.forEach(p => {
+        const y = new Date(p.date).getFullYear()
         if (!scheduleMap[y]) {
           scheduleMap[y] = { year: y, principalPaid: 0, interestPaid: 0, remaining: p.balance }
         }
