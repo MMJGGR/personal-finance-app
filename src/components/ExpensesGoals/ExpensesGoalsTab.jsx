@@ -376,10 +376,18 @@ export default function ExpensesGoalsTab() {
         <CardHeader>
           <h2 className="text-xl font-bold text-amber-800">Expenses</h2>
           <div>
-            <button onClick={() => setShowExpenses(v => !v)} className="mr-2 text-sm text-amber-700">
+            <button
+              onClick={() => setShowExpenses(v => !v)}
+              className="mr-2 text-sm text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
               {showExpenses ? 'Hide' : 'Show'}
             </button>
-            <button onClick={addExpense} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
+            <button
+              onClick={addExpense}
+              className="bg-amber-400 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              + Add
+            </button>
           </div>
         </CardHeader>
         {showExpenses && (
@@ -401,23 +409,23 @@ export default function ExpensesGoalsTab() {
             {expensesList.map((e, i) => (
               <div key={i} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 rounded-md w-full" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(i, 'name', ev.target.value)} title="Expense name" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(i, 'name', ev.target.value)} title="Expense name" />
                   {expenseErrors[i]?.name && <span className="text-red-600 text-xs">{expenseErrors[i].name[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)} title="Expense amount" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)} title="Expense amount" />
                   {expenseErrors[i]?.amount && <span className="text-red-600 text-xs">{expenseErrors[i].amount[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
                   {expenseErrors[i]?.paymentsPerYear && <span className="text-red-600 text-xs">{expenseErrors[i].paymentsPerYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)} title="Growth rate" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)} title="Growth rate" />
                   {expenseErrors[i]?.growth && <span className="text-red-600 text-xs">{expenseErrors[i].growth[0]}</span>}
                 </div>
                 <div>
-                  <select className="border p-2 rounded-md w-full" value={e.category} onChange={ev => handleExpenseChange(i, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
+                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.category} onChange={ev => handleExpenseChange(i, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
                   <option>Fixed</option>
                   <option>Discretionary</option>
                   <option>Other</option>
@@ -425,7 +433,7 @@ export default function ExpensesGoalsTab() {
                   {expenseErrors[i]?.category && <span className="text-red-600 text-xs">{expenseErrors[i].category[0]}</span>}
                 </div>
                 <div>
-                  <select className="border p-2 rounded-md w-full" value={e.priority} onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
+                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.priority} onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
                   <option value={1}>High</option>
                   <option value={2}>Medium</option>
                   <option value={3}>Low</option>
@@ -433,11 +441,11 @@ export default function ExpensesGoalsTab() {
                   {expenseErrors[i]?.priority && <span className="text-red-600 text-xs">{expenseErrors[i].priority[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(i, 'startYear', ev.target.value)} title="Start year" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(i, 'startYear', ev.target.value)} title="Start year" />
                   {expenseErrors[i]?.startYear && <span className="text-red-600 text-xs">{expenseErrors[i].startYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(i, 'endYear', ev.target.value)} title="End year" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(i, 'endYear', ev.target.value)} title="End year" />
                   {expenseErrors[i]?.endYear && <span className="text-red-600 text-xs">{expenseErrors[i].endYear[0]}</span>}
                 </div>
                 <button onClick={() => removeExpense(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove expense">✖</button>
@@ -451,10 +459,18 @@ export default function ExpensesGoalsTab() {
         <CardHeader>
           <h2 className="text-xl font-bold text-amber-800">Goals</h2>
           <div>
-            <button onClick={() => setShowGoals(v => !v)} className="mr-2 text-sm text-amber-700">
+            <button
+              onClick={() => setShowGoals(v => !v)}
+              className="mr-2 text-sm text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
               {showGoals ? 'Hide' : 'Show'}
             </button>
-            <button onClick={addGoal} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
+            <button
+              onClick={addGoal}
+              className="bg-amber-400 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              + Add
+            </button>
           </div>
         </CardHeader>
         {showGoals && (
@@ -473,23 +489,23 @@ export default function ExpensesGoalsTab() {
             {goalsList.map((g, i) => (
               <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 rounded-md w-full" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(i, 'name', ev.target.value)} title="Goal name" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(i, 'name', ev.target.value)} title="Goal name" />
                   {goalErrors[i]?.name && <span className="text-red-600 text-xs">{goalErrors[i].name[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(i, 'amount', ev.target.value)} title="Goal amount" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(i, 'amount', ev.target.value)} title="Goal amount" />
                   {goalErrors[i]?.amount && <span className="text-red-600 text-xs">{goalErrors[i].amount[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)} title="Target year" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)} title="Target year" />
                   {goalErrors[i]?.targetYear && <span className="text-red-600 text-xs">{goalErrors[i].targetYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(i, 'startYear', ev.target.value)} title="Start year" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(i, 'startYear', ev.target.value)} title="Start year" />
                   {goalErrors[i]?.startYear && <span className="text-red-600 text-xs">{goalErrors[i].startYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(i, 'endYear', ev.target.value)} title="End year" />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(i, 'endYear', ev.target.value)} title="End year" />
                   {goalErrors[i]?.endYear && <span className="text-red-600 text-xs">{goalErrors[i].endYear[0]}</span>}
                 </div>
                 <button onClick={() => removeGoal(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
@@ -503,10 +519,18 @@ export default function ExpensesGoalsTab() {
         <CardHeader>
           <h2 className="text-xl font-bold text-amber-800">Liabilities</h2>
           <div>
-            <button onClick={() => setShowLiabilities(v => !v)} className="mr-2 text-sm text-amber-700">
+            <button
+              onClick={() => setShowLiabilities(v => !v)}
+              className="mr-2 text-sm text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
               {showLiabilities ? 'Hide' : 'Show'}
             </button>
-            <button onClick={addLiability} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
+            <button
+              onClick={addLiability}
+              className="bg-amber-400 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              + Add
+            </button>
           </div>
         </CardHeader>
         {showLiabilities && (
@@ -526,22 +550,22 @@ export default function ExpensesGoalsTab() {
             {liabilitiesList.map((l, i) => (
               <div key={i} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 rounded-md w-full" value={l.name || ''} onChange={ev => handleLiabilityChange(i, 'name', ev.target.value)} />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={l.name || ''} onChange={ev => handleLiabilityChange(i, 'name', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.principal} onChange={ev => handleLiabilityChange(i, 'principal', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.principal} onChange={ev => handleLiabilityChange(i, 'principal', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" step="0.01" className="border p-2 rounded-md text-right w-full" value={l.interestRate} onChange={ev => handleLiabilityChange(i, 'interestRate', ev.target.value)} />
+                  <input type="number" step="0.01" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.interestRate} onChange={ev => handleLiabilityChange(i, 'interestRate', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.termYears} onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.termYears} onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.paymentsPerYear} onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.paymentsPerYear} onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.extraPayment} onChange={ev => handleLiabilityChange(i, 'extraPayment', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.extraPayment} onChange={ev => handleLiabilityChange(i, 'extraPayment', ev.target.value)} />
                 </div>
                 <button onClick={() => removeLiability(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500">✖</button>
               </div>

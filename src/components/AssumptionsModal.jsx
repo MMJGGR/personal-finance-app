@@ -23,7 +23,10 @@ export default function AssumptionsModal({ open, onClose }) {
           ))}
         </ul>
         <div className="text-right">
-          <button onClick={onClose} className="border border-amber-600 px-4 py-1 rounded hover:bg-amber-50">
+          <button
+            onClick={onClose}
+            className="border border-amber-600 px-4 py-1 rounded hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
             Close
           </button>
         </div>
