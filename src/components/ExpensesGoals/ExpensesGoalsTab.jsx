@@ -1,6 +1,6 @@
 // src/ExpensesGoalsTab.jsx
 
-import React, { useMemo, useEffect } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { useFinance } from '../../FinanceContext'
 import { calculateLoanNPV } from '../../utils/financeUtils'
@@ -8,11 +8,10 @@ import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants'
 import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
-import {
-  PieChart, Pie, Cell, Tooltip,
-  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend
-} from 'recharts'
+import { ResponsiveContainer } from 'recharts'
 import CashflowTimelineChart from './CashflowTimelineChart'
+import buildTimeline from '../../selectors/timeline'
+import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 
 /**
  * ExpensesGoalsTab
@@ -41,6 +40,9 @@ export default function ExpensesGoalsTab() {
     years,
     annualIncome
   } = useFinance()
+
+  const [showExpenses, setShowExpenses] = useState(true)
+  const [showGoals, setShowGoals] = useState(true)
 
 
   // --- Helpers ---
@@ -292,38 +294,17 @@ export default function ExpensesGoalsTab() {
   const timelineData = useMemo(() => {
     const minYear = startYear
     const maxYear = startYear + years - 1
-    const timeline = []
-    for (let y = minYear; y <= maxYear; y++) {
+    const incomeFn = y => {
       const idx = y - startYear
-      let income = annualIncome[idx] || 0
-      let expenses = 0
-      let goals = 0
-      let loans = 0
-
-      expensesList.forEach(e => {
-        if (y >= (e.startYear ?? minYear) && y <= (e.endYear ?? maxYear)) {
-          const t = y - (e.startYear ?? minYear)
-          const freq = e.paymentsPerYear || 1
-          expenses += (Number(e.amount) || 0) * freq * Math.pow(1 + (e.growth || 0) / 100, t)
-        }
-      })
-
-      goalsList.forEach(g => {
-        if (y >= (g.startYear ?? g.targetYear ?? minYear) && y <= (g.endYear ?? g.targetYear ?? minYear)) {
-          const t = y - (g.startYear ?? g.targetYear ?? minYear)
-          goals += (Number(g.amount) || 0) * Math.pow(1 + (g.growth || 0) / 100, t)
-        }
-      })
-
-      liabilityDetails.forEach(l => {
-        const match = l.schedule.find(sc => sc.year === y)
-        if (match) loans += match.principalPaid + match.interestPaid
-      })
-
-      const net = income - expenses - goals - loans
-      timeline.push({ year: y, income, expenses, goals, loans, net })
+      return annualIncome[idx] || 0
     }
-    return timeline
+    const loanForYear = y => {
+      return liabilityDetails.reduce((sum, l) => {
+        const match = l.schedule.find(sc => sc.year === y)
+        return match ? sum + match.principalPaid + match.interestPaid : sum
+      }, 0)
+    }
+    return buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
   }, [expensesList, goalsList, liabilityDetails, annualIncome, startYear, years])
 
   const advisorWarnings = useMemo(() => {
@@ -401,348 +382,115 @@ export default function ExpensesGoalsTab() {
   const COLORS = ['#fbbf24','#f59e0b','#fcd34d','#fde68a','#eab308']
   const PRINCIPAL_COLOR = '#34d399'
   const INTEREST_COLOR  = '#f87171'
-
   return (
     <div className="space-y-8 p-6">
-
-      {/* Expenses CRUD */}
       <section>
-        <h2 className="text-2xl font-bold text-amber-700 mb-2">Expenses</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
-          <div>Name</div>
-          <div className="text-right">Amt ({settings.currency})</div>
-          <div>Pay/Yr</div>
-          <div className="text-right">Growth %</div>
-          <div>Category</div>
-          <div>Priority</div>
-          <div>Start</div>
-          <div>End</div>
-          <div></div>
-        </div>
-        {expensesList.length === 0 && (
-          <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
-        )}
-        {expensesList.map((e, i) => (
-          <div key={i} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
-            <input
-              className="border p-2 rounded-md"
-              placeholder="Rent"
-              value={e.name}
-              onChange={ev => handleExpenseChange(i, 'name', ev.target.value)}
-              title="Expense name"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="0"
-              placeholder="0"
-              value={e.amount}
-              onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)}
-              title="Expense amount"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="1" step="1"
-              value={e.paymentsPerYear}
-              onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)}
-              title="Payments per year (use a Goal for one-off outflows)"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="0" step="0.1"
-              placeholder="0"
-              value={e.growth}
-              onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)}
-              title="Growth rate"
-            />
-            <select
-              className="border p-2 rounded-md"
-              value={e.category}
-              onChange={ev => handleExpenseChange(i, 'category', ev.target.value)}
-              aria-label="Expense category"
-              title="Expense category"
-            >
-              <option>Fixed</option>
-              <option>Discretionary</option>
-              <option>Other</option>
-            </select>
-            <select
-              className="border p-2 rounded-md"
-              value={e.priority}
-              onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)}
-              aria-label="Expense priority"
-              title="Expense priority"
-            >
-              <option value={1}>High</option>
-              <option value={2}>Medium</option>
-              <option value={3}>Low</option>
-            </select>
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number"
-              placeholder="Start Year"
-              value={e.startYear ?? defaultStart}
-              onChange={ev => handleExpenseChange(i, 'startYear', parseInt(ev.target.value))}
-              title="Start year"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number"
-              placeholder="End Year"
-              value={e.endYear ?? defaultEnd}
-              onChange={ev => handleExpenseChange(i, 'endYear', parseInt(ev.target.value))}
-              title="End year"
-            />
-            <button
-              onClick={() => removeExpense(i)}
-              className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-              aria-label="Remove expense"
-            >✖</button>
-          </div>
-        ))}
-        <button
-          onClick={addExpense}
-          className="mt-2 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label="Add expense"
-          title="Add expense"
-        >
-          + Add Expense
-        </button>
-      </section>
-
-      {/* Cashflow Timeline */}
-      <section>
-        <h2 className="text-xl font-bold text-amber-700 mb-2">Cashflow Timeline</h2>
-        <ResponsiveContainer width="100%" height={300} role="img" aria-label="Cashflow timeline chart">
-          <CashflowTimelineChart
-            data={timelineData}
-            locale={settings.locale}
-            currency={settings.currency}
-          />
+        <ResponsiveContainer width="100%" height={400} role="img" aria-label="Cashflow timeline chart">
+          <CashflowTimelineChart data={timelineData} locale={settings.locale} currency={settings.currency} />
         </ResponsiveContainer>
-        {advisorWarnings.length > 0 && (
-          <ul className="mt-2 text-sm text-red-600 list-disc pl-5">
-            {advisorWarnings.map((w, i) => <li key={i}>{w}</li>)}
-          </ul>
-        )}
       </section>
 
-      {/* Goals CRUD */}
-      <section>
-        <h2 className="text-2xl font-bold text-amber-700 mb-2">Goals</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
-          <div>Name</div>
-          <div className="text-right">Amt ({settings.currency})</div>
-          <div className="text-right">Target Yr</div>
-          <div>Start</div>
-          <div>End</div>
-          <div></div>
-        </div>
-        {goalsList.length === 0 && (
-          <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
-        )}
-        {goalsList.map((g, i) => (
-          <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
-            <input
-              className="border p-2 rounded-md"
-              placeholder="Vacation"
-              value={g.name}
-              onChange={ev => handleGoalChange(i, 'name', ev.target.value)}
-              title="Goal name"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="0"
-              placeholder="0"
-              value={g.amount}
-              onChange={ev => handleGoalChange(i, 'amount', ev.target.value)}
-              title="Goal amount"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min={currentYear}
-              placeholder={String(currentYear)}
-              value={g.targetYear}
-              onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)}
-              title="Target year"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number"
-              placeholder="Start Year"
-              value={g.startYear ?? defaultStart}
-              onChange={ev => handleGoalChange(i, 'startYear', parseInt(ev.target.value))}
-              title="Start year"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number"
-              placeholder="End Year"
-              value={g.endYear ?? defaultEnd}
-              onChange={ev => handleGoalChange(i, 'endYear', parseInt(ev.target.value))}
-              title="End year"
-            />
-            <button
-              onClick={() => removeGoal(i)}
-              className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-              aria-label="Remove goal"
-            >✖</button>
-          </div>
-        ))}
-        <button
-          onClick={addGoal}
-          className="mt-2 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label="Add goal"
-          title="Add goal"
-        >
-          + Add Goal
-        </button>
-      </section>
-
-      {/* Liabilities CRUD */}
-      <section>
-        <h2 className="text-2xl font-bold text-amber-700 mb-2">Liabilities (Loans)</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-10 gap-2 font-semibold text-gray-700 mb-1">
-          <div>Name</div>
-          <div className="text-right">Principal</div>
-          <div className="text-right">Interest %</div>
-          <div className="text-right">Term yrs</div>
-          <div className="text-right">Months Left</div>
-          <div>Pay/Yr</div>
-          <div className="text-right">Payment</div>
-          <div className="text-right">PMT</div>
-          <div className="text-right">PV</div>
-          <div></div>
-        </div>
-        {liabilityDetails.length === 0 && (
-          <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
-        )}
-        {liabilityDetails.map((l, i) => (
-          <div key={l.id} className="grid grid-cols-1 sm:grid-cols-10 gap-2 items-center mb-1">
-            <input
-              className="border p-2 rounded-md"
-              placeholder="Car Loan"
-              value={l.name}
-              onChange={ev => handleLiabilityChange(i, 'name', ev.target.value)}
-              title="Loan name"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="0"
-              placeholder="0"
-              value={l.principal}
-              onChange={ev => handleLiabilityChange(i, 'principal', ev.target.value)}
-              title="Principal"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="0" step="0.1"
-              placeholder="0"
-              value={l.interestRate}
-              onChange={ev => handleLiabilityChange(i, 'interestRate', ev.target.value)}
-              title="Interest rate"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="1"
-              placeholder="1"
-              value={l.termYears}
-              onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)}
-              title="Term years"
-            />
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="1" step="1"
-              value={l.remainingMonths}
-              onChange={ev => handleLiabilityChange(i, 'remainingMonths', ev.target.value)}
-              title="Remaining months"
-            />
-          <select
-            className="border p-2 rounded-md"
-            value={l.paymentsPerYear}
-            onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)}
-            title="Payments per year"
-          >
-            {FREQUENCY_LABELS.map(label => (
-              <option key={label} value={FREQUENCIES[label]}>{label}</option>
+      {advisorWarnings.length > 0 && (
+        <Card>
+          <h3 className="text-lg font-bold text-amber-700">Advisor Insights</h3>
+          <ul className="list-disc pl-5 space-y-1">
+            {advisorWarnings.slice(0, 3).map((w, i) => (
+              <li key={i} className="text-red-600">{w}</li>
             ))}
-          </select>
-            <input
-              className="border p-2 rounded-md text-right"
-              type="number" min="0" step="0.01"
-              placeholder="0"
-              value={l.payment}
-              onChange={ev => handleLiabilityChange(i, 'payment', ev.target.value)}
-              title="Actual payment"
-            />
-            <div className="text-right">{l.computedPayment.toFixed(2)}</div>
-            <div className="text-right">{l.pv.toFixed(2)}</div>
-            <button
-              onClick={() => removeLiability(i)}
-              className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-              aria-label="Remove liability"
-            >✖</button>
+          </ul>
+        </Card>
+      )}
+
+      <Card className="mb-6">
+        <CardHeader>
+          <h2 className="text-xl font-bold text-amber-700">Expenses</h2>
+          <div>
+            <button onClick={() => setShowExpenses(v => !v)} className="mr-2 text-sm text-amber-600">
+              {showExpenses ? 'Hide' : 'Show'}
+            </button>
+            <button onClick={addExpense} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
           </div>
-        ))}
-        <button
-          onClick={addLiability}
-          className="mt-2 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label="Add liability"
-          title="Add liability"
-        >
-          + Add Liability
-        </button>
-      </section>
+        </CardHeader>
+        {showExpenses && (
+          <CardBody>
+            <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
+              <div>Name</div>
+              <div className="text-right">Amt ({settings.currency})</div>
+              <div>Pay/Yr</div>
+              <div className="text-right">Growth %</div>
+              <div>Category</div>
+              <div>Priority</div>
+              <div>Start</div>
+              <div>End</div>
+              <div></div>
+            </div>
+            {expensesList.length === 0 && (
+              <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
+            )}
+            {expensesList.map((e, i) => (
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
+                <input className="border p-2 rounded-md" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(i, 'name', ev.target.value)} title="Expense name" />
+                <input className="border p-2 rounded-md text-right" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)} title="Expense amount" />
+                <input className="border p-2 rounded-md text-right" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
+                <input className="border p-2 rounded-md text-right" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)} title="Growth rate" />
+                <select className="border p-2 rounded-md" value={e.category} onChange={ev => handleExpenseChange(i, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
+                  <option>Fixed</option>
+                  <option>Discretionary</option>
+                  <option>Other</option>
+                </select>
+                <select className="border p-2 rounded-md" value={e.priority} onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
+                  <option value={1}>High</option>
+                  <option value={2}>Medium</option>
+                  <option value={3}>Low</option>
+                </select>
+                <input className="border p-2 rounded-md text-right" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(i, 'startYear', parseInt(ev.target.value))} title="Start year" />
+                <input className="border p-2 rounded-md text-right" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(i, 'endYear', parseInt(ev.target.value))} title="End year" />
+                <button onClick={() => removeExpense(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove expense">✖</button>
+              </div>
+            ))}
+          </CardBody>
+        )}
+      </Card>
 
-      {/* PV Summary Bar Chart */}
-      <section>
-        <h2 className="text-xl font-bold text-amber-700 mb-2">PV Summary</h2>
-        <ResponsiveContainer width="100%" height={300} role="img" aria-label="PV summary bar chart">
-          <BarChart data={pvSummaryData} margin={{ top:20, right:30, left:0, bottom:20 }}>
-            <XAxis dataKey="category" />
-            <YAxis tickFormatter={v =>
-              formatCurrency(v, settings.locale, settings.currency)
-            }/>
-            <Tooltip formatter={v =>
-              formatCurrency(v, settings.locale, settings.currency)
-            }/>
-            <Legend />
-            <Bar dataKey="value" fill={COLORS[1]} name="Present Value" />
-          </BarChart>
-        </ResponsiveContainer>
-      </section>
-
-      {/* Amortization Schedules */}
-      <section>
-        <h2 className="text-xl font-bold text-amber-700 mb-4">Loan Amortization</h2>
-        {liabilityDetails.map(l => (
-          <div key={l.id} className="mb-8">
-            <h3 className="text-lg font-semibold">{l.name}</h3>
-            <ResponsiveContainer width="100%" height={200} role="img" aria-label="Loan amortization chart">
-              <BarChart data={l.schedule}>
-                <XAxis dataKey="year" />
-                <YAxis tickFormatter={v =>
-                  formatCurrency(v, settings.locale, settings.currency)
-                }/>
-                <Tooltip formatter={v =>
-                  formatCurrency(v, settings.locale, settings.currency)
-                }/>
-                <Legend verticalAlign="bottom" />
-                <Bar dataKey="principalPaid" stackId="a" name="Principal" fill={PRINCIPAL_COLOR} />
-                <Bar dataKey="interestPaid"  stackId="a" name="Interest"  fill={INTEREST_COLOR} />
-              </BarChart>
-            </ResponsiveContainer>
+      <Card className="mb-6">
+        <CardHeader>
+          <h2 className="text-xl font-bold text-amber-700">Goals</h2>
+          <div>
+            <button onClick={() => setShowGoals(v => !v)} className="mr-2 text-sm text-amber-600">
+              {showGoals ? 'Hide' : 'Show'}
+            </button>
+            <button onClick={addGoal} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
           </div>
-        ))}
-      </section>
+        </CardHeader>
+        {showGoals && (
+          <CardBody>
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+              <div>Name</div>
+              <div className="text-right">Amt ({settings.currency})</div>
+              <div className="text-right">Target Yr</div>
+              <div>Start</div>
+              <div>End</div>
+              <div></div>
+            </div>
+            {goalsList.length === 0 && (
+              <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
+            )}
+            {goalsList.map((g, i) => (
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
+                <input className="border p-2 rounded-md" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(i, 'name', ev.target.value)} title="Goal name" />
+                <input className="border p-2 rounded-md text-right" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(i, 'amount', ev.target.value)} title="Goal amount" />
+                <input className="border p-2 rounded-md text-right" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)} title="Target year" />
+                <input className="border p-2 rounded-md text-right" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(i, 'startYear', parseInt(ev.target.value))} title="Start year" />
+                <input className="border p-2 rounded-md text-right" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(i, 'endYear', parseInt(ev.target.value))} title="End year" />
+                <button onClick={() => removeGoal(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
+              </div>
+            ))}
+          </CardBody>
+        )}
+      </Card>
 
-      {/* KPI Cards */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label:'PV of Expenses',    value: pvExpensesLife },
-          { label:'PV of Goals',       value: pvGoals },
-          { label:'PV of Liabilities', value: totalLiabilitiesPV },
-          { label:'Total Required PV', value: totalRequired }
-        ].map((it, i) => (
+        {[{ label: 'PV of Expenses', value: pvExpensesLife }, { label: 'PV of Goals', value: pvGoals }, { label: 'PV of Liabilities', value: totalLiabilitiesPV }, { label: 'Total Required PV', value: totalRequired }].map((it, i) => (
           <div key={i} className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
             <span className="text-sm text-gray-500">{it.label}</span>
             <span className="mt-2 text-lg font-semibold text-amber-700">
@@ -752,48 +500,14 @@ export default function ExpensesGoalsTab() {
         ))}
       </section>
 
-      {loanStrategies.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-4">
-          <h3 className="text-lg font-bold text-amber-700 mb-2">Loan Advisor</h3>
-          <ul className="list-disc pl-5 text-sm space-y-1">
-            {loanStrategies.map((s, i) => (
-              <li key={i}>
-                Pay <strong>{s.name}</strong> early to save&nbsp;
-                <span className="text-amber-700 font-semibold">
-                  {formatCurrency(s.interestSaved, settings.locale, settings.currency)}
-                </span>
-                {s.paymentsSaved > 0 && ` and cut ${s.paymentsSaved} payments`}
-                .
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Export */}
       <div className="text-right">
-        <button
-          onClick={exportJSON}
-          className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label="Export to JSON"
-          title="Export to JSON"
-        >
+        <button onClick={exportJSON} className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" aria-label="Export to JSON" title="Export to JSON">
           📁 Export to JSON
         </button>
-        <button
-          onClick={exportCSV}
-          className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label="Export to CSV"
-          title="Export to CSV"
-        >
+        <button onClick={exportCSV} className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" aria-label="Export to CSV" title="Export to CSV">
           📊 Export to CSV
         </button>
-        <button
-          onClick={submitToAPI}
-          className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label="Submit plan to API"
-          title="Submit plan to API"
-        >
+        <button onClick={submitToAPI} className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" aria-label="Submit plan to API" title="Submit plan to API">
           🚀 Submit to API
         </button>
       </div>
