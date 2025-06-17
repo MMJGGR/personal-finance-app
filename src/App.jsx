@@ -41,6 +41,9 @@ export default function App() {
           </Suspense>
         </main>
       </div>
+      <footer className="text-center text-xs text-gray-600 bg-gray-100 py-2">
+        Projections are for illustrative purposes only.
+      </footer>
     </div>
   )
 }
