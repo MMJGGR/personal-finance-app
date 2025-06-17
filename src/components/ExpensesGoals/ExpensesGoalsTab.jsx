@@ -15,6 +15,11 @@ import LifetimeStackedChart from './LifetimeStackedChart'
 import buildTimeline from '../../selectors/timeline'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
+import {
+  defaultExpenses,
+  defaultGoals,
+  defaultLiabilities,
+} from './defaults.js'
 
 /**
  * ExpensesGoalsTab
@@ -51,6 +56,19 @@ export default function ExpensesGoalsTab() {
   const [showAssumptions, setShowAssumptions] = useState(false)
   const [expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
+
+  // Populate defaults on first mount when no data is present
+  useEffect(() => {
+    if (expensesList.length === 0) {
+      setExpensesList(defaultExpenses(defaultStart, defaultEnd))
+    }
+    if (goalsList.length === 0) {
+      setGoalsList(defaultGoals(defaultStart))
+    }
+    if (liabilitiesList.length === 0) {
+      setLiabilitiesList(defaultLiabilities(defaultStart))
+    }
+  }, [])
 
   // --- Helpers ---
 
@@ -180,6 +198,18 @@ export default function ExpensesGoalsTab() {
     if (window.confirm('Delete this item?')) {
       setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
     }
+  }
+
+  const clearLists = () => {
+    setExpensesList([])
+    setGoalsList([])
+    setLiabilitiesList([])
+  }
+
+  const resetDefaults = () => {
+    setExpensesList(defaultExpenses(defaultStart, defaultEnd))
+    setGoalsList(defaultGoals(defaultStart))
+    setLiabilitiesList(defaultLiabilities(defaultStart))
   }
 
   // --- 1) Remaining lifetime horizon ---
@@ -374,6 +404,23 @@ export default function ExpensesGoalsTab() {
         )}
         <p>Peak surplus: {formatCurrency(maxSurplus, settings.locale, settings.currency)}</p>
       </Card>
+
+      <div className="text-right space-x-2">
+        <button
+          onClick={clearLists}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Clear lists"
+        >
+          Clear
+        </button>
+        <button
+          onClick={resetDefaults}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Reset lists to defaults"
+        >
+          Reset Defaults
+        </button>
+      </div>
 
 
       <Card className="mb-6">
