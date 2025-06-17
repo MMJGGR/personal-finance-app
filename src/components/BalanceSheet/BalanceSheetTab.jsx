@@ -15,6 +15,8 @@ import { useFinance } from '../../FinanceContext'
 import LTCMA from '../../ltcmaAssumptions'
 import InvestmentStrategies from '../../investmentStrategies'
 import { formatCurrency } from '../../utils/formatters'
+import storage from '../../utils/storage'
+import { appendAuditLog } from '../../utils/auditLog'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
@@ -158,6 +160,7 @@ export default function BalanceSheetTab() {
   }
 
   const updateItem = (setList, list, index, field, value) => {
+    const oldValue = list[index]?.[field]
     const updatedItem = {
       ...list[index],
       [field]:
@@ -172,6 +175,12 @@ export default function BalanceSheetTab() {
     const updated = list.map((it, i) => (i === index ? updatedItem : it))
     if (setList === setAssetsList && !validateAsset(updatedItem, index, list)) return
     setList(updated)
+    const prefix = setList === setAssetsList ? 'asset' : 'liability'
+    appendAuditLog(storage, {
+      field: `${prefix}.${field}`,
+      oldValue,
+      newValue: updatedItem[field],
+    })
   }
 
   const toggleAsset = id =>

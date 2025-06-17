@@ -19,6 +19,7 @@ import IncomeTimelineChart from './IncomeTimelineChart'
 
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
+import { appendAuditLog } from '../../utils/auditLog'
 
 
 export default function IncomeTab() {
@@ -148,6 +149,7 @@ export default function IncomeTab() {
 
   // --- Handlers for form inputs ---
   const onFieldChange = (idx, field, raw) => {
+    const oldValue = incomeSources[idx]?.[field]
     const updated = incomeSources.map((src, i) => {
       if (i !== idx) return src
       if (field === 'name' || field === 'type') {
@@ -176,6 +178,11 @@ export default function IncomeTab() {
       return { ...src, [field]: isNaN(num) ? 0 : Math.max(0, num) }
     })
     setIncomeSources(updated)
+    appendAuditLog(storage, {
+      field: `income.${field}`,
+      oldValue,
+      newValue: updated[idx]?.[field],
+    })
   }
 
   const addIncome = () => {
