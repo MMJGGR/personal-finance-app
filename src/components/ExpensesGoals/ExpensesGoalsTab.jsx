@@ -8,6 +8,7 @@ import { presentValue } from '../../modules/loan/presentValue.js'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
+import sanitize from '../../utils/sanitize'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
 import { ResponsiveContainer } from 'recharts'
 import LifetimeStackedChart from './LifetimeStackedChart'
@@ -56,10 +57,11 @@ export default function ExpensesGoalsTab() {
   // --- CRUD Handlers ---
   // Expenses
   const handleExpenseChange = (i, field, raw) => {
+    const value = typeof raw === 'string' ? sanitize(raw) : raw
     const oldValue = expensesList[i]?.[field]
     setExpensesList(prev => {
       const next = [...prev]
-      const updated = { ...next[i], [field]: raw }
+      const updated = { ...next[i], [field]: value }
       const parsed = expenseItemSchema.safeParse(updated)
       if (parsed.success) {
         next[i] = parsed.data
@@ -76,7 +78,7 @@ export default function ExpensesGoalsTab() {
     appendAuditLog(storage, {
       field: `expense.${field}`,
       oldValue,
-      newValue: raw,
+      newValue: value,
     })
   }
   const addExpense = () => {
@@ -102,10 +104,11 @@ export default function ExpensesGoalsTab() {
 
   // Goals
   const handleGoalChange = (i, field, raw) => {
+    const value = typeof raw === 'string' ? sanitize(raw) : raw
     const oldValue = goalsList[i]?.[field]
     setGoalsList(prev => {
       const next = [...prev]
-      const updated = { ...next[i], [field]: raw }
+      const updated = { ...next[i], [field]: value }
       const parsed = goalItemSchema.safeParse(updated)
       if (parsed.success) {
         next[i] = parsed.data
@@ -122,7 +125,7 @@ export default function ExpensesGoalsTab() {
     appendAuditLog(storage, {
       field: `goal.${field}`,
       oldValue,
-      newValue: raw,
+      newValue: value,
     })
   }
   const addGoal = () => {
@@ -144,7 +147,8 @@ export default function ExpensesGoalsTab() {
   }
 
   // Liabilities (Loans)
-  const handleLiabilityChange = (i, field, value) => {
+  const handleLiabilityChange = (i, field, valueRaw) => {
+    const value = typeof valueRaw === 'string' ? sanitize(valueRaw) : valueRaw
     const oldValue = liabilitiesList[i]?.[field]
     setLiabilitiesList(prev => {
       const next = [...prev]

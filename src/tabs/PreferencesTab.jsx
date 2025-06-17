@@ -1,6 +1,7 @@
 // src/PreferencesTab.jsx
 import React, { useState, useEffect } from 'react'
 import { useFinance } from '../FinanceContext'
+import sanitize from '../utils/sanitize'
 
 export default function PreferencesTab() {
   const {
@@ -24,7 +25,8 @@ export default function PreferencesTab() {
 
   // Update both local form state and context (which persists to localStorage)
   const handleChange = (field, value) => {
-    const updated = { ...form, [field]: value }
+    const clean = typeof value === 'string' ? sanitize(value) : value
+    const updated = { ...form, [field]: clean }
     setForm(updated)
     updateSettings(updated)
   }

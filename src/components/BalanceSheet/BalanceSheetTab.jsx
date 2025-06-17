@@ -17,6 +17,7 @@ import InvestmentStrategies from '../../investmentStrategies'
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
+import sanitize from '../../utils/sanitize'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
@@ -159,7 +160,8 @@ export default function BalanceSheetTab() {
     return true
   }
 
-  const updateItem = (setList, list, index, field, value) => {
+  const updateItem = (setList, list, index, field, raw) => {
+    const value = typeof raw === 'string' ? sanitize(raw) : raw
     const oldValue = list[index]?.[field]
     const updatedItem = {
       ...list[index],
