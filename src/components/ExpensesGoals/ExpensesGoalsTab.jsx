@@ -74,25 +74,26 @@ export default function ExpensesGoalsTab() {
 
   // --- CRUD Handlers ---
   // Expenses
-  const handleExpenseChange = (i, field, raw) => {
+  const handleExpenseChange = (id, field, raw) => {
     const value = typeof raw === 'string' ? sanitize(raw) : raw
-    const oldValue = expensesList[i]?.[field]
-    setExpensesList(prev => {
-      const next = [...prev]
-      const updated = { ...next[i], [field]: value }
-      const parsed = expenseItemSchema.safeParse(updated)
-      if (parsed.success) {
-        next[i] = parsed.data
-        setExpenseErrors(err => ({ ...err, [i]: {} }))
-      } else {
-        next[i] = updated
-        setExpenseErrors(err => ({
-          ...err,
-          [i]: parsed.error.flatten().fieldErrors,
-        }))
-      }
-      return next
-    })
+    const oldValue = expensesList.find(e => e.id === id)?.[field]
+    setExpensesList(prev =>
+      prev.map(exp => {
+        if (exp.id !== id) return exp
+        const updated = { ...exp, [field]: value }
+        const parsed = expenseItemSchema.safeParse(updated)
+        if (parsed.success) {
+          setExpenseErrors(err => ({ ...err, [id]: {} }))
+          return parsed.data
+        } else {
+          setExpenseErrors(err => ({
+            ...err,
+            [id]: parsed.error.flatten().fieldErrors,
+          }))
+          return updated
+        }
+      })
+    )
     appendAuditLog(storage, {
       field: `expense.${field}`,
       oldValue,
@@ -103,6 +104,7 @@ export default function ExpensesGoalsTab() {
     setExpensesList([
       ...expensesList,
       {
+        id: crypto.randomUUID(),
         name: '',
         amount: 0,
         paymentsPerYear: 12,
@@ -114,32 +116,37 @@ export default function ExpensesGoalsTab() {
       },
     ])
   }
-  const removeExpense = i => {
+  const removeExpense = id => {
     if (window.confirm('Delete this item?')) {
-      setExpensesList(expensesList.filter((_, idx) => idx !== i))
+      setExpensesList(expensesList.filter(e => e.id !== id))
+      setExpenseErrors(err => {
+        const { [id]: _, ...rest } = err
+        return rest
+      })
     }
   }
 
   // Goals
-  const handleGoalChange = (i, field, raw) => {
+  const handleGoalChange = (id, field, raw) => {
     const value = typeof raw === 'string' ? sanitize(raw) : raw
-    const oldValue = goalsList[i]?.[field]
-    setGoalsList(prev => {
-      const next = [...prev]
-      const updated = { ...next[i], [field]: value }
-      const parsed = goalItemSchema.safeParse(updated)
-      if (parsed.success) {
-        next[i] = parsed.data
-        setGoalErrors(err => ({ ...err, [i]: {} }))
-      } else {
-        next[i] = updated
-        setGoalErrors(err => ({
-          ...err,
-          [i]: parsed.error.flatten().fieldErrors,
-        }))
-      }
-      return next
-    })
+    const oldValue = goalsList.find(g => g.id === id)?.[field]
+    setGoalsList(prev =>
+      prev.map(goal => {
+        if (goal.id !== id) return goal
+        const updated = { ...goal, [field]: value }
+        const parsed = goalItemSchema.safeParse(updated)
+        if (parsed.success) {
+          setGoalErrors(err => ({ ...err, [id]: {} }))
+          return parsed.data
+        } else {
+          setGoalErrors(err => ({
+            ...err,
+            [id]: parsed.error.flatten().fieldErrors,
+          }))
+          return updated
+        }
+      })
+    )
     appendAuditLog(storage, {
       field: `goal.${field}`,
       oldValue,
@@ -150,6 +157,7 @@ export default function ExpensesGoalsTab() {
     setGoalsList([
       ...goalsList,
       {
+        id: crypto.randomUUID(),
         name: '',
         amount: 0,
         targetYear: currentYear,
@@ -158,21 +166,23 @@ export default function ExpensesGoalsTab() {
       },
     ])
   }
-  const removeGoal = i => {
+  const removeGoal = id => {
     if (window.confirm('Delete this item?')) {
-      setGoalsList(goalsList.filter((_, idx) => idx !== i))
+      setGoalsList(goalsList.filter(g => g.id !== id))
+      setGoalErrors(err => {
+        const { [id]: _, ...rest } = err
+        return rest
+      })
     }
   }
 
   // Liabilities (Loans)
-  const handleLiabilityChange = (i, field, valueRaw) => {
+  const handleLiabilityChange = (id, field, valueRaw) => {
     const value = typeof valueRaw === 'string' ? sanitize(valueRaw) : valueRaw
-    const oldValue = liabilitiesList[i]?.[field]
-    setLiabilitiesList(prev => {
-      const next = [...prev]
-      next[i] = { ...next[i], [field]: value }
-      return next
-    })
+    const oldValue = liabilitiesList.find(l => l.id === id)?.[field]
+    setLiabilitiesList(prev =>
+      prev.map(l => (l.id === id ? { ...l, [field]: value } : l))
+    )
     appendAuditLog(storage, {
       field: `liability.${field}`,
       oldValue,
@@ -183,6 +193,7 @@ export default function ExpensesGoalsTab() {
     setLiabilitiesList([
       ...liabilitiesList,
       {
+        id: crypto.randomUUID(),
         name: '',
         principal: 0,
         interestRate: 0,
@@ -194,9 +205,9 @@ export default function ExpensesGoalsTab() {
       },
     ])
   }
-  const removeLiability = i => {
+  const removeLiability = id => {
     if (window.confirm('Delete this item?')) {
-      setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
+      setLiabilitiesList(liabilitiesList.filter(l => l.id !== id))
     }
   }
 
@@ -330,9 +341,9 @@ export default function ExpensesGoalsTab() {
 
   // --- 5) PV Summary data ---
   const pvSummaryData = [
-    { category: 'Expenses',     value: pvExpensesLife },
-    { category: 'Goals',        value: pvGoals },
-    { category: 'Liabilities',  value: totalLiabilitiesPV }
+    { id: 'exp', category: 'Expenses',     value: pvExpensesLife },
+    { id: 'goal', category: 'Goals',        value: pvGoals },
+    { id: 'liab', category: 'Liabilities',  value: totalLiabilitiesPV }
   ]
 
   // --- Export JSON ---
@@ -457,49 +468,49 @@ export default function ExpensesGoalsTab() {
             {expensesList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
             )}
-            {expensesList.map((e, i) => (
-              <div key={i} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
+            {expensesList.map(e => (
+              <div key={e.id} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(i, 'name', ev.target.value)} title="Expense name" />
-                  {expenseErrors[i]?.name && <span className="text-red-600 text-xs">{expenseErrors[i].name[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(e.id, 'name', ev.target.value)} title="Expense name" />
+                  {expenseErrors[e.id]?.name && <span className="text-red-600 text-xs">{expenseErrors[e.id].name[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)} title="Expense amount" />
-                  {expenseErrors[i]?.amount && <span className="text-red-600 text-xs">{expenseErrors[i].amount[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(e.id, 'amount', ev.target.value)} title="Expense amount" />
+                  {expenseErrors[e.id]?.amount && <span className="text-red-600 text-xs">{expenseErrors[e.id].amount[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
-                  {expenseErrors[i]?.paymentsPerYear && <span className="text-red-600 text-xs">{expenseErrors[i].paymentsPerYear[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(e.id, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
+                  {expenseErrors[e.id]?.paymentsPerYear && <span className="text-red-600 text-xs">{expenseErrors[e.id].paymentsPerYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)} title="Growth rate" />
-                  {expenseErrors[i]?.growth && <span className="text-red-600 text-xs">{expenseErrors[i].growth[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(e.id, 'growth', ev.target.value)} title="Growth rate" />
+                  {expenseErrors[e.id]?.growth && <span className="text-red-600 text-xs">{expenseErrors[e.id].growth[0]}</span>}
                 </div>
                 <div>
-                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.category} onChange={ev => handleExpenseChange(i, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
+                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.category} onChange={ev => handleExpenseChange(e.id, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
                   <option>Fixed</option>
                   <option>Discretionary</option>
                   <option>Other</option>
                 </select>
-                  {expenseErrors[i]?.category && <span className="text-red-600 text-xs">{expenseErrors[i].category[0]}</span>}
+                  {expenseErrors[e.id]?.category && <span className="text-red-600 text-xs">{expenseErrors[e.id].category[0]}</span>}
                 </div>
                 <div>
-                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.priority} onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
+                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.priority} onChange={ev => handleExpenseChange(e.id, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
                   <option value={1}>High</option>
                   <option value={2}>Medium</option>
                   <option value={3}>Low</option>
                 </select>
-                  {expenseErrors[i]?.priority && <span className="text-red-600 text-xs">{expenseErrors[i].priority[0]}</span>}
+                  {expenseErrors[e.id]?.priority && <span className="text-red-600 text-xs">{expenseErrors[e.id].priority[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(i, 'startYear', ev.target.value)} title="Start year" />
-                  {expenseErrors[i]?.startYear && <span className="text-red-600 text-xs">{expenseErrors[i].startYear[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(e.id, 'startYear', ev.target.value)} title="Start year" />
+                  {expenseErrors[e.id]?.startYear && <span className="text-red-600 text-xs">{expenseErrors[e.id].startYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(i, 'endYear', ev.target.value)} title="End year" />
-                  {expenseErrors[i]?.endYear && <span className="text-red-600 text-xs">{expenseErrors[i].endYear[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(e.id, 'endYear', ev.target.value)} title="End year" />
+                  {expenseErrors[e.id]?.endYear && <span className="text-red-600 text-xs">{expenseErrors[e.id].endYear[0]}</span>}
                 </div>
-                <button onClick={() => removeExpense(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove expense">✖</button>
+                <button onClick={() => removeExpense(e.id)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove expense">✖</button>
               </div>
             ))}
           </CardBody>
@@ -537,29 +548,29 @@ export default function ExpensesGoalsTab() {
             {goalsList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
             )}
-            {goalsList.map((g, i) => (
-              <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
+            {goalsList.map(g => (
+              <div key={g.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(i, 'name', ev.target.value)} title="Goal name" />
-                  {goalErrors[i]?.name && <span className="text-red-600 text-xs">{goalErrors[i].name[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(g.id, 'name', ev.target.value)} title="Goal name" />
+                  {goalErrors[g.id]?.name && <span className="text-red-600 text-xs">{goalErrors[g.id].name[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(i, 'amount', ev.target.value)} title="Goal amount" />
-                  {goalErrors[i]?.amount && <span className="text-red-600 text-xs">{goalErrors[i].amount[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(g.id, 'amount', ev.target.value)} title="Goal amount" />
+                  {goalErrors[g.id]?.amount && <span className="text-red-600 text-xs">{goalErrors[g.id].amount[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)} title="Target year" />
-                  {goalErrors[i]?.targetYear && <span className="text-red-600 text-xs">{goalErrors[i].targetYear[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(g.id, 'targetYear', ev.target.value)} title="Target year" />
+                  {goalErrors[g.id]?.targetYear && <span className="text-red-600 text-xs">{goalErrors[g.id].targetYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(i, 'startYear', ev.target.value)} title="Start year" />
-                  {goalErrors[i]?.startYear && <span className="text-red-600 text-xs">{goalErrors[i].startYear[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(g.id, 'startYear', ev.target.value)} title="Start year" />
+                  {goalErrors[g.id]?.startYear && <span className="text-red-600 text-xs">{goalErrors[g.id].startYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(i, 'endYear', ev.target.value)} title="End year" />
-                  {goalErrors[i]?.endYear && <span className="text-red-600 text-xs">{goalErrors[i].endYear[0]}</span>}
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(g.id, 'endYear', ev.target.value)} title="End year" />
+                  {goalErrors[g.id]?.endYear && <span className="text-red-600 text-xs">{goalErrors[g.id].endYear[0]}</span>}
                 </div>
-                <button onClick={() => removeGoal(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
+                <button onClick={() => removeGoal(g.id)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
               </div>
             ))}
           </CardBody>
@@ -598,27 +609,27 @@ export default function ExpensesGoalsTab() {
             {liabilitiesList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
             )}
-            {liabilitiesList.map((l, i) => (
-              <div key={i} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
+            {liabilitiesList.map(l => (
+              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={l.name || ''} onChange={ev => handleLiabilityChange(i, 'name', ev.target.value)} />
+                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={l.name || ''} onChange={ev => handleLiabilityChange(l.id, 'name', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.principal} onChange={ev => handleLiabilityChange(i, 'principal', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.principal} onChange={ev => handleLiabilityChange(l.id, 'principal', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" step="0.01" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.interestRate} onChange={ev => handleLiabilityChange(i, 'interestRate', ev.target.value)} />
+                  <input type="number" step="0.01" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.interestRate} onChange={ev => handleLiabilityChange(l.id, 'interestRate', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.termYears} onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.termYears} onChange={ev => handleLiabilityChange(l.id, 'termYears', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.paymentsPerYear} onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.paymentsPerYear} onChange={ev => handleLiabilityChange(l.id, 'paymentsPerYear', ev.target.value)} />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.extraPayment} onChange={ev => handleLiabilityChange(i, 'extraPayment', ev.target.value)} />
+                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.extraPayment} onChange={ev => handleLiabilityChange(l.id, 'extraPayment', ev.target.value)} />
                 </div>
-                <button onClick={() => removeLiability(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500">✖</button>
+                <button onClick={() => removeLiability(l.id)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500">✖</button>
               </div>
             ))}
           </CardBody>
@@ -626,8 +637,8 @@ export default function ExpensesGoalsTab() {
       </Card>
 
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[{ label: 'PV of Expenses', value: pvExpensesLife }, { label: 'PV of Goals', value: pvGoals }, { label: 'PV of Liabilities', value: totalLiabilitiesPV }, { label: 'Total Required PV', value: totalRequired }].map((it, i) => (
-          <div key={i} className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
+        {[{ id: 'exp', label: 'PV of Expenses', value: pvExpensesLife }, { id: 'goal', label: 'PV of Goals', value: pvGoals }, { id: 'liab', label: 'PV of Liabilities', value: totalLiabilitiesPV }, { id: 'total', label: 'Total Required PV', value: totalRequired }].map(it => (
+          <div key={it.id} className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
             <span className="text-sm text-gray-500">{it.label}</span>
             <span className="mt-2 text-lg font-semibold text-amber-800">
               {formatCurrency(it.value, settings.locale, settings.currency)}

@@ -166,12 +166,13 @@ export function FinanceProvider({ children }) {
     if (!s) return []
     try {
       const parsed = JSON.parse(s)
-      return parsed.map(exp => {
+      const migrated = parsed.map(exp => {
         let paymentsPerYear = exp.paymentsPerYear
         if (typeof paymentsPerYear !== 'number') {
           paymentsPerYear = frequencyToPayments(exp.frequency) || 1
         }
         return {
+          id: exp.id || crypto.randomUUID(),
           startYear: exp.startYear ?? now,
           endYear: exp.endYear ?? null,
           ...exp,
@@ -179,6 +180,8 @@ export function FinanceProvider({ children }) {
           priority: exp.priority ?? 2,
         }
       })
+      storage.set('expensesList', JSON.stringify(migrated))
+      return migrated
     } catch {
       // ignore malformed stored data
       return []
@@ -190,11 +193,14 @@ export function FinanceProvider({ children }) {
     if (!s) return []
     try {
       const parsed = JSON.parse(s)
-      return parsed.map(g => ({
+      const migrated = parsed.map(g => ({
+        id: g.id || crypto.randomUUID(),
         startYear: g.startYear ?? g.targetYear ?? now,
         endYear: g.endYear ?? g.targetYear ?? now,
         ...g,
       }))
+      storage.set('goalsList', JSON.stringify(migrated))
+      return migrated
     } catch {
       return []
     }

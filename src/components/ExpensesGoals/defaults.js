@@ -1,6 +1,7 @@
 export function defaultExpenses(start, end) {
   return [
     {
+      id: crypto.randomUUID(),
       name: 'Rent',
       amount: 1200,
       paymentsPerYear: 12,
@@ -11,6 +12,7 @@ export function defaultExpenses(start, end) {
       endYear: end,
     },
     {
+      id: crypto.randomUUID(),
       name: 'Groceries',
       amount: 300,
       paymentsPerYear: 12,
@@ -26,6 +28,7 @@ export function defaultExpenses(start, end) {
 export function defaultGoals(start) {
   return [
     {
+      id: crypto.randomUUID(),
       name: 'Vacation',
       amount: 5000,
       targetYear: start + 1,
@@ -38,6 +41,7 @@ export function defaultGoals(start) {
 export function defaultLiabilities(start) {
   return [
     {
+      id: crypto.randomUUID(),
       name: 'Car Loan',
       principal: 10000,
       interestRate: 5,
