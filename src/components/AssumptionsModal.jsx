@@ -13,7 +13,7 @@ export default function AssumptionsModal({ open, onClose }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white rounded-lg shadow p-6 w-80" role="dialog" aria-modal="true" aria-label="Assumptions">
-        <h2 className="text-lg font-semibold mb-4 text-amber-700">Assumptions</h2>
+        <h2 className="text-lg font-semibold mb-4 text-amber-800">Assumptions</h2>
         <ul className="space-y-1 mb-4">
           {items.map(it => (
             <li key={it.label} className="flex justify-between">

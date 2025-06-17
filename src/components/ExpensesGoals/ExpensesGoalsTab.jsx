@@ -361,7 +361,7 @@ export default function ExpensesGoalsTab() {
       </section>
 
       <Card>
-        <h3 className="text-lg font-bold text-amber-700">Advisor Insights</h3>
+        <h3 className="text-lg font-bold text-amber-800">Advisor Insights</h3>
         {hasDeficit && (
           <p className="text-red-600">⚠️ Cashflow deficit detected in some years. Consider reducing expenses or deferring goals.</p>
         )}
@@ -371,9 +371,9 @@ export default function ExpensesGoalsTab() {
 
       <Card className="mb-6">
         <CardHeader>
-          <h2 className="text-xl font-bold text-amber-700">Expenses</h2>
+          <h2 className="text-xl font-bold text-amber-800">Expenses</h2>
           <div>
-            <button onClick={() => setShowExpenses(v => !v)} className="mr-2 text-sm text-amber-600">
+            <button onClick={() => setShowExpenses(v => !v)} className="mr-2 text-sm text-amber-700">
               {showExpenses ? 'Hide' : 'Show'}
             </button>
             <button onClick={addExpense} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
@@ -446,9 +446,9 @@ export default function ExpensesGoalsTab() {
 
       <Card className="mb-6">
         <CardHeader>
-          <h2 className="text-xl font-bold text-amber-700">Goals</h2>
+          <h2 className="text-xl font-bold text-amber-800">Goals</h2>
           <div>
-            <button onClick={() => setShowGoals(v => !v)} className="mr-2 text-sm text-amber-600">
+            <button onClick={() => setShowGoals(v => !v)} className="mr-2 text-sm text-amber-700">
               {showGoals ? 'Hide' : 'Show'}
             </button>
             <button onClick={addGoal} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
@@ -498,9 +498,9 @@ export default function ExpensesGoalsTab() {
 
       <Card className="mb-6">
         <CardHeader>
-          <h2 className="text-xl font-bold text-amber-700">Liabilities</h2>
+          <h2 className="text-xl font-bold text-amber-800">Liabilities</h2>
           <div>
-            <button onClick={() => setShowLiabilities(v => !v)} className="mr-2 text-sm text-amber-600">
+            <button onClick={() => setShowLiabilities(v => !v)} className="mr-2 text-sm text-amber-700">
               {showLiabilities ? 'Hide' : 'Show'}
             </button>
             <button onClick={addLiability} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
@@ -551,7 +551,7 @@ export default function ExpensesGoalsTab() {
         {[{ label: 'PV of Expenses', value: pvExpensesLife }, { label: 'PV of Goals', value: pvGoals }, { label: 'PV of Liabilities', value: totalLiabilitiesPV }, { label: 'Total Required PV', value: totalRequired }].map((it, i) => (
           <div key={i} className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
             <span className="text-sm text-gray-500">{it.label}</span>
-            <span className="mt-2 text-lg font-semibold text-amber-700">
+            <span className="mt-2 text-lg font-semibold text-amber-800">
               {formatCurrency(it.value, settings.locale, settings.currency)}
             </span>
           </div>

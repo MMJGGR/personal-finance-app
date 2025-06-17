@@ -43,7 +43,7 @@ export default function ProfileTab() {
 
   return (
     <div className="space-y-6 p-6">
-      <h2 className="text-2xl font-bold text-amber-700">
+      <h2 className="text-2xl font-bold text-amber-800">
         Client Profile & Risk Assessment
       </h2>
 

@@ -33,7 +33,7 @@ export default function AuditLogView() {
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-bold text-amber-700">Edit Audit Log</h2>
+        <h2 className="text-xl font-bold text-amber-800">Edit Audit Log</h2>
         <button
           onClick={exportCSV}
           className="border border-amber-600 px-2 py-1 rounded-md text-sm hover:bg-amber-50"

@@ -284,7 +284,7 @@ export default function IncomeTab() {
     <div className="space-y-8">
       {/* Income Streams Form */}
       <section>
-        <h2 className="text-xl font-bold text-amber-700 mb-4">Income Sources</h2>
+        <h2 className="text-xl font-bold text-amber-800 mb-4">Income Sources</h2>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           {incomeSources.length === 0 && (
             <p className="italic text-slate-500 col-span-full text-center">No income sources yet</p>
@@ -315,12 +315,12 @@ export default function IncomeTab() {
 
       {/* PV Summary */}
       <section className="bg-white p-4 rounded-xl shadow-md">
-        <h2 className="text-lg font-bold text-amber-700 mb-2">💰 Present Value Summary</h2>
+        <h2 className="text-lg font-bold text-amber-800 mb-2">💰 Present Value Summary</h2>
         <ul className="text-sm space-y-1">
           {incomeSources.map((src, i) => (
             <li key={i}>
               {src.name || `Source ${i + 1}`}:&nbsp;
-              <span className="text-amber-700 font-semibold">
+              <span className="text-amber-800 font-semibold">
                 {formatCurrency(pvResults[i].gross, settings.locale, settings.currency)}
               </span>{' '}
               <span className="text-green-600 font-semibold">
@@ -331,7 +331,7 @@ export default function IncomeTab() {
         </ul>
         <p className="mt-4 font-semibold">
           Total PV (Gross):&nbsp;
-          <span className="text-amber-700 text-xl">
+          <span className="text-amber-800 text-xl">
             {formatCurrency(totalGrossPV, settings.locale, settings.currency)}
           </span>
         </p>
@@ -349,7 +349,7 @@ export default function IncomeTab() {
 
       {discretionaryAdvice.length > 0 && (
         <div className="bg-white rounded-xl shadow p-4">
-          <h3 className="text-lg font-bold text-amber-700 mb-2">Spending Advice</h3>
+          <h3 className="text-lg font-bold text-amber-800 mb-2">Spending Advice</h3>
           <p className="text-sm mb-1">Consider trimming these expenses:</p>
           <ul className="list-disc pl-5 text-sm space-y-1">
             {discretionaryAdvice.map((d, i) => (
@@ -378,7 +378,7 @@ export default function IncomeTab() {
       <section>
         <button
           onClick={exportJSON}
-          className="bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="bg-white border border-amber-600 text-amber-800 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Export income to JSON"
           title="Export income to JSON"
         >
@@ -386,7 +386,7 @@ export default function IncomeTab() {
         </button>
         <button
           onClick={exportCSV}
-          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="ml-2 bg-white border border-amber-600 text-amber-800 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Export CSV"
           title="Export CSV"
         >
@@ -394,7 +394,7 @@ export default function IncomeTab() {
         </button>
         <button
           onClick={submitToAPI}
-          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="ml-2 bg-white border border-amber-600 text-amber-800 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Submit income to API"
           title="Submit income to API"
         >
@@ -402,7 +402,7 @@ export default function IncomeTab() {
         </button>
         <button
           onClick={triggerPrint}
-          className="ml-2 bg-white border border-amber-600 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="ml-2 bg-white border border-amber-600 text-amber-800 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label="Print"
           title="Print"
         >

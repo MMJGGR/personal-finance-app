@@ -2,7 +2,7 @@
 
 exports[`retirement tab placeholder snapshot 1`] = `
 <h2
-  class="text-2xl font-bold text-amber-700"
+  class="text-2xl font-bold text-amber-800"
 >
   Retirement
 </h2>
