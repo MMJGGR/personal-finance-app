@@ -27,8 +27,6 @@ import AssumptionsModal from '../AssumptionsModal.jsx'
  */
 export default function ExpensesGoalsTab() {
   const currentYear = new Date().getFullYear()
-  const defaultStart = currentYear
-  const defaultEnd = currentYear + 5
   const {
     discountRate,
     expensesList, setExpensesList,
@@ -42,6 +40,9 @@ export default function ExpensesGoalsTab() {
     years,
     annualIncome
   } = useFinance()
+  const horizon = Math.max(1, profile.lifeExpectancy - profile.age)
+  const defaultStart = currentYear
+  const defaultEnd = currentYear + horizon
 
   const [showExpenses, setShowExpenses] = useState(true)
   const [showGoals, setShowGoals] = useState(true)
@@ -79,7 +80,6 @@ export default function ExpensesGoalsTab() {
     })
   }
   const addExpense = () => {
-    const now = new Date().getFullYear()
     setExpensesList([
       ...expensesList,
       {
@@ -89,8 +89,8 @@ export default function ExpensesGoalsTab() {
         growth: 0,
         category: 'Fixed',
         priority: 2,
-        startYear: now,
-        endYear: now + 5,
+        startYear: defaultStart,
+        endYear: defaultEnd,
       },
     ])
   }
@@ -132,8 +132,8 @@ export default function ExpensesGoalsTab() {
         name: '',
         amount: 0,
         targetYear: currentYear,
-        startYear: currentYear,
-        endYear: currentYear + 5,
+        startYear: defaultStart,
+        endYear: defaultEnd,
       },
     ])
   }
@@ -167,6 +167,8 @@ export default function ExpensesGoalsTab() {
         termYears: 1,
         paymentsPerYear: 12,
         extraPayment: 0,
+        startYear: defaultStart,
+        endYear: defaultEnd,
       },
     ])
   }
