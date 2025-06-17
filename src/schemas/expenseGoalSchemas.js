@@ -15,6 +15,10 @@ export const nonNegNumber = () =>
 
 export const intField = () => z.preprocess(toInt, z.number().int())
 
+// New helper to enforce integer range in a single preprocess step
+export const intFieldWithRange = (min, max) =>
+  z.preprocess(toInt, z.number().int().min(min).max(max))
+
 export const posIntField = () => z.preprocess(toInt, z.number().int().positive())
 
 export const expenseItemSchema = z
@@ -24,7 +28,7 @@ export const expenseItemSchema = z
     paymentsPerYear: posIntField(),
     growth: numField().default(0),
     category: z.string().default(''),
-    priority: intField().min(1).max(3).default(2),
+    priority: intFieldWithRange(1, 3).default(2),
     startYear: intField(),
     endYear: intField().optional().nullable(),
   })
