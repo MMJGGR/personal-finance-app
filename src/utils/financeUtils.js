@@ -131,3 +131,47 @@ export function discountToPresent(amount, rate, years) {
   const r = rate / 100
   return amount / Math.pow(1 + r, years)
 }
+
+/**
+ * Compute the internal rate of return for a series of cash flows.
+ *
+ * Cash flows are assumed to occur at equal time intervals with the
+ * first value representing the initial investment (typically negative).
+ * The function returns the annualized rate in percent.
+ *
+ * @param {number[]} cashFlows - Ordered list of cash flow amounts.
+ * @returns {number} Internal rate of return as a percentage, or NaN if
+ *                   the calculation cannot converge.
+ */
+export function internalRateOfReturn(cashFlows = []) {
+  if (!Array.isArray(cashFlows) || cashFlows.length < 2) return NaN
+
+  let hasPositive = false
+  let hasNegative = false
+  for (const cf of cashFlows) {
+    if (cf > 0) hasPositive = true
+    if (cf < 0) hasNegative = true
+  }
+  if (!hasPositive || !hasNegative) return NaN
+
+  let rate = 0.1 // initial guess (10%)
+  for (let i = 0; i < 100; i++) {
+    let npv = 0
+    let deriv = 0
+    for (let t = 0; t < cashFlows.length; t++) {
+      const cf = cashFlows[t]
+      const denom = Math.pow(1 + rate, t)
+      npv += cf / denom
+      if (t > 0) {
+        deriv -= t * cf / (denom * (1 + rate))
+      }
+    }
+
+    const newRate = rate - npv / deriv
+    if (!Number.isFinite(newRate)) return NaN
+    if (Math.abs(newRate - rate) < 1e-7) return newRate * 100
+    rate = newRate
+  }
+
+  return rate * 100
+}
