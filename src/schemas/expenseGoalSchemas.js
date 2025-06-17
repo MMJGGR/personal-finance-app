@@ -1,16 +1,27 @@
 import { z } from 'zod'
 
-const intField = () =>
-  z.preprocess(v => (v === '' || v === null || v === undefined ? undefined : parseInt(String(v), 10)), z.number().int())
+// --- Parsing Helpers -------------------------------------------------------
+export const toInt = v =>
+  v === '' || v === null || v === undefined ? undefined : parseInt(String(v), 10)
 
-const numField = () =>
-  z.preprocess(v => (v === '' || v === null || v === undefined ? undefined : parseFloat(String(v))), z.number())
+export const toNumber = v =>
+  v === '' || v === null || v === undefined ? undefined : parseFloat(String(v))
+
+// --- Schema Field Helpers ---------------------------------------------------
+export const numField = () => z.preprocess(toNumber, z.number())
+
+export const nonNegNumber = () =>
+  z.preprocess(toNumber, z.number().nonnegative())
+
+export const intField = () => z.preprocess(toInt, z.number().int())
+
+export const posIntField = () => z.preprocess(toInt, z.number().int().positive())
 
 export const expenseItemSchema = z
   .object({
     name: z.string().min(1, 'Required'),
-    amount: numField().nonnegative(),
-    paymentsPerYear: intField().positive(),
+    amount: nonNegNumber(),
+    paymentsPerYear: posIntField(),
     growth: numField().default(0),
     category: z.string().default(''),
     priority: intField().min(1).max(3).default(2),
@@ -25,7 +36,7 @@ export const expenseItemSchema = z
 export const goalItemSchema = z
   .object({
     name: z.string().min(1, 'Required'),
-    amount: numField().nonnegative(),
+    amount: nonNegNumber(),
     targetYear: intField(),
     startYear: intField(),
     endYear: intField(),
@@ -37,9 +48,9 @@ export const goalItemSchema = z
 
 export const loanInputSchema = z.object({
   name: z.string().optional().default(''),
-  principal: numField().nonnegative(),
-  interestRate: numField().nonnegative(),
-  remainingMonths: intField().positive(),
-  paymentsPerYear: intField().positive(),
+  principal: nonNegNumber(),
+  interestRate: nonNegNumber(),
+  remainingMonths: posIntField(),
+  paymentsPerYear: posIntField(),
   payment: numField().optional(),
 })
