@@ -1,3 +1,5 @@
+import { frequencyToPayments } from '../utils/financeUtils'
+
 export default function buildTimeline(
   minYear,
   maxYear,
@@ -18,7 +20,10 @@ export default function buildTimeline(
     expensesList.forEach(e => {
       if (y >= e.startYear && y <= e.endYear) {
         const t = y - e.startYear
-        const freq = e.paymentsPerYear || e.frequency || 1
+        const freq =
+          typeof e.paymentsPerYear === 'number'
+            ? e.paymentsPerYear
+            : frequencyToPayments(e.frequency) || 1
         const growth = e.growth || 0
         expenses += (Number(e.amount) || 0) * freq * Math.pow(1 + growth / 100, t)
       }
