@@ -12,6 +12,7 @@ import { ResponsiveContainer } from 'recharts'
 import CashflowTimelineChart from './CashflowTimelineChart'
 import buildTimeline from '../../selectors/timeline'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
+import AssumptionsModal from '../AssumptionsModal.jsx'
 
 /**
  * ExpensesGoalsTab
@@ -44,6 +45,7 @@ export default function ExpensesGoalsTab() {
   const [showExpenses, setShowExpenses] = useState(true)
   const [showGoals, setShowGoals] = useState(true)
   const [showLiabilities, setShowLiabilities] = useState(true)
+  const [showAssumptions, setShowAssumptions] = useState(false)
   const [expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
 
@@ -538,7 +540,15 @@ export default function ExpensesGoalsTab() {
       </section>
 
       <div className="text-right">
-        <button onClick={exportJSON} className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" aria-label="Export to JSON" title="Export to JSON">
+        <button
+          onClick={() => setShowAssumptions(true)}
+          className="mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="View assumptions"
+          title="View assumptions"
+        >
+          ℹ️ Assumptions
+        </button>
+        <button onClick={exportJSON} className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" aria-label="Export to JSON" title="Export to JSON">
           📁 Export to JSON
         </button>
         <button onClick={exportCSV} className="ml-2 mt-4 border border-amber-600 px-4 py-2 rounded-md hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" aria-label="Export to CSV" title="Export to CSV">
@@ -548,6 +558,7 @@ export default function ExpensesGoalsTab() {
           🚀 Submit to API
         </button>
       </div>
+      <AssumptionsModal open={showAssumptions} onClose={() => setShowAssumptions(false)} />
     </div>
   )
 }
