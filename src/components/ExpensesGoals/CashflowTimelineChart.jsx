@@ -14,7 +14,7 @@ export default function CashflowTimelineChart({ data = [], locale, currency }) {
       <Bar dataKey="expenses" stackId="a" fill="#dc2626" name="Expenses" />
       <Bar dataKey="goals" stackId="a" fill="#6b21a8" name="Goals" />
       <Bar dataKey="loans" stackId="a" fill="#2563eb" name="Loans" />
-      <Line type="monotone" dataKey="netCashflow" stroke="#16a34a" name="Net Cashflow" />
+      <Line dataKey="net" stroke="#16a34a" name="Net" />
     </BarChart>
   )
 }

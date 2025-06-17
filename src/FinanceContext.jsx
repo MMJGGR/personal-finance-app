@@ -47,6 +47,10 @@ export function FinanceProvider({ children }) {
   })
   const [incomePV, setIncomePV]             = useState(0)
   const [expensesPV, setExpensesPV]         = useState(0)
+  const [goalsPV, setGoalsPV]               = useState(() => {
+    const s = storage.get('goalsPV')
+    return s ? parseFloat(s) : 0
+  })
   const [pvExpenses, setPvExpenses]         = useState(0)
   const [monthlyPVExpense, setMonthlyPVExpense] = useState(0)
   const [monthlySurplusNominal, setMonthlySurplusNominal] = useState(() => {
@@ -895,6 +899,8 @@ export function FinanceProvider({ children }) {
 
     const pvE = storage.get('pvExpenses')
     if (pvE) setPvExpenses(+pvE)
+    const gpv = storage.get('goalsPV')
+    if (gpv) setGoalsPV(+gpv)
     const mpvE = storage.get('monthlyPVExpense')
     if (mpvE) setMonthlyPVExpense(+mpvE)
     const ms = storage.get('monthlySurplusNominal')
@@ -938,6 +944,7 @@ export function FinanceProvider({ children }) {
       monthlyExpense, setMonthlyExpense,
       incomePV,     setIncomePV,
       expensesPV,   setExpensesPV,
+      goalsPV,      setGoalsPV,
       pvExpenses,
       monthlyPVExpense,
       pvHigh,
