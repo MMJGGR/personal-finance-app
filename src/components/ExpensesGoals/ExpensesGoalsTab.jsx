@@ -6,6 +6,7 @@ import { useFinance } from '../../FinanceContext'
 import { calculateLoanNPV } from '../../utils/financeUtils'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
+import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas'
 import { ResponsiveContainer } from 'recharts'
 import CashflowTimelineChart from './CashflowTimelineChart'
 import buildTimeline from '../../selectors/timeline'
@@ -41,53 +42,30 @@ export default function ExpensesGoalsTab() {
 
   const [showExpenses, setShowExpenses] = useState(true)
   const [showGoals, setShowGoals] = useState(true)
-
+  const [expenseErrors, setExpenseErrors] = useState({})
+  const [goalErrors, setGoalErrors] = useState({})
 
   // --- Helpers ---
-  const clamp = (v, min = 0) => isNaN(v) || v < min ? min : v
 
   // --- CRUD Handlers ---
   // Expenses
   const handleExpenseChange = (i, field, raw) => {
-    setExpensesList(expensesList.map((e, idx) => {
-      if (idx !== i) return e
-      if (['name', 'category'].includes(field)) {
-        return { ...e, [field]: raw }
+    setExpensesList(prev => {
+      const next = [...prev]
+      const updated = { ...next[i], [field]: raw }
+      const parsed = expenseItemSchema.safeParse(updated)
+      if (parsed.success) {
+        next[i] = parsed.data
+        setExpenseErrors(err => ({ ...err, [i]: {} }))
+      } else {
+        next[i] = updated
+        setExpenseErrors(err => ({
+          ...err,
+          [i]: parsed.error.flatten().fieldErrors,
+        }))
       }
-      if (field === 'startYear' || field === 'endYear') {
-        const val = parseInt(raw)
-        if (field === 'startYear' && e.endYear != null && val > e.endYear) {
-          alert('Start Year cannot be after End Year')
-          return e
-        }
-        if (field === 'endYear' && e.startYear != null && val < e.startYear) {
-          alert('End Year cannot be before Start Year')
-          return e
-        }
-        return { ...e, [field]: isNaN(val) ? null : val }
-      }
-      if (field === 'paymentsPerYear') {
-        const ppy = parseInt(raw)
-        if (!ppy || ppy < 1) {
-          alert('One-time outflows should be entered as Goals instead of Expenses')
-          return e
-        }
-        return { ...e, paymentsPerYear: ppy }
-      }
-      if (field === 'priority') {
-        const val = parseInt(raw)
-        return { ...e, priority: val >= 1 && val <= 3 ? val : 2 }
-      }
-      if (field === 'amount') {
-        const val = parseFloat(raw)
-        if (val < 0) {
-          alert('Amount must be positive')
-          return e
-        }
-        return { ...e, amount: clamp(val) }
-      }
-      return { ...e, [field]: clamp(parseFloat(raw)) }
-    }))
+      return next
+    })
   }
   const addExpense = () => {
     const now = new Date().getFullYear()
@@ -113,43 +91,22 @@ export default function ExpensesGoalsTab() {
 
   // Goals
   const handleGoalChange = (i, field, raw) => {
-    setGoalsList(goalsList.map((g, idx) => {
-      if (idx !== i) return g
-      if (field === 'name') return { ...g, name: raw }
-      if (field === 'targetYear') {
-        const yr = parseInt(raw) || currentYear
-        return {
-          ...g,
-          targetYear: Math.max(currentYear, yr),
-          startYear: Math.max(currentYear, yr),
-          endYear: Math.max(currentYear, yr),
-        }
+    setGoalsList(prev => {
+      const next = [...prev]
+      const updated = { ...next[i], [field]: raw }
+      const parsed = goalItemSchema.safeParse(updated)
+      if (parsed.success) {
+        next[i] = parsed.data
+        setGoalErrors(err => ({ ...err, [i]: {} }))
+      } else {
+        next[i] = updated
+        setGoalErrors(err => ({
+          ...err,
+          [i]: parsed.error.flatten().fieldErrors,
+        }))
       }
-      if (field === 'startYear' || field === 'endYear') {
-        const val = parseInt(raw)
-        if (field === 'startYear' && g.endYear != null && val > g.endYear) {
-          alert('Start Year cannot be after End Year')
-          return g
-        }
-        if (field === 'endYear' && g.startYear != null && val < g.startYear) {
-          alert('End Year cannot be before Start Year')
-          return g
-        }
-        const updates = { [field]: isNaN(val) ? null : val }
-        if (field === 'startYear') updates.targetYear = isNaN(val) ? g.targetYear : val
-        if (field === 'endYear') updates.targetYear = isNaN(val) ? g.targetYear : val
-        return { ...g, ...updates }
-      }
-      if (field === 'amount') {
-        const val = parseFloat(raw)
-        if (val < 0) {
-          alert('Amount must be positive')
-          return g
-        }
-        return { ...g, amount: clamp(val) }
-      }
-      return { ...g, amount: clamp(parseFloat(raw)) }
-    }))
+      return next
+    })
   }
   const addGoal = () => {
     setGoalsList([
@@ -408,22 +365,46 @@ export default function ExpensesGoalsTab() {
             )}
             {expensesList.map((e, i) => (
               <div key={i} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
-                <input className="border p-2 rounded-md" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(i, 'name', ev.target.value)} title="Expense name" />
-                <input className="border p-2 rounded-md text-right" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)} title="Expense amount" />
-                <input className="border p-2 rounded-md text-right" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
-                <input className="border p-2 rounded-md text-right" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)} title="Growth rate" />
-                <select className="border p-2 rounded-md" value={e.category} onChange={ev => handleExpenseChange(i, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
+                <div>
+                  <input className="border p-2 rounded-md w-full" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(i, 'name', ev.target.value)} title="Expense name" />
+                  {expenseErrors[i]?.name && <span className="text-red-600 text-xs">{expenseErrors[i].name[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(i, 'amount', ev.target.value)} title="Expense amount" />
+                  {expenseErrors[i]?.amount && <span className="text-red-600 text-xs">{expenseErrors[i].amount[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(i, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
+                  {expenseErrors[i]?.paymentsPerYear && <span className="text-red-600 text-xs">{expenseErrors[i].paymentsPerYear[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(i, 'growth', ev.target.value)} title="Growth rate" />
+                  {expenseErrors[i]?.growth && <span className="text-red-600 text-xs">{expenseErrors[i].growth[0]}</span>}
+                </div>
+                <div>
+                  <select className="border p-2 rounded-md w-full" value={e.category} onChange={ev => handleExpenseChange(i, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
                   <option>Fixed</option>
                   <option>Discretionary</option>
                   <option>Other</option>
                 </select>
-                <select className="border p-2 rounded-md" value={e.priority} onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
+                  {expenseErrors[i]?.category && <span className="text-red-600 text-xs">{expenseErrors[i].category[0]}</span>}
+                </div>
+                <div>
+                  <select className="border p-2 rounded-md w-full" value={e.priority} onChange={ev => handleExpenseChange(i, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
                   <option value={1}>High</option>
                   <option value={2}>Medium</option>
                   <option value={3}>Low</option>
                 </select>
-                <input className="border p-2 rounded-md text-right" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(i, 'startYear', parseInt(ev.target.value))} title="Start year" />
-                <input className="border p-2 rounded-md text-right" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(i, 'endYear', parseInt(ev.target.value))} title="End year" />
+                  {expenseErrors[i]?.priority && <span className="text-red-600 text-xs">{expenseErrors[i].priority[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(i, 'startYear', ev.target.value)} title="Start year" />
+                  {expenseErrors[i]?.startYear && <span className="text-red-600 text-xs">{expenseErrors[i].startYear[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(i, 'endYear', ev.target.value)} title="End year" />
+                  {expenseErrors[i]?.endYear && <span className="text-red-600 text-xs">{expenseErrors[i].endYear[0]}</span>}
+                </div>
                 <button onClick={() => removeExpense(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove expense">✖</button>
               </div>
             ))}
@@ -456,11 +437,26 @@ export default function ExpensesGoalsTab() {
             )}
             {goalsList.map((g, i) => (
               <div key={i} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
-                <input className="border p-2 rounded-md" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(i, 'name', ev.target.value)} title="Goal name" />
-                <input className="border p-2 rounded-md text-right" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(i, 'amount', ev.target.value)} title="Goal amount" />
-                <input className="border p-2 rounded-md text-right" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)} title="Target year" />
-                <input className="border p-2 rounded-md text-right" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(i, 'startYear', parseInt(ev.target.value))} title="Start year" />
-                <input className="border p-2 rounded-md text-right" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(i, 'endYear', parseInt(ev.target.value))} title="End year" />
+                <div>
+                  <input className="border p-2 rounded-md w-full" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(i, 'name', ev.target.value)} title="Goal name" />
+                  {goalErrors[i]?.name && <span className="text-red-600 text-xs">{goalErrors[i].name[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(i, 'amount', ev.target.value)} title="Goal amount" />
+                  {goalErrors[i]?.amount && <span className="text-red-600 text-xs">{goalErrors[i].amount[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(i, 'targetYear', ev.target.value)} title="Target year" />
+                  {goalErrors[i]?.targetYear && <span className="text-red-600 text-xs">{goalErrors[i].targetYear[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(i, 'startYear', ev.target.value)} title="Start year" />
+                  {goalErrors[i]?.startYear && <span className="text-red-600 text-xs">{goalErrors[i].startYear[0]}</span>}
+                </div>
+                <div>
+                  <input className="border p-2 rounded-md text-right w-full" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(i, 'endYear', ev.target.value)} title="End year" />
+                  {goalErrors[i]?.endYear && <span className="text-red-600 text-xs">{goalErrors[i].endYear[0]}</span>}
+                </div>
                 <button onClick={() => removeGoal(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
               </div>
             ))}

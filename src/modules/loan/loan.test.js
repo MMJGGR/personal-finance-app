@@ -1,3 +1,4 @@
+/* global test, expect */
 import { calculateLoanSchedule } from './loanCalculator.js'
 
 test('loan amortization works', () => {
