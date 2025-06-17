@@ -26,7 +26,13 @@ export default function buildTimeline(
 
     goalsList.forEach(g => {
       if (y >= g.startYear && y <= g.endYear) {
-        goals += Number(g.amount) || 0
+        const amount = Number(g.amount) || 0
+        const years = g.endYear - g.startYear + 1
+        if (years <= 1) {
+          goals += amount
+        } else {
+          goals += amount / years
+        }
       }
     })
 
