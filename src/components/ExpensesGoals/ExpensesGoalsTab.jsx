@@ -10,7 +10,7 @@ import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
 import { ResponsiveContainer } from 'recharts'
-import CashflowTimelineChart from './CashflowTimelineChart'
+import LifetimeStackedChart from './LifetimeStackedChart'
 import buildTimeline from '../../selectors/timeline'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
@@ -267,6 +267,7 @@ export default function ExpensesGoalsTab() {
       }, 0)
     }
     return buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
+      .map(row => ({ ...row, debtService: row.loans }))
   }, [expensesList, goalsList, liabilityDetails, annualIncome, startYear, years])
 
   const maxSurplus = useMemo(() => {
@@ -356,7 +357,7 @@ export default function ExpensesGoalsTab() {
     <div className="space-y-8 p-6">
       <section>
         <ResponsiveContainer width="100%" height={400} role="img" aria-label="Cashflow timeline chart">
-          <CashflowTimelineChart data={timelineData} locale={settings.locale} currency={settings.currency} />
+          <LifetimeStackedChart data={timelineData} locale={settings.locale} currency={settings.currency} />
         </ResponsiveContainer>
       </section>
 
