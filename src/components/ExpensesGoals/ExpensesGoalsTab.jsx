@@ -7,6 +7,7 @@ import { calculateLoanSchedule } from '../../modules/loan/loanCalculator.js'
 import { presentValue } from '../../modules/loan/presentValue.js'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
+import { appendAuditLog } from '../../utils/auditLog'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
 import { ResponsiveContainer } from 'recharts'
 import CashflowTimelineChart from './CashflowTimelineChart'
@@ -54,6 +55,7 @@ export default function ExpensesGoalsTab() {
   // --- CRUD Handlers ---
   // Expenses
   const handleExpenseChange = (i, field, raw) => {
+    const oldValue = expensesList[i]?.[field]
     setExpensesList(prev => {
       const next = [...prev]
       const updated = { ...next[i], [field]: raw }
@@ -69,6 +71,11 @@ export default function ExpensesGoalsTab() {
         }))
       }
       return next
+    })
+    appendAuditLog(storage, {
+      field: `expense.${field}`,
+      oldValue,
+      newValue: raw,
     })
   }
   const addExpense = () => {
@@ -95,6 +102,7 @@ export default function ExpensesGoalsTab() {
 
   // Goals
   const handleGoalChange = (i, field, raw) => {
+    const oldValue = goalsList[i]?.[field]
     setGoalsList(prev => {
       const next = [...prev]
       const updated = { ...next[i], [field]: raw }
@@ -110,6 +118,11 @@ export default function ExpensesGoalsTab() {
         }))
       }
       return next
+    })
+    appendAuditLog(storage, {
+      field: `goal.${field}`,
+      oldValue,
+      newValue: raw,
     })
   }
   const addGoal = () => {
@@ -132,10 +145,16 @@ export default function ExpensesGoalsTab() {
 
   // Liabilities (Loans)
   const handleLiabilityChange = (i, field, value) => {
+    const oldValue = liabilitiesList[i]?.[field]
     setLiabilitiesList(prev => {
       const next = [...prev]
       next[i] = { ...next[i], [field]: value }
       return next
+    })
+    appendAuditLog(storage, {
+      field: `liability.${field}`,
+      oldValue,
+      newValue: value,
     })
   }
   const addLiability = () => {
