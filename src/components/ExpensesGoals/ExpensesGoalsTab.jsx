@@ -4,8 +4,6 @@ import React, { useMemo, useEffect, useState } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { useFinance } from '../../FinanceContext'
 import { calculateLoanNPV } from '../../utils/financeUtils'
-import { FREQUENCIES, FREQUENCY_LABELS } from '../../constants'
-import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
 import { ResponsiveContainer } from 'recharts'
@@ -31,7 +29,7 @@ export default function ExpensesGoalsTab() {
     discountRate,
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
-    liabilitiesList, setLiabilitiesList,
+    liabilitiesList,
     setExpensesPV,
     setGoalsPV,
     profile,
@@ -80,6 +78,14 @@ export default function ExpensesGoalsTab() {
         const val = parseInt(raw)
         return { ...e, priority: val >= 1 && val <= 3 ? val : 2 }
       }
+      if (field === 'amount') {
+        const val = parseFloat(raw)
+        if (val < 0) {
+          alert('Amount must be positive')
+          return e
+        }
+        return { ...e, amount: clamp(val) }
+      }
       return { ...e, [field]: clamp(parseFloat(raw)) }
     }))
   }
@@ -99,8 +105,11 @@ export default function ExpensesGoalsTab() {
       },
     ])
   }
-  const removeExpense = i =>
-    setExpensesList(expensesList.filter((_, idx) => idx !== i))
+  const removeExpense = i => {
+    if (window.confirm('Delete this item?')) {
+      setExpensesList(expensesList.filter((_, idx) => idx !== i))
+    }
+  }
 
   // Goals
   const handleGoalChange = (i, field, raw) => {
@@ -131,6 +140,14 @@ export default function ExpensesGoalsTab() {
         if (field === 'endYear') updates.targetYear = isNaN(val) ? g.targetYear : val
         return { ...g, ...updates }
       }
+      if (field === 'amount') {
+        const val = parseFloat(raw)
+        if (val < 0) {
+          alert('Amount must be positive')
+          return g
+        }
+        return { ...g, amount: clamp(val) }
+      }
       return { ...g, amount: clamp(parseFloat(raw)) }
     }))
   }
@@ -146,51 +163,11 @@ export default function ExpensesGoalsTab() {
       },
     ])
   }
-  const removeGoal = i =>
-    setGoalsList(goalsList.filter((_, idx) => idx !== i))
-
-  // Liabilities
-  const validatePayment = (l) => {
-    const r = l.interestRate / 100 / l.paymentsPerYear
-    const n = l.termYears * l.paymentsPerYear
-    const expected = (r * l.principal) / (1 - Math.pow(1 + r, -n))
-    if (Math.abs(expected - l.payment) > 5) {
-      alert('Payment doesn\u2019t match amortisation schedule. Did you mistype?')
-      return false
+  const removeGoal = i => {
+    if (window.confirm('Delete this item?')) {
+      setGoalsList(goalsList.filter((_, idx) => idx !== i))
     }
-    return true
   }
-
-  const handleLiabilityChange = (i, field, raw) => {
-    setLiabilitiesList(
-      liabilitiesList.map((l, idx) => {
-        if (idx !== i) return l
-        let updated = { ...l }
-        if (field === 'name') updated.name = raw
-        else if (['principal', 'interestRate'].includes(field)) {
-          updated[field] = clamp(parseFloat(raw))
-        } else if (['termYears', 'paymentsPerYear'].includes(field)) {
-          updated[field] = Math.max(1, parseInt(raw) || 1)
-        } else if (field === 'remainingMonths') {
-          const months = Math.max(1, parseInt(raw) || 1)
-          updated.remainingMonths = months
-          updated.termYears = Math.ceil(months / 12)
-        } else if (field === 'payment') {
-          updated.payment = clamp(parseFloat(raw))
-          if (!validatePayment(updated)) return l
-        }
-        return updated
-      })
-    )
-  }
-  const addLiability = () =>
-    setLiabilitiesList([...liabilitiesList, {
-      id: crypto.randomUUID(),
-      name: '', principal: 0, interestRate: 0, termYears: 1,
-      remainingMonths: 12, paymentsPerYear: 12, payment: 0
-    }])
-  const removeLiability = i =>
-    setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
 
   // --- 1) Remaining lifetime horizon ---
   const lifeYears = Math.max(1, Math.floor(profile.lifeExpectancy - profile.age))
@@ -285,10 +262,7 @@ export default function ExpensesGoalsTab() {
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
 
-  const loanStrategies = useMemo(
-    () => suggestLoanStrategies(liabilityDetails),
-    [liabilityDetails]
-  )
+
 
   // --- Combined cashflow timeline ---
   const timelineData = useMemo(() => {
@@ -307,25 +281,26 @@ export default function ExpensesGoalsTab() {
     return buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
   }, [expensesList, goalsList, liabilityDetails, annualIncome, startYear, years])
 
-  const advisorWarnings = useMemo(() => {
-    const retireYear = startYear + (settings.retirementAge - profile.age)
-    const warnings = []
-    timelineData.forEach(row => {
-      if (row.net < 0) warnings.push(`Shortfall in ${row.year}`)
-      if (row.loans > row.income && row.year > retireYear) {
-        warnings.push(`Loan exceeds income after retirement in ${row.year}`)
-      }
-    })
-    return warnings
-  }, [timelineData, settings.retirementAge, profile.age, startYear])
+  const maxSurplus = useMemo(() => {
+    if (timelineData.length === 0) return 0
+    return Math.max(...timelineData.map(r => r.surplus))
+  }, [timelineData])
+
+  const hasDeficit = useMemo(
+    () => timelineData.some(row => row.net < 0),
+    [timelineData]
+  )
 
   useEffect(() => {
     const expPV = timelineData.reduce((sum, r) => sum + r.expenses, 0)
     const goalPV = timelineData.reduce((sum, r) => sum + r.goals, 0)
+    const loanPV = timelineData.reduce((s, r) => s + r.loans, 0)
     setExpensesPV(expPV)
     if (typeof setGoalsPV === 'function') setGoalsPV(goalPV)
     storage.set('expensesPV', expPV.toString())
     storage.set('goalsPV', goalPV.toString())
+    storage.set('loansPV', loanPV.toString())
+    storage.set('totalPV', (expPV + goalPV + loanPV).toString())
   }, [timelineData, setExpensesPV, setGoalsPV])
 
   // --- 5) PV Summary data ---
@@ -338,11 +313,18 @@ export default function ExpensesGoalsTab() {
   // --- Export JSON ---
   const exportJSON = () => {
     const exportPlan = {
-      income: annualIncome,
+      profile,
+      assumptions: settings,
+      timeline: timelineData,
       expenses: expensesList,
       goals: goalsList,
       loans: liabilitiesList,
-      timeline: timelineData,
+      PV: {
+        expenses: pvExpensesLife,
+        goals: pvGoals,
+        loans: totalLiabilitiesPV,
+        total: totalRequired
+      }
     }
     const blob = new Blob([JSON.stringify(exportPlan, null, 2)], { type: 'application/json' })
     const url  = URL.createObjectURL(blob)
@@ -390,16 +372,13 @@ export default function ExpensesGoalsTab() {
         </ResponsiveContainer>
       </section>
 
-      {advisorWarnings.length > 0 && (
-        <Card>
-          <h3 className="text-lg font-bold text-amber-700">Advisor Insights</h3>
-          <ul className="list-disc pl-5 space-y-1">
-            {advisorWarnings.slice(0, 3).map((w, i) => (
-              <li key={i} className="text-red-600">{w}</li>
-            ))}
-          </ul>
-        </Card>
-      )}
+      <Card>
+        <h3 className="text-lg font-bold text-amber-700">Advisor Insights</h3>
+        {hasDeficit && (
+          <p className="text-red-600">⚠️ Cashflow deficit detected in some years. Consider reducing expenses or deferring goals.</p>
+        )}
+        <p>Peak surplus: {formatCurrency(maxSurplus, settings.locale, settings.currency)}</p>
+      </Card>
 
       <Card className="mb-6">
         <CardHeader>
