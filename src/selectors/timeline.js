@@ -1,10 +1,19 @@
-export default function buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, getLoansForYear = () => 0) {
+export default function buildTimeline(
+  minYear,
+  maxYear,
+  incomeFn,
+  expensesList,
+  goalsList,
+  getLoansForYear = () => 0
+) {
   const timeline = []
+  let prevSurplus = 0
+
   for (let y = minYear; y <= maxYear; y++) {
     const income = typeof incomeFn === 'function' ? incomeFn(y) : 0
     let expenses = 0
     let goals = 0
-    let loans = getLoansForYear(y)
+    const loans = getLoansForYear(y)
 
     expensesList.forEach(e => {
       if (y >= e.startYear && y <= e.endYear) {
@@ -22,7 +31,10 @@ export default function buildTimeline(minYear, maxYear, incomeFn, expensesList, 
     })
 
     const net = income - expenses - goals - loans
-    timeline.push({ year: y, income, expenses, goals, loans, net })
+    const surplus = prevSurplus + net
+    timeline.push({ year: y, income, expenses, goals, loans, net, surplus })
+    prevSurplus = surplus
   }
+
   return timeline
 }
