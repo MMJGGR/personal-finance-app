@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
 const intField = () =>
-  z.preprocess(v => (v === '' || v === null || v === undefined ? undefined : parseInt(v as string, 10)), z.number().int())
+  z.preprocess(v => (v === '' || v === null || v === undefined ? undefined : parseInt(String(v), 10)), z.number().int())
 
 const numField = () =>
-  z.preprocess(v => (v === '' || v === null || v === undefined ? undefined : parseFloat(v as string)), z.number())
+  z.preprocess(v => (v === '' || v === null || v === undefined ? undefined : parseFloat(String(v))), z.number())
 
 export const expenseItemSchema = z
   .object({
