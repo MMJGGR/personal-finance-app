@@ -3,7 +3,8 @@
 import React, { useMemo, useEffect, useState } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { useFinance } from '../../FinanceContext'
-import { calculateLoanNPV } from '../../utils/financeUtils'
+import { calculateLoanSchedule } from '../../modules/loan/loanCalculator.js'
+import { presentValue } from '../../modules/loan/presentValue.js'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
@@ -30,7 +31,7 @@ export default function ExpensesGoalsTab() {
     discountRate,
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
-    liabilitiesList,
+    liabilitiesList, setLiabilitiesList,
     setExpensesPV,
     setGoalsPV,
     profile,
@@ -42,6 +43,7 @@ export default function ExpensesGoalsTab() {
 
   const [showExpenses, setShowExpenses] = useState(true)
   const [showGoals, setShowGoals] = useState(true)
+  const [showLiabilities, setShowLiabilities] = useState(true)
   const [expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
 
@@ -126,6 +128,33 @@ export default function ExpensesGoalsTab() {
     }
   }
 
+  // Liabilities (Loans)
+  const handleLiabilityChange = (i, field, value) => {
+    setLiabilitiesList(prev => {
+      const next = [...prev]
+      next[i] = { ...next[i], [field]: value }
+      return next
+    })
+  }
+  const addLiability = () => {
+    setLiabilitiesList([
+      ...liabilitiesList,
+      {
+        name: '',
+        principal: 0,
+        interestRate: 0,
+        termYears: 1,
+        paymentsPerYear: 12,
+        extraPayment: 0,
+      },
+    ])
+  }
+  const removeLiability = i => {
+    if (window.confirm('Delete this item?')) {
+      setLiabilitiesList(liabilitiesList.filter((_, idx) => idx !== i))
+    }
+  }
+
   // --- 1) Remaining lifetime horizon ---
   const lifeYears = Math.max(1, Math.floor(profile.lifeExpectancy - profile.age))
 
@@ -169,48 +198,29 @@ export default function ExpensesGoalsTab() {
   // --- 4) Loan details & amortization ---
   const liabilityDetails = useMemo(() => {
     return liabilitiesList.map(l => {
-      const monthsPerPayment = 12 / l.paymentsPerYear
-      const n = l.remainingMonths / monthsPerPayment
-      const i = (l.interestRate / 100) / l.paymentsPerYear
-      const computedPayment = i === 0
-        ? l.principal / n
-        : (i * l.principal) / (1 - Math.pow(1 + i, -n))
-      const pv = calculateLoanNPV(
-        l.principal,
-        l.interestRate,
-        l.remainingMonths / 12,
-        l.paymentsPerYear,
-        discountRate
-      ) + l.principal
-
-      // Monthly amort schedule aggregated yearly
-      let balance = l.principal
-      let yearInterest = 0, yearPrincipal = 0, payInterest = 0
-      const schedule = []
-      for (let m = 0; m < l.remainingMonths; m++) {
-        const interest = balance * (l.interestRate / 100) / 12
-        payInterest += interest
-        yearInterest += interest
-        const isPayment = (m + 1) % monthsPerPayment === 0 || m === l.remainingMonths - 1
-        if (isPayment) {
-          const principal = computedPayment - payInterest
-          yearPrincipal += principal
-          balance -= principal
-          payInterest = 0
+      const ratePerPeriod = (Number(l.interestRate) || 0) / 100 / l.paymentsPerYear
+      const sched = calculateLoanSchedule({
+        principal: Number(l.principal) || 0,
+        annualRate: ratePerPeriod * 12,
+        termYears: (Number(l.termYears) || 0) * l.paymentsPerYear / 12,
+        extraPayment: Number(l.extraPayment) || 0
+      })
+      const pv = presentValue(
+        sched.payments.map(p => p.payment),
+        (discountRate / 100) / l.paymentsPerYear
+      )
+      const scheduleMap = {}
+      sched.payments.forEach((p, idx) => {
+        const y = currentYear + Math.floor(idx / l.paymentsPerYear) + 1
+        if (!scheduleMap[y]) {
+          scheduleMap[y] = { year: y, principalPaid: 0, interestPaid: 0, remaining: p.balance }
         }
-        const isYearEnd = (m + 1) % 12 === 0 || m === l.remainingMonths - 1
-        if (isYearEnd) {
-          schedule.push({
-            year: currentYear + Math.floor(m / 12) + 1,
-            principalPaid: yearPrincipal,
-            interestPaid: yearInterest,
-            remaining: balance
-          })
-          yearInterest = 0
-          yearPrincipal = 0
-        }
-      }
-
+        scheduleMap[y].principalPaid += p.principalPaid
+        scheduleMap[y].interestPaid += p.interestPaid
+        scheduleMap[y].remaining = p.balance
+      })
+      const schedule = Object.values(scheduleMap)
+      const computedPayment = sched.payments[0]?.payment || 0
       return { ...l, computedPayment, pv, schedule }
     })
   }, [liabilitiesList, currentYear, discountRate])
@@ -292,7 +302,7 @@ export default function ExpensesGoalsTab() {
   }
 
   const exportCSV = () => {
-    const csv = buildPlanCSV(profile, pvSummaryData)
+    const csv = buildPlanCSV(profile, pvSummaryData, liabilityDetails)
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -336,6 +346,7 @@ export default function ExpensesGoalsTab() {
         )}
         <p>Peak surplus: {formatCurrency(maxSurplus, settings.locale, settings.currency)}</p>
       </Card>
+
 
       <Card className="mb-6">
         <CardHeader>
@@ -458,6 +469,57 @@ export default function ExpensesGoalsTab() {
                   {goalErrors[i]?.endYear && <span className="text-red-600 text-xs">{goalErrors[i].endYear[0]}</span>}
                 </div>
                 <button onClick={() => removeGoal(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
+              </div>
+            ))}
+          </CardBody>
+        )}
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <h2 className="text-xl font-bold text-amber-700">Liabilities</h2>
+          <div>
+            <button onClick={() => setShowLiabilities(v => !v)} className="mr-2 text-sm text-amber-600">
+              {showLiabilities ? 'Hide' : 'Show'}
+            </button>
+            <button onClick={addLiability} className="bg-amber-400 text-white px-4 py-2 rounded-md">+ Add</button>
+          </div>
+        </CardHeader>
+        {showLiabilities && (
+          <CardBody>
+            <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 font-semibold text-gray-700 mb-1">
+              <div>Name</div>
+              <div className="text-right">Principal</div>
+              <div className="text-right">Rate %</div>
+              <div className="text-right">Term</div>
+              <div>Pay/Yr</div>
+              <div className="text-right">Extra</div>
+              <div></div>
+            </div>
+            {liabilitiesList.length === 0 && (
+              <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
+            )}
+            {liabilitiesList.map((l, i) => (
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
+                <div>
+                  <input className="border p-2 rounded-md w-full" value={l.name || ''} onChange={ev => handleLiabilityChange(i, 'name', ev.target.value)} />
+                </div>
+                <div>
+                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.principal} onChange={ev => handleLiabilityChange(i, 'principal', ev.target.value)} />
+                </div>
+                <div>
+                  <input type="number" step="0.01" className="border p-2 rounded-md text-right w-full" value={l.interestRate} onChange={ev => handleLiabilityChange(i, 'interestRate', ev.target.value)} />
+                </div>
+                <div>
+                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.termYears} onChange={ev => handleLiabilityChange(i, 'termYears', ev.target.value)} />
+                </div>
+                <div>
+                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.paymentsPerYear} onChange={ev => handleLiabilityChange(i, 'paymentsPerYear', ev.target.value)} />
+                </div>
+                <div>
+                  <input type="number" className="border p-2 rounded-md text-right w-full" value={l.extraPayment} onChange={ev => handleLiabilityChange(i, 'extraPayment', ev.target.value)} />
+                </div>
+                <button onClick={() => removeLiability(i)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500">✖</button>
               </div>
             ))}
           </CardBody>

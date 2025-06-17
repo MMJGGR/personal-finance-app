@@ -27,7 +27,7 @@ test('plan JSON payload contains profile fields', () => {
 
 test('plan CSV includes profile header', () => {
   const profile = { email:'test@example.com', phone:'555-1234', residentialAddress:'123 St' }
-  const csv = buildPlanCSV(profile, [{ category:'Expenses', value:100 }])
+  const csv = buildPlanCSV(profile, [{ category:'Expenses', value:100 }], [])
   expect(csv).toContain('test@example.com')
   expect(csv).toContain('555-1234')
   expect(csv).toContain('123 St')

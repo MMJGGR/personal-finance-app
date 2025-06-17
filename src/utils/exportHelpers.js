@@ -44,17 +44,14 @@ export function buildPlanJSON(profile, discountRate, lifeYears, expensesList, pv
     pvExpenses,
     goals: goalsList,
     pvGoals,
-    liabilities: liabilities.map(l => {
-      const { schedule: _schedule, ...rest } = l
-      return rest
-    }),
+    liabilities,
     totalLiabilitiesPV,
     totalRequired,
     timeline,
   }
 }
 
-export function buildPlanCSV(profile, pvSummaryData = []) {
+export function buildPlanCSV(profile, pvSummaryData = [], loans = []) {
   const headerRows = [
     ['Name', profile.name || ''],
     ['Email', profile.email || ''],
@@ -64,8 +61,22 @@ export function buildPlanCSV(profile, pvSummaryData = []) {
   const header = headerRows.map(r => r.map(quoteCSV).join(',')).join('\n')
   const columns = ['Category', 'Value']
   const rows = pvSummaryData.map(d => [d.category, d.value])
-  const data = buildCSV(columns, rows)
-  return header + '\n' + data
+  const summary = buildCSV(columns, rows)
+
+  let loanSection = ''
+  if (Array.isArray(loans) && loans.length > 0) {
+    const loanCols = ['Loan Name', 'Principal', 'Rate', 'Term', 'Payment']
+    const loanRows = loans.map(l => [
+      l.name || 'Loan',
+      l.principal,
+      l.interestRate,
+      l.termYears,
+      l.computedPayment,
+    ])
+    loanSection = '\n' + buildCSV(loanCols, loanRows)
+  }
+
+  return header + '\n' + summary + loanSection
 }
 
 export async function submitProfile(payload = {}, settings = {}) {
