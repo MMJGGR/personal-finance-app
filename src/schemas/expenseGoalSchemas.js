@@ -24,7 +24,7 @@ export const expenseItemSchema = z
     paymentsPerYear: posIntField(),
     growth: numField().default(0),
     category: z.string().default(''),
-    priority: intField().min(1).max(3).default(2),
+    priority: intField().pipe(z.number().min(1).max(3)).default(2),
     startYear: intField(),
     endYear: intField().optional().nullable(),
   })
