@@ -32,7 +32,7 @@ export default function buildTimeline(
 
     const net = income - expenses - goals - loans
     const surplus = prevSurplus + net
-    timeline.push({ year: y, income, expenses, goals, loans, net, surplus })
+    timeline.push({ year: y, income, expenses, goals, loans, debtService: loans, net, surplus })
     prevSurplus = surplus
   }
 
