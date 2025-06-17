@@ -32,7 +32,9 @@ test('adding an expense updates PV totals', async () => {
   const amtInput = screen.getByTitle('Expense amount')
   fireEvent.change(amtInput, { target: { value: '100' } })
 
-  const expectedVal = formatCurrency(100 * 12 * 6, 'en-US', 'KES').replace('KES', '')
+  const profile = JSON.parse(localStorage.getItem('profile'))
+  const years = profile.lifeExpectancy - profile.age
+  const expectedVal = formatCurrency(100 * 12 * years, 'en-US', 'KES').replace('KES', '')
   await waitFor(() => {
     expect(valueNode.textContent).toContain(expectedVal.trim())
   })
