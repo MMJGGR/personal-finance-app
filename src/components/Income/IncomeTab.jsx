@@ -20,6 +20,7 @@ import IncomeTimelineChart from './IncomeTimelineChart'
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
+import sanitize from '../../utils/sanitize'
 
 
 export default function IncomeTab() {
@@ -149,17 +150,18 @@ export default function IncomeTab() {
 
   // --- Handlers for form inputs ---
   const onFieldChange = (idx, field, raw) => {
+    const value = typeof raw === 'string' ? sanitize(raw) : raw
     const oldValue = incomeSources[idx]?.[field]
     const updated = incomeSources.map((src, i) => {
       if (i !== idx) return src
       if (field === 'name' || field === 'type') {
-        return { ...src, [field]: raw }
+        return { ...src, [field]: value }
       }
       if (field === 'linkedAssetId') {
-        return { ...src, linkedAssetId: raw }
+        return { ...src, linkedAssetId: value }
       }
       if (field === 'active') {
-        return { ...src, active: raw }
+        return { ...src, active: value }
       }
       if (field === 'startYear' || field === 'endYear') {
         const yr = Number(raw)

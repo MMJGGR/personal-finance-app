@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useFinance } from '../../FinanceContext'
 import storage from '../../utils/storage'
+import sanitize from '../../utils/sanitize'
 import { appendAuditLog } from '../../utils/auditLog'
 
 export default function ProfileTab() {
@@ -15,11 +16,12 @@ export default function ProfileTab() {
 
   // Handle any field change locally, then persist via context
   const handleChange = (field, value) => {
-    const updated = { ...form, [field]: value }
+    const clean = typeof value === 'string' ? sanitize(value) : value
+    const updated = { ...form, [field]: clean }
     appendAuditLog(storage, {
       field: `profile.${field}`,
       oldValue: form[field],
-      newValue: value,
+      newValue: clean,
     })
 
     if (field === 'lifeExpectancy' && value <= updated.age) {
