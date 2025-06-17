@@ -23,3 +23,25 @@ test('multi-year goal amount is distributed across years', () => {
   const goals = timeline.map(r => r.goals)
   expect(goals).toEqual([100, 100, 100])
 })
+
+test('string frequency expands to correct payments per year', () => {
+  const timeline = buildTimeline(
+    2024,
+    2024,
+    () => 0,
+    [{ amount: 100, frequency: 'Monthly', startYear: 2024, endYear: 2024 }],
+    []
+  )
+  expect(timeline[0].expenses).toBe(1200)
+})
+
+test('unknown frequency defaults to single payment', () => {
+  const timeline = buildTimeline(
+    2024,
+    2024,
+    () => 0,
+    [{ amount: 100, frequency: 'Weekly', startYear: 2024, endYear: 2024 }],
+    []
+  )
+  expect(timeline[0].expenses).toBe(100)
+})
