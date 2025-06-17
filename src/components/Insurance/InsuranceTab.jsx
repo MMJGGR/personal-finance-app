@@ -21,7 +21,7 @@ export default function InsuranceTab() {
 
   return (
     <div className="space-y-6 p-6">
-      <h2 className="text-2xl font-bold text-amber-700">
+      <h2 className="text-2xl font-bold text-amber-800">
         Insurance Recommendations
       </h2>
       <div className="space-y-2 text-slate-700">

@@ -16,7 +16,7 @@ export default function Sidebar({ activeTab, onSelect }) {
   return (
     <aside className="w-72 bg-white border-r overflow-y-auto">
       <div className="p-6">
-        <h2 className="text-lg font-medium text-amber-400 mb-4">Getting Started</h2>
+        <h2 className="text-lg font-medium text-amber-600 mb-4">Getting Started</h2>
         <nav className="space-y-2" role="tablist">
           {sections.map(tab => (
             <button

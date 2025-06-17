@@ -220,8 +220,8 @@ export default function BalanceSheetTab() {
 
   return (
     <div className="space-y-6 p-6">
-      <h2 className="text-xl font-semibold text-amber-700">Lifetime Balance Sheet</h2>
-      <a href="#adequacy-alert" className="text-sm underline text-amber-700 block">
+      <h2 className="text-xl font-semibold text-amber-800">Lifetime Balance Sheet</h2>
+      <a href="#adequacy-alert" className="text-sm underline text-amber-800 block">
         View Funding Gaps
       </a>
 
@@ -266,7 +266,7 @@ export default function BalanceSheetTab() {
                 <button
                   onClick={() => toggleAsset(item.id)}
                   aria-expanded={expandedAssets[item.id] ? 'true' : 'false'}
-                  className="text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   title="Toggle details"
                 >
                   <span className="hidden sm:inline">{expandedAssets[item.id] ? '▾' : '▸'}</span>
@@ -416,7 +416,7 @@ export default function BalanceSheetTab() {
       </div>
 
       <div className="text-md text-slate-700 italic">
-        Net Worth: <span className="text-2xl font-bold text-amber-700">{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
+        Net Worth: <span className="text-2xl font-bold text-amber-800">{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
         {debtAssetRatio > 1 && (
           <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtAssetRatio * 100).toFixed(1)}%).</span>
         )}
