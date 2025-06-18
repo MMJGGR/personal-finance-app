@@ -13,6 +13,7 @@ import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSche
 import { ResponsiveContainer } from 'recharts'
 import LifetimeStackedChart from './LifetimeStackedChart'
 import buildTimeline from '../../selectors/timeline'
+import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
 import {
@@ -38,6 +39,8 @@ export default function ExpensesGoalsTab() {
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
     liabilitiesList, setLiabilitiesList,
+    investmentContributions,
+    pensionStreams,
     setExpensesPV,
     setGoalsPV,
     profile,
@@ -314,9 +317,41 @@ export default function ExpensesGoalsTab() {
         return match ? sum + match.principalPaid + match.interestPaid : sum
       }, 0)
     }
-    return buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
-      .map(row => ({ ...row, debtService: row.loans }))
-  }, [expensesList, goalsList, liabilityDetails, annualIncome, startYear, years])
+    const assumptions = {
+      retirementAge: startYear + (settings.retirementAge - profile.age) - 1,
+      deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
+    }
+    const rows = buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
+    let running = 0
+    return rows.map(row => {
+      const invest = annualAmountForYear(investmentContributions, row.year, assumptions)
+      const pension = annualAmountForYear(pensionStreams, row.year, assumptions)
+      const income = row.income + pension
+      const net = income - row.expenses - row.goals - row.loans - invest
+      running += net
+      return {
+        ...row,
+        income,
+        investments: invest,
+        pension,
+        debtService: row.loans,
+        net,
+        surplus: running,
+      }
+    })
+  }, [
+    expensesList,
+    goalsList,
+    liabilityDetails,
+    annualIncome,
+    startYear,
+    years,
+    investmentContributions,
+    pensionStreams,
+    settings.retirementAge,
+    profile.age,
+    profile.lifeExpectancy,
+  ])
 
   const maxSurplus = useMemo(() => {
     if (timelineData.length === 0) return 0

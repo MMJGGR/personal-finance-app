@@ -206,6 +206,54 @@ export function FinanceProvider({ children }) {
     }
   })
 
+  const [investmentContributions, setInvestmentContributions] = useState(() => {
+    const s = storage.get('investmentContributions')
+    const now = new Date().getFullYear()
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        return parsed.map(i => ({ id: i.id || crypto.randomUUID(), ...i }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return [
+      {
+        id: crypto.randomUUID(),
+        name: 'ETF Savings',
+        amount: 500,
+        frequency: 12,
+        growth: 0,
+        startYear: now,
+        endYear: now + 4,
+      },
+    ]
+  })
+
+  const [pensionStreams, setPensionStreams] = useState(() => {
+    const s = storage.get('pensionStreams')
+    const now = new Date().getFullYear()
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        return parsed.map(p => ({ id: p.id || crypto.randomUUID(), ...p }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return [
+      {
+        id: crypto.randomUUID(),
+        name: 'Pension',
+        amount: 20000,
+        frequency: 12,
+        growth: 0,
+        startYear: now + 30,
+        endYear: now + 50,
+      },
+    ]
+  })
+
   // === Balance Sheet assets state ===
   const [assetsList, setAssetsList] = useState(() => {
     const s = storage.get('assetsList')
@@ -525,6 +573,8 @@ export function FinanceProvider({ children }) {
   useEffect(() => { storage.set('goalsList', JSON.stringify(goalsList)) }, [goalsList])
   useEffect(() => { storage.set('assetsList', JSON.stringify(assetsList)) }, [assetsList])
   useEffect(() => { storage.set('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
+  useEffect(() => { storage.set('investmentContributions', JSON.stringify(investmentContributions)) }, [investmentContributions])
+  useEffect(() => { storage.set('pensionStreams', JSON.stringify(pensionStreams)) }, [pensionStreams])
 
   useEffect(() => {
     const monthlyTotal = expensesList.reduce((sum, e) => {
@@ -982,6 +1032,8 @@ export function FinanceProvider({ children }) {
       // Expenses & Goals
       expensesList,  setExpensesList,
       goalsList,     setGoalsList,
+      investmentContributions, setInvestmentContributions,
+      pensionStreams, setPensionStreams,
       assetsList,    setAssetsList,
       createAsset,
 
