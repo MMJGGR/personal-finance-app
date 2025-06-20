@@ -1,4 +1,5 @@
 import React from 'react'
+import { FREQUENCY_LABELS } from '../constants.js'
 
 export default function ExpenseRow({ id, name, amount, frequency, category, startYear, endYear, onChange, onDelete }) {
   const makeId = field => `${id}-${field}`
@@ -33,17 +34,19 @@ export default function ExpenseRow({ id, name, amount, frequency, category, star
       </div>
 
       <div>
-        <label htmlFor={makeId('frequency')} className="block text-sm font-medium">Payments/Yr</label>
-        <input
+        <label htmlFor={makeId('frequency')} className="block text-sm font-medium">Frequency</label>
+        <select
           id={makeId('frequency')}
-          aria-label="Payments per year"
-          title="Payments per year (use a Goal for one-off outflows)"
-          type="number"
-          min={1}
-          className="border p-2 rounded-md w-full text-right"
+          aria-label="Expense frequency"
+          title="Expense frequency"
+          className="border p-2 rounded-md w-full"
           value={frequency}
           onChange={e => onChange(id, 'frequency', e.target.value)}
-        />
+        >
+          {FREQUENCY_LABELS.map(l => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
       </div>
 
       <div>

@@ -25,7 +25,8 @@ export const expenseItemSchema = z
   .object({
     name: z.string().min(1, 'Required'),
     amount: nonNegNumber(),
-    paymentsPerYear: posIntField(),
+    frequency: z.union([z.string(), posIntField()]).default('Monthly'),
+    paymentsPerYear: posIntField().optional(),
     growth: numField().default(0),
     category: z.string().default(''),
     priority: intFieldWithRange(1, 3).default(2),

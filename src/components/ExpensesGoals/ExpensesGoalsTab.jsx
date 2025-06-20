@@ -10,6 +10,7 @@ import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
 import sanitize from '../../utils/sanitize'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
+import { frequencyToPayments } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
 import LifetimeStackedChart from './LifetimeStackedChart'
 import buildTimeline from '../../selectors/timeline'
@@ -58,7 +59,7 @@ export default function ExpensesGoalsTab() {
   const [showGoals, setShowGoals] = useState(true)
   const [showLiabilities, setShowLiabilities] = useState(true)
   const [showAssumptions, setShowAssumptions] = useState(false)
-  const [expenseErrors, setExpenseErrors] = useState({})
+  const [_expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
 
   // Populate defaults on first mount when no data is present
@@ -115,13 +116,18 @@ export default function ExpensesGoalsTab() {
   // --- CRUD Handlers ---
   // Expenses
   const handleExpenseChange = (id, field, raw) => {
-    const actualField = field === 'frequency' ? 'paymentsPerYear' : field
     const value = typeof raw === 'string' ? sanitize(raw) : raw
-    const oldValue = expensesList.find(e => e.id === id)?.[actualField]
+    const oldValue = expensesList.find(e => e.id === id)?.[field]
     setExpensesList(prev =>
       prev.map(exp => {
         if (exp.id !== id) return exp
-        const updated = { ...exp, [actualField]: value }
+        let updated
+        if (field === 'frequency') {
+          const ppy = frequencyToPayments(value) || 1
+          updated = { ...exp, frequency: value, paymentsPerYear: ppy }
+        } else {
+          updated = { ...exp, [field]: value }
+        }
         const parsed = expenseItemSchema.safeParse(updated)
         if (parsed.success) {
           setExpenseErrors(err => ({ ...err, [id]: {} }))
@@ -136,7 +142,7 @@ export default function ExpensesGoalsTab() {
       })
     )
     appendAuditLog(storage, {
-      field: `expense.${actualField}`,
+      field: `expense.${field}`,
       oldValue,
       newValue: value,
     })
@@ -148,6 +154,7 @@ export default function ExpensesGoalsTab() {
         id: crypto.randomUUID(),
         name: '',
         amount: 0,
+        frequency: 'Monthly',
         paymentsPerYear: 12,
         growth: 0,
         category: 'Fixed',
@@ -278,9 +285,10 @@ export default function ExpensesGoalsTab() {
       if (last < first) return sum
       const growth = e.growth || 0
       let pv = 0
+      const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
       for (let yr = first; yr <= last; yr++) {
         const idx = yr - start
-        const cash = (e.amount * e.paymentsPerYear) * Math.pow(1 + growth / 100, idx)
+        const cash = (e.amount * ppy) * Math.pow(1 + growth / 100, idx)
         const disc = yr - currentYear + 1
         pv += cash / Math.pow(1 + discountRate / 100, disc)
       }
@@ -547,7 +555,7 @@ export default function ExpensesGoalsTab() {
                 id={e.id}
                 name={e.name}
                 amount={e.amount}
-                frequency={e.paymentsPerYear}
+                frequency={e.frequency}
                 category={e.category}
                 startYear={e.startYear ?? defaultStart}
                 endYear={e.endYear ?? defaultEnd}

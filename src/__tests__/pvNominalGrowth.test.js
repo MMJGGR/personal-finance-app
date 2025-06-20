@@ -41,7 +41,7 @@ function ExpensePV({ years }) {
 test('expense PV uses nominal growth rate', () => {
   localStorage.setItem('settings', JSON.stringify({ discountRate: 8, inflationRate: 3 }))
   localStorage.setItem('expensesList', JSON.stringify([
-    { name: 'Rent', amount: 500, paymentsPerYear: 1, growth: 4, priority: 1 }
+    { name: 'Rent', amount: 500, frequency: 'Annually', growth: 4, priority: 1 }
   ]))
 
   render(

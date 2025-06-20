@@ -2,9 +2,9 @@
 import calcDiscretionaryAdvice from '../utils/discretionaryUtils'
 
 const expenses = [
-  { name: 'Streaming', amount: 10, paymentsPerYear: 12, priority: 3 },
-  { name: 'Coffee', amount: 70, paymentsPerYear: 12, priority: 3 },
-  { name: 'Gym', amount: 50, paymentsPerYear: 12, priority: 2 }
+  { name: 'Streaming', amount: 10, frequency: 'Monthly', priority: 3 },
+  { name: 'Coffee', amount: 70, frequency: 'Monthly', priority: 3 },
+  { name: 'Gym', amount: 50, frequency: 'Monthly', priority: 2 }
 ]
 
 test('suggests low priority cuts sorted by impact', () => {
@@ -21,7 +21,7 @@ test('returns empty when surplus above threshold', () => {
 test('suggestions accumulate until threshold met', () => {
   const moreExpenses = [
     ...expenses,
-    { name: 'Snacks', amount: 50, paymentsPerYear: 12, priority: 3 }
+    { name: 'Snacks', amount: 50, frequency: 'Monthly', priority: 3 }
   ]
   // Surplus 50, threshold 20% of 1000 = 200 -> deficit 150
   const advice = calcDiscretionaryAdvice(moreExpenses, 1000, 50, 20)
@@ -30,7 +30,7 @@ test('suggestions accumulate until threshold met', () => {
 
 test('stops once savings exceed deficit', () => {
   const moreExpenses = [
-    { name: 'Takeout', amount: 100, paymentsPerYear: 12, priority: 3 },
+    { name: 'Takeout', amount: 100, frequency: 'Monthly', priority: 3 },
     ...expenses
   ]
   // Surplus 150, threshold 20% = 200 -> deficit 50, only highest item needed

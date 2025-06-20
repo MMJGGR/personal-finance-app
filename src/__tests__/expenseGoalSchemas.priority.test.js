@@ -4,7 +4,7 @@ test('valid priority between 1 and 3 passes', () => {
   const data = {
     name: 'Rent',
     amount: 100,
-    paymentsPerYear: 1,
+    frequency: 'Annually',
     startYear: 2024,
     priority: 3,
   }
@@ -17,7 +17,7 @@ test('priority outside range fails validation', () => {
   const data = {
     name: 'Rent',
     amount: 100,
-    paymentsPerYear: 1,
+    frequency: 'Annually',
     startYear: 2024,
     priority: 5,
   }

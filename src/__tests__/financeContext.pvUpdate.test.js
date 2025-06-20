@@ -41,7 +41,7 @@ test('PV totals update after settings change', async () => {
   localStorage.setItem(
     'expensesList',
     JSON.stringify([
-      { name: 'Rent', amount: 500, paymentsPerYear: 1, growth: 0, priority: 1 }
+      { name: 'Rent', amount: 500, frequency: 'Annually', growth: 0, priority: 1 }
     ])
   )
   render(

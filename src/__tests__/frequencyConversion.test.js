@@ -6,6 +6,7 @@ test('frequencyToPayments handles known strings', () => {
   expect(frequencyToPayments('Monthly')).toBe(12)
   expect(frequencyToPayments('Quarterly')).toBe(4)
   expect(frequencyToPayments('Annually')).toBe(1)
+  expect(frequencyToPayments('One-Off')).toBe(1)
 })
 
 test('frequencyToPayments handles numeric and invalid values', () => {
