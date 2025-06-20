@@ -175,6 +175,7 @@ export function FinanceProvider({ children }) {
           id: exp.id || crypto.randomUUID(),
           startYear: exp.startYear ?? now,
           endYear: exp.endYear ?? null,
+          include: exp.include !== false,
           ...exp,
           paymentsPerYear,
           priority: exp.priority ?? 2,
@@ -321,7 +322,11 @@ export function FinanceProvider({ children }) {
     if (s) {
       try {
         const parsed = JSON.parse(s)
-        return parsed.map(l => ({ id: l.id || crypto.randomUUID(), ...l }))
+        return parsed.map(l => ({
+          id: l.id || crypto.randomUUID(),
+          include: l.include !== false,
+          ...l,
+        }))
       } catch {
         // ignore malformed stored data
       }
@@ -467,6 +472,7 @@ export function FinanceProvider({ children }) {
             startYear: e.startYear ?? now,
             endYear: e.endYear ?? null,
             priority: e.priority ?? 2,
+            include: e.include !== false,
             ...e,
           }))
           setExpensesList(list)
@@ -502,6 +508,7 @@ export function FinanceProvider({ children }) {
             remainingMonths: l.termMonths,
             paymentsPerYear: 12,
             payment: l.monthlyPayment,
+            include: l.include !== false,
           }))
           setLiabilitiesList(liabs)
         }

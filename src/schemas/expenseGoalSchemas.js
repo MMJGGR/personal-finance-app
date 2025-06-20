@@ -30,6 +30,7 @@ export const expenseItemSchema = z
     growth: numField().default(0),
     category: z.string().default(''),
     priority: intFieldWithRange(1, 3).default(2),
+    include: z.boolean().optional().default(true),
     startYear: intField(),
     endYear: intField().optional().nullable(),
   })
