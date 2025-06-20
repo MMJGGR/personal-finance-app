@@ -9,7 +9,15 @@ beforeAll(() => {
 
 test('renders within ResponsiveContainer and series hide/show when toggled', () => {
   const data = [
-    { year: 2024, income: 100, expenses: 50, goals: 20, debtService: 10 }
+    {
+      year: 2024,
+      income: 100,
+      expenses: 50,
+      goals: 20,
+      debtService: 10,
+      investments: 5,
+      pension: 15
+    }
   ]
   const { container } = render(
     <div style={{ width: 800 }}>
@@ -30,4 +38,18 @@ test('renders within ResponsiveContainer and series hide/show when toggled', () 
   expect(chkDebt).not.toBeChecked()
   fireEvent.click(chkDebt)
   expect(chkDebt).toBeChecked()
+
+  const chkInv = screen.getByLabelText('investments')
+  expect(chkInv).toBeChecked()
+  fireEvent.click(chkInv)
+  expect(chkInv).not.toBeChecked()
+  fireEvent.click(chkInv)
+  expect(chkInv).toBeChecked()
+
+  const chkPen = screen.getByLabelText('pension')
+  expect(chkPen).toBeChecked()
+  fireEvent.click(chkPen)
+  expect(chkPen).not.toBeChecked()
+  fireEvent.click(chkPen)
+  expect(chkPen).toBeChecked()
 })

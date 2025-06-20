@@ -3,7 +3,14 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } f
 import { formatCurrency } from '../../utils/formatters'
 
 export default function LifetimeStackedChart({ data = [], locale, currency }) {
-  const [show, setShow] = useState({ income: true, expenses: true, goals: true, debt: true })
+  const [show, setShow] = useState({
+    income: true,
+    expenses: true,
+    goals: true,
+    debt: true,
+    investments: true,
+    pension: true
+  })
   const format = v => formatCurrency(v, locale, currency)
   const toggle = key => setShow({ ...show, [key]: !show[key] })
   return (
@@ -24,7 +31,36 @@ export default function LifetimeStackedChart({ data = [], locale, currency }) {
           {show.income && <Area type="monotone" dataKey="income" stackId="1" stroke="#4ade80" fill="#bbf7d0" name="Income" />}
           {show.expenses && <Area type="monotone" dataKey="expenses" stackId="1" stroke="#f87171" fill="#fecaca" name="Expenses" />}
           {show.goals && <Area type="monotone" dataKey="goals" stackId="1" stroke="#60a5fa" fill="#bfdbfe" name="Goals" />}
-          {show.debt && <Area type="monotone" dataKey="debtService" stackId="1" stroke="#fbbf24" fill="#fde68a" name="Debt" />}
+          {show.debt && (
+            <Area
+              type="monotone"
+              dataKey="debtService"
+              stackId="1"
+              stroke="#fbbf24"
+              fill="#fde68a"
+              name="Debt"
+            />
+          )}
+          {show.investments && (
+            <Area
+              type="monotone"
+              dataKey="investments"
+              stackId="1"
+              stroke="#a855f7"
+              fill="#e9d5ff"
+              name="Investments"
+            />
+          )}
+          {show.pension && (
+            <Area
+              type="monotone"
+              dataKey="pension"
+              stackId="1"
+              stroke="#14b8a6"
+              fill="#99f6e4"
+              name="Pension"
+            />
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>
