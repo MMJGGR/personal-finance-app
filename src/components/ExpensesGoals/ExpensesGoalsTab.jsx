@@ -39,8 +39,8 @@ export default function ExpensesGoalsTab() {
     expensesList, setExpensesList,
     goalsList,    setGoalsList,
     liabilitiesList, setLiabilitiesList,
-    investmentContributions,
-    pensionStreams,
+    investmentContributions, setInvestmentContributions,
+    pensionStreams, setPensionStreams,
     setExpensesPV,
     setGoalsPV,
     profile,
@@ -63,13 +63,49 @@ export default function ExpensesGoalsTab() {
   // Populate defaults on first mount when no data is present
   useEffect(() => {
     if (expensesList.length === 0) {
-      setExpensesList(defaultExpenses(defaultStart, defaultEnd))
+      const list = defaultExpenses(defaultStart, defaultEnd)
+      setExpensesList(list)
+      storage.set('expensesList', JSON.stringify(list))
     }
     if (goalsList.length === 0) {
-      setGoalsList(defaultGoals(defaultStart))
+      const list = defaultGoals(defaultStart)
+      setGoalsList(list)
+      storage.set('goalsList', JSON.stringify(list))
     }
     if (liabilitiesList.length === 0) {
-      setLiabilitiesList(defaultLiabilities(defaultStart))
+      const list = defaultLiabilities(defaultStart)
+      setLiabilitiesList(list)
+      storage.set('liabilitiesList', JSON.stringify(list))
+    }
+    if (investmentContributions.length === 0) {
+      const list = [
+        {
+          id: crypto.randomUUID(),
+          name: 'Mutual Fund',
+          amount: 500,
+          frequency: 12,
+          growth: 0,
+          startYear: defaultStart,
+          endYear: defaultStart + 5,
+        },
+      ]
+      setInvestmentContributions(list)
+      storage.set('investmentContributions', JSON.stringify(list))
+    }
+    if (pensionStreams.length === 0) {
+      const list = [
+        {
+          id: crypto.randomUUID(),
+          name: 'Pension',
+          amount: 15000,
+          frequency: 12,
+          growth: 0,
+          startYear: defaultStart + 30,
+          endYear: defaultStart + 50,
+        },
+      ]
+      setPensionStreams(list)
+      storage.set('pensionStreams', JSON.stringify(list))
     }
   }, [])
 
