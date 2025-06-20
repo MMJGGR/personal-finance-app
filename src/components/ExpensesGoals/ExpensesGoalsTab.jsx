@@ -19,6 +19,7 @@ import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
 import ExpenseRow from '../ExpenseRow.jsx'
+import { usePersona } from '../../PersonaContext.jsx'
 import {
   defaultExpenses,
   defaultGoals,
@@ -52,9 +53,13 @@ export default function ExpensesGoalsTab() {
     years,
     annualIncome
   } = useFinance()
+  const { currentData } = usePersona()
   const horizon = Math.max(1, profile.lifeExpectancy - profile.age)
   const defaultStart = currentYear
   const defaultEnd = currentYear + horizon
+
+  const birthYear = currentYear - (profile.age ?? 0)
+  const retirementYear = birthYear + (currentData.settings?.retirementAge ?? settings.retirementAge ?? 65)
 
   const [showExpenses, setShowExpenses] = useState(true)
   const [showGoals, setShowGoals] = useState(true)
@@ -365,7 +370,7 @@ export default function ExpensesGoalsTab() {
       }, 0)
     }
     const assumptions = {
-      retirementAge: startYear + (settings.retirementAge - profile.age) - 1,
+      retirementAge: retirementYear - 1,
       deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
     }
     const rows = buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
@@ -395,7 +400,7 @@ export default function ExpensesGoalsTab() {
     years,
     investmentContributions,
     pensionStreams,
-    settings.retirementAge,
+    retirementYear,
     profile.age,
     profile.lifeExpectancy,
   ])
