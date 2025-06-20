@@ -5,11 +5,21 @@ import {
 import { useFinance } from '../FinanceContext'
 
 export default function ExpensesStackedBarChart() {
-  const { expensesList } = useFinance()
+  const {
+    expensesList,
+    includeMediumPV,
+    includeLowPV,
+  } = useFinance()
 
   // Aggregate expenses by year and category
+  const filtered = expensesList.filter(e => {
+    if (e.priority === 2 && !includeMediumPV) return false
+    if (e.priority > 2 && !includeLowPV) return false
+    return true
+  })
+
   const dataByYear = {}
-  expensesList.forEach(exp => {
+  filtered.forEach(exp => {
     const { category, frequency, amount, startYear, endYear = startYear } = exp
     for (let year = startYear; year <= (endYear ?? startYear); year++) {
       if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
