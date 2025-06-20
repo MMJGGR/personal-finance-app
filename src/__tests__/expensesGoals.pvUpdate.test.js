@@ -27,7 +27,7 @@ test('adding an expense updates PV totals', async () => {
   const valueNode = label.nextSibling
   const initial = valueNode.textContent
 
-  const addBtn = screen.getAllByRole('button', { name: '+ Add' })[0]
+  const addBtn = screen.getByRole('button', { name: 'Add expense' })
   fireEvent.click(addBtn)
   const amtInput = screen.getByTitle('Expense amount')
   fireEvent.change(amtInput, { target: { value: '100' } })
@@ -47,7 +47,7 @@ test('adding a goal updates PV totals', async () => {
   const valueNode = label.nextSibling
   const initial = valueNode.textContent
 
-  const addBtn = screen.getAllByRole('button', { name: '+ Add' })[1]
+  const addBtn = screen.getByRole('button', { name: 'Add goal' })
   fireEvent.click(addBtn)
   const amtInput = screen.getByTitle('Goal amount')
   fireEvent.change(amtInput, { target: { value: '5000' } })
@@ -65,7 +65,7 @@ test('adding a loan updates PV totals', async () => {
   const valueNode = label.nextSibling
   const initial = valueNode.textContent
 
-  const addBtn = screen.getAllByRole('button', { name: '+ Add' })[2]
+  const addBtn = screen.getByRole('button', { name: 'Add liability' })
   fireEvent.click(addBtn)
   const inputs = screen.getAllByRole('spinbutton')
   fireEvent.change(inputs[0], { target: { value: '1000' } })
