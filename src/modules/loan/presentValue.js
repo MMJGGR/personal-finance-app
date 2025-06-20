@@ -4,6 +4,4 @@
  * @param {number} rate - period interest rate
  * @returns {number}
  */
-export function presentValue(flows, rate) {
-  return flows.reduce((sum, p, idx) => sum + p / Math.pow(1 + rate, idx + 1), 0)
-}
+export { presentValue } from '../../utils/financeUtils'

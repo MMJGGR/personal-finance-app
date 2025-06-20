@@ -175,3 +175,54 @@ export function internalRateOfReturn(cashFlows = []) {
 
   return rate * 100
 }
+
+/**
+ * Present value of a series of periodic cash flows.
+ *
+ * @param {number[]} flows - Payment amounts occurring at the end of each period.
+ * @param {number} rate    - Periodic discount rate as a decimal (e.g. 0.01 for 1%).
+ * @returns {number} Present value of the cash flow series.
+ */
+export function presentValue(flows = [], rate = 0) {
+  if (!Array.isArray(flows) || flows.length === 0) return 0
+  let pv = 0
+  for (let i = 0; i < flows.length; i++) {
+    pv += flows[i] / Math.pow(1 + rate, i + 1)
+  }
+  return pv
+}
+
+/**
+ * Generate annual cash flows for a recurring stream.
+ *
+ * @param {Object} stream               - Stream definition.
+ * @param {number} stream.amount        - Payment amount per period.
+ * @param {string|number} stream.frequency - Frequency label or payments per year.
+ * @param {number} stream.paymentsPerYear  - Explicit payments per year (overrides frequency).
+ * @param {number} [stream.growth=0]    - Annual growth rate (percent).
+ * @param {number} stream.startYear     - First calendar year of the stream.
+ * @param {number} stream.endYear       - Last calendar year of the stream.
+ * @returns {{year:number, amount:number}[]} Array of yearly cash flows.
+ */
+export function generateRecurringFlows(stream = {}) {
+  const {
+    amount = 0,
+    frequency,
+    paymentsPerYear,
+    growth = 0,
+    startYear = new Date().getFullYear(),
+    endYear = startYear,
+  } = stream
+
+  const ppy = typeof paymentsPerYear === 'number'
+    ? paymentsPerYear
+    : frequencyToPayments(frequency) || 1
+
+  const flows = []
+  for (let year = startYear; year <= endYear; year++) {
+    const idx = year - startYear
+    const cash = amount * ppy * Math.pow(1 + growth / 100, idx)
+    flows.push({ year, amount: cash })
+  }
+  return flows
+}
