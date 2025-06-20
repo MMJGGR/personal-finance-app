@@ -54,8 +54,9 @@ export default function ExpensesStackedBarChart() {
           <Tooltip />
           <Legend formatter={(value) => value} />
           <Bar dataKey="Fixed" stackId="a" fill="#1f77b4" />
-          <Bar dataKey="Discretionary" stackId="a" fill="#ff7f0e" />
-          <Bar dataKey="Goal" stackId="a" fill="#2ca02c" />
+          <Bar dataKey="Variable" stackId="a" fill="#ff7f0e" />
+          <Bar dataKey="Other" stackId="a" fill="#2ca02c" />
+          <Bar dataKey="Goal" stackId="a" fill="#9467bd" />
         </BarChart>
       </ResponsiveContainer>
     </div>
