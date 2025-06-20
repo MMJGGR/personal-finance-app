@@ -4,6 +4,7 @@ export const FREQUENCIES = {
   Monthly: 12,
   Quarterly: 4,
   Annually: 1,
+  'One-Off': 1,
 }
 
 // Convenience list of labels for dropdowns

@@ -35,7 +35,7 @@ test('expense PV metrics update after settings change', async () => {
   localStorage.setItem(
     'expensesList',
     JSON.stringify([
-      { name: 'Rent', amount: 1200, paymentsPerYear: 12, growth: 0, priority: 1 }
+      { name: 'Rent', amount: 1200, frequency: 'Monthly', growth: 0, priority: 1 }
     ])
   )
   render(

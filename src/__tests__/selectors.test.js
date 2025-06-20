@@ -14,7 +14,7 @@ const baseState = {
     { amount: 1000, frequency: 12, growth: 0, taxRate: 0 }
   ],
   expensesList: [
-    { amount: 500, paymentsPerYear: 12, growth: 0, startYear: 2024, endYear: 2025 }
+    { amount: 500, frequency: 'Monthly', growth: 0, startYear: 2024, endYear: 2025 }
   ],
   goalsList: [
     { amount: 1200, targetYear: 2025, startYear: 2025, endYear: 2025 }
