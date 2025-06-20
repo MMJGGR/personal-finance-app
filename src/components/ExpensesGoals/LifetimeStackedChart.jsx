@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 
 export default function LifetimeStackedChart({ data = [], locale, currency }) {
@@ -15,16 +15,18 @@ export default function LifetimeStackedChart({ data = [], locale, currency }) {
           </label>
         ))}
       </div>
-      <AreaChart data={data} width={800} height={400} role="img" aria-label="Lifetime cash flow chart">
-        <XAxis dataKey="year" />
-        <YAxis tickFormatter={format} />
-        <Tooltip formatter={format} />
-        <Legend />
-        {show.income && <Area type="monotone" dataKey="income" stackId="1" stroke="#4ade80" fill="#bbf7d0" name="Income" />}
-        {show.expenses && <Area type="monotone" dataKey="expenses" stackId="1" stroke="#f87171" fill="#fecaca" name="Expenses" />}
-        {show.goals && <Area type="monotone" dataKey="goals" stackId="1" stroke="#60a5fa" fill="#bfdbfe" name="Goals" />}
-        {show.debt && <Area type="monotone" dataKey="debtService" stackId="1" stroke="#fbbf24" fill="#fde68a" name="Debt" />}
-      </AreaChart>
+      <ResponsiveContainer width="100%" height={400} role="img" aria-label="Lifetime cash flow chart">
+        <AreaChart data={data}>
+          <XAxis dataKey="year" />
+          <YAxis tickFormatter={format} />
+          <Tooltip formatter={format} />
+          <Legend />
+          {show.income && <Area type="monotone" dataKey="income" stackId="1" stroke="#4ade80" fill="#bbf7d0" name="Income" />}
+          {show.expenses && <Area type="monotone" dataKey="expenses" stackId="1" stroke="#f87171" fill="#fecaca" name="Expenses" />}
+          {show.goals && <Area type="monotone" dataKey="goals" stackId="1" stroke="#60a5fa" fill="#bfdbfe" name="Goals" />}
+          {show.debt && <Area type="monotone" dataKey="debtService" stackId="1" stroke="#fbbf24" fill="#fde68a" name="Debt" />}
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   )
 }
