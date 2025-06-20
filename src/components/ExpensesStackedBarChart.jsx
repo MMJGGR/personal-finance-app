@@ -7,8 +7,10 @@ import { useFinance } from '../FinanceContext'
 export default function ExpensesStackedBarChart() {
   const {
     expensesList,
+    goalsList,
     includeMediumPV,
     includeLowPV,
+    includeGoalsPV,
   } = useFinance()
 
   // Aggregate expenses by year and category
@@ -28,6 +30,16 @@ export default function ExpensesStackedBarChart() {
       dataByYear[year][category] = (dataByYear[year][category] || 0) + value
     }
   })
+
+  if (includeGoalsPV) {
+    goalsList.forEach(g => {
+      const yr = g.targetYear ?? g.endYear ?? g.startYear
+      const year = Number(yr)
+      if (year == null) return
+      if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
+      dataByYear[year].Goal = (dataByYear[year].Goal || 0) + (Number(g.amount) || 0)
+    })
+  }
 
   const chartData = Object.values(dataByYear).sort((a, b) => a.year - b.year)
 
