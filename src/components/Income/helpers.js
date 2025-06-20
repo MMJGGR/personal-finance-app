@@ -1,53 +1,74 @@
+import { getStreamEndYear } from '../../utils/incomeProjection'
+import { calculatePV as calcPV, generateRecurringFlows, frequencyToPayments } from '../../utils/financeUtils'
+
 export function findLinkedAsset(id, assetsList = []) {
-  return assetsList.find(a => a.id === id);
+  return assetsList.find(a => a.id === id)
 }
 
-export function calculatePV(stream, discountRate, years, assumptions, linkedAsset) {
-  const startYear = Math.max(new Date().getFullYear(), stream.startYear);
-  const endYear = getStreamEndYear(stream, assumptions, linkedAsset);
-  let pv = 0;
-  for (let y = startYear; y <= endYear; y++) {
-    const t = y - startYear;
-    const grown = stream.amount * stream.frequency * Math.pow(1 + stream.growth / 100, t);
-    const discounted = grown / Math.pow(1 + discountRate / 100, t + 1);
-    pv += discounted;
-  }
+export function calculatePV(stream, discountRate, years, assumptions = {}, linkedAsset) {
+  const now = new Date().getFullYear()
+  const startYear = Math.max(now, stream.startYear ?? now)
+  const endYear = Math.min(getStreamEndYear(stream, assumptions, linkedAsset), startYear + years - 1)
+  if (endYear < startYear) return { gross: 0, net: 0 }
+
+  const paymentsPerYear =
+    typeof stream.paymentsPerYear === 'number'
+      ? stream.paymentsPerYear
+      : typeof stream.frequency === 'number'
+        ? stream.frequency
+        : frequencyToPayments(stream.frequency)
+
+  const pvImmediate = calcPV(
+    Number(stream.amount) || 0,
+    paymentsPerYear,
+    Number(stream.growth) || 0,
+    discountRate,
+    endYear - startYear + 1
+  )
+  const offsetYears = startYear - now
+  const gross = pvImmediate / Math.pow(1 + discountRate / 100, offsetYears)
   return {
-    gross: pv,
-    net: pv * (1 - stream.taxRate / 100)
-  };
+    gross,
+    net: gross * (1 - (stream.taxRate || 0) / 100)
+  }
 }
 
 export function generateIncomeTimeline(sources, assumptions, assetsList = [], years) {
-  const timeline = [];
-  const currentYear = new Date().getFullYear();
-  for (let y = 0; y < years; y++) {
-    timeline.push({
-      year: currentYear + y,
-      gross: 0,
-      net: 0,
-      expenses: assumptions.annualExpenses || 0,
-    });
-  }
+  const currentYear = new Date().getFullYear()
+  const timeline = Array.from({ length: years }, (_, i) => ({
+    year: currentYear + i,
+    gross: 0,
+    net: 0,
+    expenses: assumptions.annualExpenses || 0,
+  }))
 
   sources.forEach(s => {
-    if (!s.active) return;
-    const linkedAsset = assetsList.find(a => a.id === s.linkedAssetId);
-    const start = Math.max(currentYear, s.startYear);
-    const end = getStreamEndYear(s, assumptions, linkedAsset);
+    if (!s.active) return
+    const linkedAsset = assetsList.find(a => a.id === s.linkedAssetId)
+    const start = Math.max(currentYear, s.startYear ?? currentYear)
+    const end = Math.min(getStreamEndYear(s, assumptions, linkedAsset), currentYear + years - 1)
+    if (end < start) return
 
-    for (let y = start; y <= end; y++) {
-      const idx = y - currentYear;
-      if (idx >= 0 && idx < years) {
-        const t = y - start;
-        const grown = s.amount * s.frequency * Math.pow(1 + s.growth / 100, t);
-        timeline[idx].gross += grown;
-        timeline[idx].net += grown * (1 - s.taxRate / 100);
-      }
-    }
-  });
+    const flows = generateRecurringFlows({
+      amount: Number(s.amount) || 0,
+      paymentsPerYear:
+        typeof s.paymentsPerYear === 'number'
+          ? s.paymentsPerYear
+          : typeof s.frequency === 'number'
+            ? s.frequency
+            : frequencyToPayments(s.frequency),
+      growth: Number(s.growth) || 0,
+      startYear: start,
+      endYear: end,
+    })
 
-  return timeline;
+    flows.forEach(f => {
+      const idx = f.year - currentYear
+      timeline[idx].gross += f.amount
+      timeline[idx].net += f.amount * (1 - (s.taxRate || 0) / 100)
+    })
+  })
+
+  return timeline
 }
 
-import { getStreamEndYear } from '../../utils/incomeProjection';
