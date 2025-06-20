@@ -20,6 +20,7 @@ import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
 import ExpenseRow from '../ExpenseRow.jsx'
+import LiabilityRow from '../LiabilityRow.jsx'
 import { usePersona } from '../../PersonaContext.jsx'
 import {
   defaultExpenses,
@@ -255,23 +256,28 @@ export default function ExpensesGoalsTab() {
     const value = typeof valueRaw === 'string' ? sanitize(valueRaw) : valueRaw
     const oldValue = liabilitiesList.find(l => l.id === id)?.[field]
     setLiabilitiesList(prev =>
-      prev.map(l => {
-        if (l.id !== id) return l
-        const updated = { ...l, [field]: value }
-        const computedPayment = calculateAmortizedPayment(
-          Number(updated.principal) || 0,
-          Number(updated.interestRate) || 0,
-          Number(updated.termYears) || 0,
-          Number(updated.paymentsPerYear) || 1
-        )
-        return { ...updated, computedPayment }
-      })
+      prev.map(l => (l.id === id ? { ...l, [field]: value } : l))
     )
     appendAuditLog(storage, {
       field: `liability.${field}`,
       oldValue,
       newValue: value,
     })
+  }
+
+  const computeLiabilityPayment = id => {
+    setLiabilitiesList(prev =>
+      prev.map(l => {
+        if (l.id !== id) return l
+        const payment = calculateAmortizedPayment(
+          Number(l.principal) || 0,
+          Number(l.interestRate) || 0,
+          Number(l.termYears) || 0,
+          Number(l.paymentsPerYear) || 1
+        )
+        return { ...l, computedPayment: payment }
+      })
+    )
   }
   const addLiability = () => {
     const base = {
@@ -770,81 +776,13 @@ export default function ExpensesGoalsTab() {
               <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
             )}
             {liabilitiesList.map(l => (
-              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
-                <div>
-                  <label htmlFor={`liab-name-${l.id}`} className="sr-only">Liability name</label>
-                  <input
-                    id={`liab-name-${l.id}`}
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full"
-                    value={l.name || ''}
-                    onChange={ev => handleLiabilityChange(l.id, 'name', ev.target.value)}
-                    aria-label="Liability name"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-principal-${l.id}`} className="sr-only">Principal</label>
-                  <input
-                    id={`liab-principal-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.principal}
-                    onChange={ev => handleLiabilityChange(l.id, 'principal', ev.target.value)}
-                    aria-label="Principal"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-rate-${l.id}`} className="sr-only">Interest rate</label>
-                  <input
-                    id={`liab-rate-${l.id}`}
-                    type="number"
-                    step="0.01"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.interestRate}
-                    onChange={ev => handleLiabilityChange(l.id, 'interestRate', ev.target.value)}
-                    aria-label="Interest rate"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-term-${l.id}`} className="sr-only">Term years</label>
-                  <input
-                    id={`liab-term-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.termYears}
-                    onChange={ev => handleLiabilityChange(l.id, 'termYears', ev.target.value)}
-                    aria-label="Term years"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-payments-${l.id}`} className="sr-only">Payments per year</label>
-                  <input
-                    id={`liab-payments-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.paymentsPerYear}
-                    onChange={ev => handleLiabilityChange(l.id, 'paymentsPerYear', ev.target.value)}
-                    aria-label="Payments per year"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-extra-${l.id}`} className="sr-only">Extra payment</label>
-                  <input
-                    id={`liab-extra-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.extraPayment}
-                    onChange={ev => handleLiabilityChange(l.id, 'extraPayment', ev.target.value)}
-                    aria-label="Extra payment"
-                  />
-                </div>
-                <button
-                  onClick={() => removeLiability(l.id)}
-                  className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label="Remove liability"
-                >
-                  ✖
-                </button>
-              </div>
+              <LiabilityRow
+                key={l.id}
+                {...l}
+                onChange={handleLiabilityChange}
+                onDelete={removeLiability}
+                onCompute={computeLiabilityPayment}
+              />
             ))}
           </CardBody>
         )}
