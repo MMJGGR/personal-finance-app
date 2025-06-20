@@ -1,0 +1,247 @@
+[
+  {
+    "id": "hadi",
+    "profile": {
+      "name": "Hadi Mwangi",
+      "email": "hadi.mwangi@example.com",
+      "phone": "+254712345678",
+      "age": 35,
+      "lifeExpectancy": 85,
+      "maritalStatus": "Married",
+      "numDependents": 2,
+      "residentialAddress": "Nairobi, Kenya",
+      "nationality": "Kenyan",
+      "idNumber": "34567890",
+      "taxResidence": "Kenya",
+      "employmentStatus": "Full-Time",
+      "annualIncome": 3000000,
+      "liquidNetWorth": 2000000,
+      "sourceOfFunds": "Employment, rental income, long-term ETF investments",
+      "investmentKnowledge": "Moderate",
+      "lossResponse": "Wait",
+      "investmentHorizon": ">7 years",
+      "investmentGoal": "Growth"
+    },
+    "incomeSources": [
+      {
+        "name": "Salary",
+        "amount": 250000,
+        "frequency": 12,
+        "growth": 4,
+        "taxRate": 30
+      },
+      {
+        "name": "Rental Income",
+        "amount": 30000,
+        "frequency": 12,
+        "growth": 3,
+        "taxRate": 10
+      }
+    ],
+    "expensesList": [
+      {
+        "name": "Rent",
+        "amount": 80000,
+        "frequency": "Monthly",
+        "growth": 5,
+        "category": "Fixed",
+        "priority": 1
+      },
+      {
+        "name": "Transport",
+        "amount": 10000,
+        "frequency": "Monthly",
+        "growth": 2,
+        "category": "Variable",
+        "priority": 2
+      }
+    ],
+    "goalsList": [
+      {
+        "name": "Family Vacation",
+        "amount": 300000,
+        "targetYear": 2026,
+        "priority": 2
+      }
+    ],
+    "assetsList": [
+      {
+        "id": "real-estate",
+        "name": "Land in Nanyuki",
+        "value": 2500000,
+        "return": 6,
+        "volatility": 12
+      }
+    ],
+    "liabilitiesList": [
+      {
+        "id": "car-loan",
+        "name": "Car Loan",
+        "principal": 500000,
+        "interestRate": 12,
+        "monthlyPayment": 15000,
+        "termMonths": 48,
+        "startDate": "2023-07-01"
+      }
+    ],
+    "settings": {
+      "inflationRate": 5,
+      "expectedReturn": 8,
+      "currency": "KES",
+      "locale": "en-KE",
+      "discretionaryCutThreshold": 15,
+      "survivalThresholdMonths": 6,
+      "bufferPct": 10,
+      "apiEndpoint": "https://api.local/submit"
+    },
+    "includeMediumPV": true,
+    "includeLowPV": true,
+    "includeGoalsPV": true,
+    "includeLiabilitiesNPV": true
+  },
+  {
+    "id": "amina",
+    "profile": {
+      "name": "Amina Okoth",
+      "email": "amina.okoth@example.com",
+      "phone": "+254700111222",
+      "age": 28,
+      "lifeExpectancy": 85,
+      "maritalStatus": "Single",
+      "numDependents": 0,
+      "residentialAddress": "Mombasa, Kenya",
+      "nationality": "Kenyan",
+      "idNumber": "56789012",
+      "taxResidence": "Kenya",
+      "employmentStatus": "Self-Employed",
+      "annualIncome": 1800000,
+      "liquidNetWorth": 800000,
+      "sourceOfFunds": "Consulting income",
+      "investmentKnowledge": "Low",
+      "lossResponse": "Sell",
+      "investmentHorizon": "3-7 years",
+      "investmentGoal": "Balanced"
+    },
+    "incomeSources": [
+      {
+        "name": "Consulting",
+        "amount": 150000,
+        "frequency": 12,
+        "growth": 5,
+        "taxRate": 25
+      }
+    ],
+    "expensesList": [
+      {
+        "name": "Rent",
+        "amount": 40000,
+        "frequency": "Monthly",
+        "growth": 3,
+        "category": "Fixed",
+        "priority": 1
+      }
+    ],
+    "goalsList": [],
+    "assetsList": [
+      {
+        "id": "savings",
+        "name": "Savings Account",
+        "value": 300000,
+        "return": 2,
+        "volatility": 0
+      }
+    ],
+    "liabilitiesList": [],
+    "settings": {
+      "inflationRate": 4,
+      "expectedReturn": 6,
+      "currency": "KES",
+      "locale": "en-KE"
+    },
+    "includeMediumPV": true,
+    "includeLowPV": true,
+    "includeGoalsPV": false,
+    "includeLiabilitiesNPV": false
+  },
+  {
+    "id": "yusuf",
+    "profile": {
+      "name": "Yusuf Ahmed",
+      "email": "yusuf.ahmed@example.com",
+      "phone": "+254733444555",
+      "age": 42,
+      "lifeExpectancy": 85,
+      "maritalStatus": "Married",
+      "numDependents": 3,
+      "residentialAddress": "Nakuru, Kenya",
+      "nationality": "Kenyan",
+      "idNumber": "78901234",
+      "taxResidence": "Kenya",
+      "employmentStatus": "Full-Time",
+      "annualIncome": 2200000,
+      "liquidNetWorth": 1500000,
+      "sourceOfFunds": "Employment",
+      "investmentKnowledge": "High",
+      "lossResponse": "Hold",
+      "investmentHorizon": ">7 years",
+      "investmentGoal": "Growth"
+    },
+    "incomeSources": [
+      {
+        "name": "Salary",
+        "amount": 180000,
+        "frequency": 12,
+        "growth": 3,
+        "taxRate": 30
+      }
+    ],
+    "expensesList": [
+      {
+        "name": "Mortgage",
+        "amount": 60000,
+        "frequency": "Monthly",
+        "growth": 2,
+        "category": "Fixed",
+        "priority": 1
+      }
+    ],
+    "goalsList": [
+      {
+        "name": "Children's College",
+        "amount": 800000,
+        "targetYear": 2032,
+        "priority": 1
+      }
+    ],
+    "assetsList": [
+      {
+        "id": "house",
+        "name": "Family Home",
+        "value": 4000000,
+        "return": 5,
+        "volatility": 8
+      }
+    ],
+    "liabilitiesList": [
+      {
+        "id": "mortgage",
+        "name": "Mortgage",
+        "principal": 2500000,
+        "interestRate": 10,
+        "monthlyPayment": 50000,
+        "termMonths": 240,
+        "startDate": "2020-01-01"
+      }
+    ],
+    "settings": {
+      "inflationRate": 5,
+      "expectedReturn": 7,
+      "currency": "KES",
+      "locale": "en-KE"
+    },
+    "includeMediumPV": true,
+    "includeLowPV": true,
+    "includeGoalsPV": true,
+    "includeLiabilitiesNPV": true
+  }
+]

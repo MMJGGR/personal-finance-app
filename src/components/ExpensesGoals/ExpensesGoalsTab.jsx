@@ -438,7 +438,8 @@ export default function ExpensesGoalsTab() {
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
-    a.download = 'financial-plan.json'
+    const name = profile.name.replace(/\s+/g, '_')
+    a.download = `financial-plan-${name}.json`
     a.click()
   }
 
@@ -448,7 +449,8 @@ export default function ExpensesGoalsTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'financial-plan.csv'
+    const name = profile.name.replace(/\s+/g, '_')
+    a.download = `financial-plan-${name}.csv`
     a.click()
   }
 

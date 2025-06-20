@@ -230,7 +230,8 @@ export default function IncomeTab() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'income-data.json';
+    const name = profile.name.replace(/\s+/g, '_');
+    a.download = `income-data-${name}.json`;
     a.click();
   };
 
@@ -258,7 +259,8 @@ export default function IncomeTab() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'income-data.csv';
+    const name = profile.name.replace(/\s+/g, '_');
+    a.download = `income-data-${name}.csv`;
     a.click();
   };
 
