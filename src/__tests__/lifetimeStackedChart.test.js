@@ -4,27 +4,30 @@ import LifetimeStackedChart from '../components/ExpensesGoals/LifetimeStackedCha
 
 beforeAll(() => {
   global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
+  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
 })
 
-test('series hide and show when toggled', () => {
+test('renders within ResponsiveContainer and series hide/show when toggled', () => {
   const data = [
     { year: 2024, income: 100, expenses: 50, goals: 20, debtService: 10 }
   ]
   const { container } = render(
-    <LifetimeStackedChart data={data} locale="en-US" currency="USD" />
+    <div style={{ width: 800 }}>
+      <LifetimeStackedChart data={data} locale="en-US" currency="USD" />
+    </div>
   )
-  const selector = fill => container.querySelectorAll(`[fill='${fill}']`).length
-  expect(selector('#fecaca')).toBe(1)
+  expect(container.querySelector('.recharts-responsive-container')).toBeInTheDocument()
   const chkExp = screen.getByLabelText('expenses')
+  expect(chkExp).toBeChecked()
   fireEvent.click(chkExp)
-  expect(selector('#fecaca')).toBe(0)
+  expect(chkExp).not.toBeChecked()
   fireEvent.click(chkExp)
-  expect(selector('#fecaca')).toBe(1)
+  expect(chkExp).toBeChecked()
 
   const chkDebt = screen.getByLabelText('debt')
-  expect(selector('#fde68a')).toBe(1)
+  expect(chkDebt).toBeChecked()
   fireEvent.click(chkDebt)
-  expect(selector('#fde68a')).toBe(0)
+  expect(chkDebt).not.toBeChecked()
   fireEvent.click(chkDebt)
-  expect(selector('#fde68a')).toBe(1)
+  expect(chkDebt).toBeChecked()
 })
