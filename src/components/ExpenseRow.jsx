@@ -1,11 +1,11 @@
 import React from 'react'
 import { FREQUENCY_LABELS } from '../constants.js'
 
-export default function ExpenseRow({ id, name, amount, frequency, category, startYear, endYear, onChange, onDelete }) {
+export default function ExpenseRow({ id, name, amount, frequency, category, startYear, endYear, include = true, onChange, onDelete }) {
   const makeId = field => `${id}-${field}`
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1 bg-white p-2 rounded-md shadow relative">
+    <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1 bg-white p-2 rounded-md shadow relative">
       <div>
         <label htmlFor={makeId('name')} className="block text-sm font-medium">Name</label>
         <input
@@ -89,6 +89,19 @@ export default function ExpenseRow({ id, name, amount, frequency, category, star
           value={endYear ?? ''}
           onChange={e => onChange(id, 'endYear', e.target.value)}
         />
+      </div>
+
+      <div className="flex items-center mt-6 sm:mt-0">
+        <input
+          id={makeId('include')}
+          aria-label="Include in PV"
+          title="Include in PV"
+          type="checkbox"
+          className="mr-1"
+          checked={include}
+          onChange={e => onChange(id, 'include', e.target.checked)}
+        />
+        <label htmlFor={makeId('include')} className="text-sm">Include</label>
       </div>
 
       <button

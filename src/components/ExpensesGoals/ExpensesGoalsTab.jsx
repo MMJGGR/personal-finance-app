@@ -76,6 +76,7 @@ export default function ExpensesGoalsTab() {
   const filteredExpenses = useMemo(
     () =>
       expensesList.filter(e => {
+        if (e.include === false) return false
         if (e.priority === 2 && !includeMediumPV) return false
         if (e.priority > 2 && !includeLowPV) return false
         return true
@@ -185,6 +186,7 @@ export default function ExpensesGoalsTab() {
         growth: 0,
         category: 'Fixed',
         priority: 2,
+        include: true,
         startYear: defaultStart,
         endYear: defaultEnd,
       },
@@ -282,6 +284,7 @@ export default function ExpensesGoalsTab() {
       termYears: 1,
       paymentsPerYear: 12,
       extraPayment: 0,
+      include: true,
       startYear: defaultStart,
       endYear: defaultEnd,
     }
@@ -355,7 +358,7 @@ export default function ExpensesGoalsTab() {
 
   // --- 4) Loan details & amortization ---
   const liabilityDetails = useMemo(() => {
-    return liabilitiesList.map(l => {
+    return liabilitiesList.filter(l => l.include !== false).map(l => {
       const ratePerPeriod = (Number(l.interestRate) || 0) / 100 / l.paymentsPerYear
       const start = new Date((l.startYear ?? currentYear), 0, 1).getTime()
       const sched = calculateLoanSchedule({
@@ -593,13 +596,14 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showExpenses && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Amt ({settings.currency})</div>
               <div>Pay/Yr</div>
               <div>Category</div>
               <div>Start</div>
               <div>End</div>
+              <div>Include</div>
             </div>
             {expensesList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
@@ -614,6 +618,7 @@ export default function ExpensesGoalsTab() {
                 category={e.category}
                 startYear={e.startYear ?? defaultStart}
                 endYear={e.endYear ?? defaultEnd}
+                include={e.include !== false}
                 onChange={handleExpenseChange}
                 onDelete={removeExpense}
               />
@@ -757,20 +762,21 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showLiabilities && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-8 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Principal</div>
               <div className="text-right">Rate %</div>
               <div className="text-right">Term</div>
               <div>Pay/Yr</div>
               <div className="text-right">Extra</div>
+              <div>Include</div>
               <div></div>
             </div>
             {liabilitiesList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
             )}
             {liabilitiesList.map(l => (
-              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
+              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1">
                 <div>
                   <label htmlFor={`liab-name-${l.id}`} className="sr-only">Liability name</label>
                   <input
@@ -836,6 +842,17 @@ export default function ExpensesGoalsTab() {
                     onChange={ev => handleLiabilityChange(l.id, 'extraPayment', ev.target.value)}
                     aria-label="Extra payment"
                   />
+                </div>
+                <div className="flex items-center mt-6 sm:mt-0">
+                  <input
+                    id={`liab-include-${l.id}`}
+                    type="checkbox"
+                    className="mr-1"
+                    checked={l.include !== false}
+                    onChange={ev => handleLiabilityChange(l.id, 'include', ev.target.checked)}
+                    aria-label="Include liability"
+                  />
+                  <label htmlFor={`liab-include-${l.id}`} className="text-sm">Include</label>
                 </div>
                 <button
                   onClick={() => removeLiability(l.id)}

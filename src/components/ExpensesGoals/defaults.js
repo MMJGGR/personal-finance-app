@@ -11,6 +11,7 @@ export function defaultExpenses(start, end) {
       growth: 0,
       category: 'Fixed',
       priority: 1,
+      include: true,
       startYear: start,
       endYear: end,
     },
@@ -23,6 +24,7 @@ export function defaultExpenses(start, end) {
       growth: 0,
       category: 'Variable',
       priority: 2,
+      include: true,
       startYear: start,
       endYear: end,
     },
@@ -51,6 +53,7 @@ export function defaultLiabilities(start) {
     termYears: 5,
     paymentsPerYear: 12,
     extraPayment: 0,
+    include: true,
     startYear: start,
     endYear: start + 4,
   }
