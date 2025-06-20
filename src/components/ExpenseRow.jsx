@@ -60,7 +60,7 @@ export default function ExpenseRow({ id, name, amount, frequency, category, star
           onChange={e => onChange(id, 'category', e.target.value)}
         >
           <option value="Fixed">Fixed</option>
-          <option value="Discretionary">Discretionary</option>
+          <option value="Variable">Variable</option>
           <option value="Other">Other</option>
         </select>
       </div>

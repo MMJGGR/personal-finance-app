@@ -28,6 +28,19 @@ export function defaultExpenses(start, end) {
       startYear: start,
       endYear: end,
     },
+    {
+      id: crypto.randomUUID(),
+      name: 'Miscellaneous',
+      amount: 100,
+      frequency: 'Monthly',
+      paymentsPerYear: 12,
+      growth: 0,
+      category: 'Other',
+      priority: 3,
+      include: true,
+      startYear: start,
+      endYear: end,
+    },
   ]
 }
 
