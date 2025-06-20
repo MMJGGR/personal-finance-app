@@ -51,7 +51,11 @@ export default function ExpensesGoalsTab() {
     settings,
     startYear,
     years,
-    annualIncome
+    annualIncome,
+    includeMediumPV,
+    includeLowPV,
+    includeGoalsPV,
+    includeLiabilitiesNPV
   } = useFinance()
   const { currentData } = usePersona()
   const horizon = Math.max(1, profile.lifeExpectancy - profile.age)
@@ -67,6 +71,21 @@ export default function ExpensesGoalsTab() {
   const [showAssumptions, setShowAssumptions] = useState(false)
   const [_expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
+
+  const filteredExpenses = useMemo(
+    () =>
+      expensesList.filter(e => {
+        if (e.priority === 2 && !includeMediumPV) return false
+        if (e.priority > 2 && !includeLowPV) return false
+        return true
+      }),
+    [expensesList, includeMediumPV, includeLowPV]
+  )
+
+  const filteredGoals = useMemo(
+    () => (includeGoalsPV ? goalsList : []),
+    [goalsList, includeGoalsPV]
+  )
 
   // Populate defaults on first mount when no data is present
   useEffect(() => {
@@ -283,7 +302,7 @@ export default function ExpensesGoalsTab() {
   // --- 2) PV of Expenses over lifeYears ---
   const pvExpensesLife = useMemo(() => {
     const horizonEnd = currentYear + lifeYears - 1
-    return expensesList.reduce((sum, e) => {
+    return filteredExpenses.reduce((sum, e) => {
       const start = e.startYear ?? currentYear
       const end = e.endYear ?? horizonEnd
       const first = Math.max(start, currentYear)
@@ -300,7 +319,7 @@ export default function ExpensesGoalsTab() {
       }
       return sum + pv
     }, 0)
-  }, [expensesList, discountRate, lifeYears, currentYear])
+  }, [filteredExpenses, discountRate, lifeYears, currentYear])
 
   useEffect(() => {
     setExpensesPV(pvExpensesLife)
@@ -309,6 +328,7 @@ export default function ExpensesGoalsTab() {
 
   // --- 3) PV of Goals ---
   const pvGoals = useMemo(() => {
+    if (!includeGoalsPV) return 0
     const horizonEnd = currentYear + lifeYears - 1
     return goalsList.reduce((sum, g) => {
       const target = g.targetYear ?? g.startYear ?? currentYear
@@ -316,7 +336,7 @@ export default function ExpensesGoalsTab() {
       const yrs = target - currentYear
       return sum + g.amount / Math.pow(1 + discountRate / 100, yrs)
     }, 0)
-  }, [goalsList, discountRate, currentYear, lifeYears])
+  }, [goalsList, includeGoalsPV, discountRate, currentYear, lifeYears])
 
   // --- 4) Loan details & amortization ---
   const liabilityDetails = useMemo(() => {
@@ -349,7 +369,9 @@ export default function ExpensesGoalsTab() {
     })
   }, [liabilitiesList, currentYear, discountRate])
 
-  const totalLiabilitiesPV = liabilityDetails.reduce((s, l) => s + l.pv, 0)
+  const totalLiabilitiesPV = includeLiabilitiesNPV
+    ? liabilityDetails.reduce((s, l) => s + l.pv, 0)
+    : 0
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
 
@@ -364,6 +386,7 @@ export default function ExpensesGoalsTab() {
       return annualIncome[idx] || 0
     }
     const loanForYear = y => {
+      if (!includeLiabilitiesNPV) return 0
       return liabilityDetails.reduce((sum, l) => {
         const match = l.schedule.find(sc => sc.year === y)
         return match ? sum + match.principalPaid + match.interestPaid : sum
@@ -373,7 +396,14 @@ export default function ExpensesGoalsTab() {
       retirementAge: retirementYear - 1,
       deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
     }
-    const rows = buildTimeline(minYear, maxYear, incomeFn, expensesList, goalsList, loanForYear)
+    const rows = buildTimeline(
+      minYear,
+      maxYear,
+      incomeFn,
+      filteredExpenses,
+      filteredGoals,
+      loanForYear
+    )
     let running = 0
     return rows.map(row => {
       const invest = annualAmountForYear(investmentContributions, row.year, assumptions)
@@ -392,8 +422,12 @@ export default function ExpensesGoalsTab() {
       }
     })
   }, [
-    expensesList,
-    goalsList,
+    filteredExpenses,
+    filteredGoals,
+    includeMediumPV,
+    includeLowPV,
+    includeGoalsPV,
+    includeLiabilitiesNPV,
     liabilityDetails,
     annualIncome,
     startYear,

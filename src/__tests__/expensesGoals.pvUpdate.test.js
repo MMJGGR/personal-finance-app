@@ -14,6 +14,8 @@ afterEach(() => {
 
 function setup() {
   localStorage.setItem('profile', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 85 }))
+  localStorage.setItem('includeGoalsPV', 'true')
+  localStorage.setItem('includeLiabilitiesNPV', 'true')
   return render(
     <FinanceProvider>
       <ExpensesGoalsTab />
