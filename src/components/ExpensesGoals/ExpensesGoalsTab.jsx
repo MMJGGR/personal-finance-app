@@ -11,6 +11,7 @@ import { appendAuditLog } from '../../utils/auditLog'
 import sanitize from '../../utils/sanitize'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
 import { frequencyToPayments } from '../../utils/financeUtils'
+import { calculateAmortizedPayment } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
 import LifetimeStackedChart from './LifetimeStackedChart'
 import ExpensesStackedBarChart from '../ExpensesStackedBarChart.jsx'
@@ -254,7 +255,17 @@ export default function ExpensesGoalsTab() {
     const value = typeof valueRaw === 'string' ? sanitize(valueRaw) : valueRaw
     const oldValue = liabilitiesList.find(l => l.id === id)?.[field]
     setLiabilitiesList(prev =>
-      prev.map(l => (l.id === id ? { ...l, [field]: value } : l))
+      prev.map(l => {
+        if (l.id !== id) return l
+        const updated = { ...l, [field]: value }
+        const computedPayment = calculateAmortizedPayment(
+          Number(updated.principal) || 0,
+          Number(updated.interestRate) || 0,
+          Number(updated.termYears) || 0,
+          Number(updated.paymentsPerYear) || 1
+        )
+        return { ...updated, computedPayment }
+      })
     )
     appendAuditLog(storage, {
       field: `liability.${field}`,
@@ -263,20 +274,24 @@ export default function ExpensesGoalsTab() {
     })
   }
   const addLiability = () => {
-    setLiabilitiesList([
-      ...liabilitiesList,
-      {
-        id: crypto.randomUUID(),
-        name: '',
-        principal: 0,
-        interestRate: 0,
-        termYears: 1,
-        paymentsPerYear: 12,
-        extraPayment: 0,
-        startYear: defaultStart,
-        endYear: defaultEnd,
-      },
-    ])
+    const base = {
+      id: crypto.randomUUID(),
+      name: '',
+      principal: 0,
+      interestRate: 0,
+      termYears: 1,
+      paymentsPerYear: 12,
+      extraPayment: 0,
+      startYear: defaultStart,
+      endYear: defaultEnd,
+    }
+    const computedPayment = calculateAmortizedPayment(
+      base.principal,
+      base.interestRate,
+      base.termYears,
+      base.paymentsPerYear
+    )
+    setLiabilitiesList([...liabilitiesList, { ...base, computedPayment }])
   }
   const removeLiability = id => {
     if (window.confirm('Delete this item?')) {
@@ -364,8 +379,7 @@ export default function ExpensesGoalsTab() {
         scheduleMap[y].remaining = p.balance
       })
       const schedule = Object.values(scheduleMap)
-      const computedPayment = sched.payments[0]?.payment || 0
-      return { ...l, computedPayment, pv, schedule }
+      return { ...l, pv, schedule }
     })
   }, [liabilitiesList, currentYear, discountRate])
 

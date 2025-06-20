@@ -1,3 +1,5 @@
+import { calculateAmortizedPayment } from '../../utils/financeUtils.js'
+
 export function defaultExpenses(start, end) {
   return [
     {
@@ -41,17 +43,22 @@ export function defaultGoals(start) {
 }
 
 export function defaultLiabilities(start) {
-  return [
-    {
-      id: crypto.randomUUID(),
-      name: 'Car Loan',
-      principal: 10000,
-      interestRate: 5,
-      termYears: 5,
-      paymentsPerYear: 12,
-      extraPayment: 0,
-      startYear: start,
-      endYear: start + 4,
-    },
-  ]
+  const base = {
+    id: crypto.randomUUID(),
+    name: 'Car Loan',
+    principal: 10000,
+    interestRate: 5,
+    termYears: 5,
+    paymentsPerYear: 12,
+    extraPayment: 0,
+    startYear: start,
+    endYear: start + 4,
+  }
+  const computedPayment = calculateAmortizedPayment(
+    base.principal,
+    base.interestRate,
+    base.termYears,
+    base.paymentsPerYear
+  )
+  return [{ ...base, computedPayment }]
 }
