@@ -3,6 +3,9 @@ import React, { Suspense, useState } from 'react'
 import Spinner from './Spinner.jsx'
 import Header from './components/layout/Header.jsx'
 import Sidebar from './components/layout/Sidebar.jsx'
+import { FinanceProvider } from './FinanceContext.jsx'
+import { PersonaProvider, usePersona } from './PersonaContext.jsx'
+import personas from './data/personas.json'
 
 const IncomeTab = React.lazy(() => import('./components/Income/IncomeTab.jsx'))
 const ExpensesGoalsTab = React.lazy(() => import('./components/ExpensesGoals/ExpensesGoalsTab.jsx'))
@@ -26,7 +29,7 @@ const components = {
   Insurance: InsuranceTab,
 }
 
-export default function App() {
+function AppInner() {
   const [activeTab, setActiveTab] = useState('Profile')
   const Active = components[activeTab]
 
@@ -45,5 +48,22 @@ export default function App() {
         Projections are for illustrative purposes only.
       </footer>
     </div>
+  )
+}
+
+function AppWithFinance() {
+  const { currentPersonaId } = usePersona()
+  return (
+    <FinanceProvider key={currentPersonaId}>
+      <AppInner />
+    </FinanceProvider>
+  )
+}
+
+export default function App() {
+  return (
+    <PersonaProvider personas={personas}>
+      <AppWithFinance />
+    </PersonaProvider>
   )
 }
