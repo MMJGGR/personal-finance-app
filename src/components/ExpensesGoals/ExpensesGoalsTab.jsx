@@ -13,6 +13,7 @@ import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSche
 import { frequencyToPayments } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
 import LifetimeStackedChart from './LifetimeStackedChart'
+import ExpensesStackedBarChart from '../ExpensesStackedBarChart.jsx'
 import buildTimeline from '../../selectors/timeline'
 import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
@@ -564,9 +565,11 @@ export default function ExpensesGoalsTab() {
                 onDelete={removeExpense}
               />
             ))}
-          </CardBody>
+      </CardBody>
         )}
       </Card>
+
+      <ExpensesStackedBarChart />
 
       <Card className="mb-6">
         <CardHeader>
