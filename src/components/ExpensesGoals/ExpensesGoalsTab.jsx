@@ -16,6 +16,7 @@ import buildTimeline from '../../selectors/timeline'
 import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
+import ExpenseRow from '../ExpenseRow.jsx'
 import {
   defaultExpenses,
   defaultGoals,
@@ -114,12 +115,13 @@ export default function ExpensesGoalsTab() {
   // --- CRUD Handlers ---
   // Expenses
   const handleExpenseChange = (id, field, raw) => {
+    const actualField = field === 'frequency' ? 'paymentsPerYear' : field
     const value = typeof raw === 'string' ? sanitize(raw) : raw
-    const oldValue = expensesList.find(e => e.id === id)?.[field]
+    const oldValue = expensesList.find(e => e.id === id)?.[actualField]
     setExpensesList(prev =>
       prev.map(exp => {
         if (exp.id !== id) return exp
-        const updated = { ...exp, [field]: value }
+        const updated = { ...exp, [actualField]: value }
         const parsed = expenseItemSchema.safeParse(updated)
         if (parsed.success) {
           setExpenseErrors(err => ({ ...err, [id]: {} }))
@@ -134,7 +136,7 @@ export default function ExpensesGoalsTab() {
       })
     )
     appendAuditLog(storage, {
-      field: `expense.${field}`,
+      field: `expense.${actualField}`,
       oldValue,
       newValue: value,
     })
@@ -528,64 +530,30 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showExpenses && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Amt ({settings.currency})</div>
               <div>Pay/Yr</div>
-              <div className="text-right">Growth %</div>
               <div>Category</div>
-              <div>Priority</div>
               <div>Start</div>
               <div>End</div>
-              <div></div>
             </div>
             {expensesList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No expenses added</p>
             )}
             {expensesList.map(e => (
-              <div key={e.id} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
-                <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Rent" value={e.name} onChange={ev => handleExpenseChange(e.id, 'name', ev.target.value)} title="Expense name" />
-                  {expenseErrors[e.id]?.name && <span className="text-red-600 text-xs">{expenseErrors[e.id].name[0]}</span>}
-                </div>
-                <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={e.amount} onChange={ev => handleExpenseChange(e.id, 'amount', ev.target.value)} title="Expense amount" />
-                  {expenseErrors[e.id]?.amount && <span className="text-red-600 text-xs">{expenseErrors[e.id].amount[0]}</span>}
-                </div>
-                <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="1" step="1" value={e.paymentsPerYear} onChange={ev => handleExpenseChange(e.id, 'paymentsPerYear', ev.target.value)} title="Payments per year (use a Goal for one-off outflows)" />
-                  {expenseErrors[e.id]?.paymentsPerYear && <span className="text-red-600 text-xs">{expenseErrors[e.id].paymentsPerYear[0]}</span>}
-                </div>
-                <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" step="0.1" placeholder="0" value={e.growth} onChange={ev => handleExpenseChange(e.id, 'growth', ev.target.value)} title="Growth rate" />
-                  {expenseErrors[e.id]?.growth && <span className="text-red-600 text-xs">{expenseErrors[e.id].growth[0]}</span>}
-                </div>
-                <div>
-                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.category} onChange={ev => handleExpenseChange(e.id, 'category', ev.target.value)} aria-label="Expense category" title="Expense category">
-                  <option>Fixed</option>
-                  <option>Discretionary</option>
-                  <option>Other</option>
-                </select>
-                  {expenseErrors[e.id]?.category && <span className="text-red-600 text-xs">{expenseErrors[e.id].category[0]}</span>}
-                </div>
-                <div>
-                  <select className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={e.priority} onChange={ev => handleExpenseChange(e.id, 'priority', ev.target.value)} aria-label="Expense priority" title="Expense priority">
-                  <option value={1}>High</option>
-                  <option value={2}>Medium</option>
-                  <option value={3}>Low</option>
-                </select>
-                  {expenseErrors[e.id]?.priority && <span className="text-red-600 text-xs">{expenseErrors[e.id].priority[0]}</span>}
-                </div>
-                <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={e.startYear ?? defaultStart} onChange={ev => handleExpenseChange(e.id, 'startYear', ev.target.value)} title="Start year" />
-                  {expenseErrors[e.id]?.startYear && <span className="text-red-600 text-xs">{expenseErrors[e.id].startYear[0]}</span>}
-                </div>
-                <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={e.endYear ?? defaultEnd} onChange={ev => handleExpenseChange(e.id, 'endYear', ev.target.value)} title="End year" />
-                  {expenseErrors[e.id]?.endYear && <span className="text-red-600 text-xs">{expenseErrors[e.id].endYear[0]}</span>}
-                </div>
-                <button onClick={() => removeExpense(e.id)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove expense">✖</button>
-              </div>
+              <ExpenseRow
+                key={e.id}
+                id={e.id}
+                name={e.name}
+                amount={e.amount}
+                frequency={e.paymentsPerYear}
+                category={e.category}
+                startYear={e.startYear ?? defaultStart}
+                endYear={e.endYear ?? defaultEnd}
+                onChange={handleExpenseChange}
+                onDelete={removeExpense}
+              />
             ))}
           </CardBody>
         )}
