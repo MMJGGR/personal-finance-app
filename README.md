@@ -165,6 +165,17 @@ rate and projection horizon (Years) are both configured under **Settings**.
 2. Add a liability called *Test Loan* for `20000`.
 3. The bar and pie charts should refresh immediately. The **Net Worth** figure should read **KES 1,580,000** which equals `1,500,000 + 100,000 - 20,000`.
 4. Remove the test entries after confirming the charts update.
+#### Lifetime Stacked Chart
+
+The **Lifetime** stacked chart visualizes cash flow across all years. Each series tracks one of the main categories:
+- **Income** for projected earnings
+- **Expenses** for recurring outflows
+- **Goals** for planned one-time spends
+- **Debt** for outstanding liabilities
+- **Investments** for contributions and growth
+- **Pension** for retirement savings
+
+Click any legend label to show or hide that series. The chart is most useful with the default Hadi Persona seed (or another populated profile) loaded.
 
 ### Stress Testing Metrics
 1. In the **Expenses** tab create a monthly expense named *Rent* of `2000`.
