@@ -531,6 +531,7 @@ export default function ExpensesGoalsTab() {
             <button
               onClick={addExpense}
               className="bg-amber-400 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              aria-label="Add expense"
             >
               + Add
             </button>
@@ -580,6 +581,7 @@ export default function ExpensesGoalsTab() {
             <button
               onClick={addGoal}
               className="bg-amber-400 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              aria-label="Add goal"
             >
               + Add
             </button>
@@ -601,23 +603,74 @@ export default function ExpensesGoalsTab() {
             {goalsList.map(g => (
               <div key={g.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" placeholder="Vacation" value={g.name} onChange={ev => handleGoalChange(g.id, 'name', ev.target.value)} title="Goal name" />
+                  <label htmlFor={`goal-name-${g.id}`} className="sr-only">Goal name</label>
+                  <input
+                    id={`goal-name-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full"
+                    placeholder="Vacation"
+                    value={g.name}
+                    onChange={ev => handleGoalChange(g.id, 'name', ev.target.value)}
+                    title="Goal name"
+                    aria-label="Goal name"
+                  />
                   {goalErrors[g.id]?.name && <span className="text-red-600 text-xs">{goalErrors[g.id].name[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min="0" placeholder="0" value={g.amount} onChange={ev => handleGoalChange(g.id, 'amount', ev.target.value)} title="Goal amount" />
+                  <label htmlFor={`goal-amount-${g.id}`} className="sr-only">Goal amount</label>
+                  <input
+                    id={`goal-amount-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={g.amount}
+                    onChange={ev => handleGoalChange(g.id, 'amount', ev.target.value)}
+                    title="Goal amount"
+                    aria-label="Goal amount"
+                  />
                   {goalErrors[g.id]?.amount && <span className="text-red-600 text-xs">{goalErrors[g.id].amount[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" min={currentYear} placeholder={String(currentYear)} value={g.targetYear} onChange={ev => handleGoalChange(g.id, 'targetYear', ev.target.value)} title="Target year" />
+                  <label htmlFor={`goal-target-${g.id}`} className="sr-only">Target year</label>
+                  <input
+                    id={`goal-target-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    type="number"
+                    min={currentYear}
+                    placeholder={String(currentYear)}
+                    value={g.targetYear}
+                    onChange={ev => handleGoalChange(g.id, 'targetYear', ev.target.value)}
+                    title="Target year"
+                    aria-label="Target year"
+                  />
                   {goalErrors[g.id]?.targetYear && <span className="text-red-600 text-xs">{goalErrors[g.id].targetYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="Start Year" value={g.startYear ?? defaultStart} onChange={ev => handleGoalChange(g.id, 'startYear', ev.target.value)} title="Start year" />
+                  <label htmlFor={`goal-start-${g.id}`} className="sr-only">Start year</label>
+                  <input
+                    id={`goal-start-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    type="number"
+                    placeholder="Start Year"
+                    value={g.startYear ?? defaultStart}
+                    onChange={ev => handleGoalChange(g.id, 'startYear', ev.target.value)}
+                    title="Start year"
+                    aria-label="Start year"
+                  />
                   {goalErrors[g.id]?.startYear && <span className="text-red-600 text-xs">{goalErrors[g.id].startYear[0]}</span>}
                 </div>
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" type="number" placeholder="End Year" value={g.endYear ?? defaultEnd} onChange={ev => handleGoalChange(g.id, 'endYear', ev.target.value)} title="End year" />
+                  <label htmlFor={`goal-end-${g.id}`} className="sr-only">End year</label>
+                  <input
+                    id={`goal-end-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    type="number"
+                    placeholder="End Year"
+                    value={g.endYear ?? defaultEnd}
+                    onChange={ev => handleGoalChange(g.id, 'endYear', ev.target.value)}
+                    title="End year"
+                    aria-label="End year"
+                  />
                   {goalErrors[g.id]?.endYear && <span className="text-red-600 text-xs">{goalErrors[g.id].endYear[0]}</span>}
                 </div>
                 <button onClick={() => removeGoal(g.id)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Remove goal">✖</button>
@@ -640,6 +693,7 @@ export default function ExpensesGoalsTab() {
             <button
               onClick={addLiability}
               className="bg-amber-400 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              aria-label="Add liability"
             >
               + Add
             </button>
@@ -662,24 +716,78 @@ export default function ExpensesGoalsTab() {
             {liabilitiesList.map(l => (
               <div key={l.id} className="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mb-1">
                 <div>
-                  <input className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full" value={l.name || ''} onChange={ev => handleLiabilityChange(l.id, 'name', ev.target.value)} />
+                  <label htmlFor={`liab-name-${l.id}`} className="sr-only">Liability name</label>
+                  <input
+                    id={`liab-name-${l.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full"
+                    value={l.name || ''}
+                    onChange={ev => handleLiabilityChange(l.id, 'name', ev.target.value)}
+                    aria-label="Liability name"
+                  />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.principal} onChange={ev => handleLiabilityChange(l.id, 'principal', ev.target.value)} />
+                  <label htmlFor={`liab-principal-${l.id}`} className="sr-only">Principal</label>
+                  <input
+                    id={`liab-principal-${l.id}`}
+                    type="number"
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    value={l.principal}
+                    onChange={ev => handleLiabilityChange(l.id, 'principal', ev.target.value)}
+                    aria-label="Principal"
+                  />
                 </div>
                 <div>
-                  <input type="number" step="0.01" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.interestRate} onChange={ev => handleLiabilityChange(l.id, 'interestRate', ev.target.value)} />
+                  <label htmlFor={`liab-rate-${l.id}`} className="sr-only">Interest rate</label>
+                  <input
+                    id={`liab-rate-${l.id}`}
+                    type="number"
+                    step="0.01"
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    value={l.interestRate}
+                    onChange={ev => handleLiabilityChange(l.id, 'interestRate', ev.target.value)}
+                    aria-label="Interest rate"
+                  />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.termYears} onChange={ev => handleLiabilityChange(l.id, 'termYears', ev.target.value)} />
+                  <label htmlFor={`liab-term-${l.id}`} className="sr-only">Term years</label>
+                  <input
+                    id={`liab-term-${l.id}`}
+                    type="number"
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    value={l.termYears}
+                    onChange={ev => handleLiabilityChange(l.id, 'termYears', ev.target.value)}
+                    aria-label="Term years"
+                  />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.paymentsPerYear} onChange={ev => handleLiabilityChange(l.id, 'paymentsPerYear', ev.target.value)} />
+                  <label htmlFor={`liab-payments-${l.id}`} className="sr-only">Payments per year</label>
+                  <input
+                    id={`liab-payments-${l.id}`}
+                    type="number"
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    value={l.paymentsPerYear}
+                    onChange={ev => handleLiabilityChange(l.id, 'paymentsPerYear', ev.target.value)}
+                    aria-label="Payments per year"
+                  />
                 </div>
                 <div>
-                  <input type="number" className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full" value={l.extraPayment} onChange={ev => handleLiabilityChange(l.id, 'extraPayment', ev.target.value)} />
+                  <label htmlFor={`liab-extra-${l.id}`} className="sr-only">Extra payment</label>
+                  <input
+                    id={`liab-extra-${l.id}`}
+                    type="number"
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    value={l.extraPayment}
+                    onChange={ev => handleLiabilityChange(l.id, 'extraPayment', ev.target.value)}
+                    aria-label="Extra payment"
+                  />
                 </div>
-                <button onClick={() => removeLiability(l.id)} className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500">✖</button>
+                <button
+                  onClick={() => removeLiability(l.id)}
+                  className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label="Remove liability"
+                >
+                  ✖
+                </button>
               </div>
             ))}
           </CardBody>
