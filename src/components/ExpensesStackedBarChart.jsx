@@ -1,19 +1,34 @@
 import React from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts'
 import { useFinance } from '../FinanceContext'
 
 export default function ExpensesStackedBarChart() {
-  const { expensesList } = useFinance()
+  const { expensesList, startYear, years } = useFinance()
+
+  const horizonEnd = startYear + years - 1
 
   // Aggregate expenses by year and category
   const dataByYear = {}
   expensesList.forEach(exp => {
-    const { category, frequency, amount, startYear, endYear = startYear } = exp
-    for (let year = startYear; year <= (endYear ?? startYear); year++) {
+    const {
+      category,
+      frequency,
+      amount,
+      startYear: sYear,
+      endYear,
+    } = exp
+    const finalYear = endYear ?? horizonEnd
+    for (let year = sYear; year <= finalYear; year++) {
       if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
-      // Convert monthly to annual amount
       const value = frequency === 'Monthly' ? amount * 12 : amount
       dataByYear[year][category] = (dataByYear[year][category] || 0) + value
     }
