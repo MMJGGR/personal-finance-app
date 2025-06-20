@@ -1,4 +1,4 @@
-import { presentValue } from './presentValue.js'
+import { presentValue } from '../../utils/financeUtils'
 
 /**
  * Calculate amortization schedule for a loan.
