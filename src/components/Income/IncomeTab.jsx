@@ -12,7 +12,8 @@
 import React, { useMemo, useEffect } from 'react';
 import { useFinance } from '../../FinanceContext';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
-import { calculatePV, generateIncomeTimeline, findLinkedAsset } from './helpers';
+import { calculatePV, findLinkedAsset } from './helpers';
+import { generateIncomeTimeline } from '../../utils/cashflowTimeline';
 import calcDiscretionaryAdvice from '../../utils/discretionaryUtils';
 import IncomeSourceRow from './IncomeSourceRow'
 import IncomeTimelineChart from './IncomeTimelineChart'

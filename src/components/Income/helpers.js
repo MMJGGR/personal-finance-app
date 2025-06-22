@@ -33,42 +33,4 @@ export function calculatePV(stream, discountRate, years, assumptions = {}, linke
   }
 }
 
-export function generateIncomeTimeline(sources, assumptions, assetsList = [], years) {
-  const currentYear = new Date().getFullYear()
-  const timeline = Array.from({ length: years }, (_, i) => ({
-    year: currentYear + i,
-    gross: 0,
-    net: 0,
-    expenses: assumptions.annualExpenses || 0,
-  }))
-
-  sources.forEach(s => {
-    if (!s.active) return
-    const linkedAsset = assetsList.find(a => a.id === s.linkedAssetId)
-    const start = Math.max(currentYear, s.startYear ?? currentYear)
-    const end = Math.min(getStreamEndYear(s, assumptions, linkedAsset), currentYear + years - 1)
-    if (end < start) return
-
-    const flows = generateRecurringFlows({
-      amount: Number(s.amount) || 0,
-      paymentsPerYear:
-        typeof s.paymentsPerYear === 'number'
-          ? s.paymentsPerYear
-          : typeof s.frequency === 'number'
-            ? s.frequency
-            : frequencyToPayments(s.frequency),
-      growth: Number(s.growth) || 0,
-      startYear: start,
-      endYear: end,
-    })
-
-    flows.forEach(f => {
-      const idx = f.year - currentYear
-      timeline[idx].gross += f.amount
-      timeline[idx].net += f.amount * (1 - (s.taxRate || 0) / 100)
-    })
-  })
-
-  return timeline
-}
 
