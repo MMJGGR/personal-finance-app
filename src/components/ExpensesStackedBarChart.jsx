@@ -1,8 +1,16 @@
 import React from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts'
 import { useFinance } from '../FinanceContext'
+import { frequencyToPayments } from '../utils/financeUtils'
 
 export default function ExpensesStackedBarChart() {
   const {
@@ -11,6 +19,8 @@ export default function ExpensesStackedBarChart() {
     includeMediumPV,
     includeLowPV,
     includeGoalsPV,
+    discountRate,
+    startYear,
   } = useFinance()
 
   // Aggregate expenses by year and category
@@ -21,13 +31,25 @@ export default function ExpensesStackedBarChart() {
   })
 
   const dataByYear = {}
+  const discBase = 1 + discountRate / 100
   filtered.forEach(exp => {
-    const { category, frequency, amount, startYear, endYear = startYear } = exp
-    for (let year = startYear; year <= (endYear ?? startYear); year++) {
+    const {
+      category,
+      frequency,
+      paymentsPerYear,
+      amount,
+      startYear: sYear,
+      endYear = sYear,
+      growth = 0
+    } = exp
+    const ppy = paymentsPerYear || frequencyToPayments(frequency) || 1
+    for (let year = sYear; year <= endYear; year++) {
       if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
-      // Convert monthly to annual amount
-      const value = frequency === 'Monthly' ? amount * 12 : amount
-      dataByYear[year][category] = (dataByYear[year][category] || 0) + value
+      const idx = year - sYear
+      const cash = (Number(amount) || 0) * ppy * Math.pow(1 + growth / 100, idx)
+      const disc = year - startYear + 1
+      const pv = cash / Math.pow(discBase, disc)
+      dataByYear[year][category] = (dataByYear[year][category] || 0) + pv
     }
   })
 
@@ -37,7 +59,9 @@ export default function ExpensesStackedBarChart() {
       const year = Number(yr)
       if (year == null) return
       if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
-      dataByYear[year].Goal = (dataByYear[year].Goal || 0) + (Number(g.amount) || 0)
+      const disc = year - startYear
+      const pv = (Number(g.amount) || 0) / Math.pow(discBase, disc)
+      dataByYear[year].Goal = (dataByYear[year].Goal || 0) + pv
     })
   }
 
@@ -45,7 +69,7 @@ export default function ExpensesStackedBarChart() {
 
   return (
     <div className="w-full h-80 bg-white p-4 rounded-xl shadow-md">
-      <h3 className="text-lg font-semibold mb-2">Expenses Over Time</h3>
+      <h3 className="text-lg font-semibold mb-2">PV of Expenses Over Time</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
