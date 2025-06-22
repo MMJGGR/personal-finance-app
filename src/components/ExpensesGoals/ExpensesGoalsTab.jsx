@@ -13,7 +13,6 @@ import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSche
 import { frequencyToPayments } from '../../utils/financeUtils'
 import { calculateAmortizedPayment } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
-import LifetimeStackedChart from './LifetimeStackedChart'
 import ExpensesStackedBarChart from '../ExpensesStackedBarChart.jsx'
 import buildTimeline from '../../selectors/timeline'
 import { annualAmountForYear } from '../../utils/streamHelpers'
@@ -545,10 +544,7 @@ export default function ExpensesGoalsTab() {
   const INTEREST_COLOR  = '#f87171'
   return (
     <div className="space-y-8 p-6">
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ResponsiveContainer width="100%" height={400} role="img" aria-label="Cashflow timeline chart">
-          <LifetimeStackedChart data={timelineData} locale={settings.locale} currency={settings.currency} />
-        </ResponsiveContainer>
+      <section className="grid grid-cols-1 gap-6">
         <ExpensesStackedBarChart />
       </section>
 
