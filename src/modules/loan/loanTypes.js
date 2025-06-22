@@ -3,7 +3,8 @@
  * @property {number} principal - loan amount
  * @property {number} annualRate - annual interest rate (decimal)
  * @property {number} termYears - term in years
- * @property {number} [extraPayment] - optional extra payment each month
+ * @property {number} paymentsPerYear - payment frequency per year
+ * @property {number} [extraPayment] - optional extra payment each period
  */
 
 /**

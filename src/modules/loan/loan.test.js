@@ -7,6 +7,7 @@ test('loan amortization works', () => {
     principal: 200000,
     annualRate: 0.045,
     termYears: 30,
+    paymentsPerYear: 12,
     extraPayment: 200
   }, start)
   expect(schedule.payments.length).toBeGreaterThan(0)
