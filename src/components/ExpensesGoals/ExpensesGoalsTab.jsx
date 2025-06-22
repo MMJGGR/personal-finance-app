@@ -359,12 +359,12 @@ export default function ExpensesGoalsTab() {
   // --- 4) Loan details & amortization ---
   const liabilityDetails = useMemo(() => {
     return liabilitiesList.filter(l => l.include !== false).map(l => {
-      const ratePerPeriod = (Number(l.interestRate) || 0) / 100 / l.paymentsPerYear
       const start = new Date((l.startYear ?? currentYear), 0, 1).getTime()
       const sched = calculateLoanSchedule({
         principal: Number(l.principal) || 0,
-        annualRate: ratePerPeriod * 12,
-        termYears: (Number(l.termYears) || 0) * l.paymentsPerYear / 12,
+        annualRate: (Number(l.interestRate) || 0) / 100,
+        termYears: Number(l.termYears) || 0,
+        paymentsPerYear: l.paymentsPerYear,
         extraPayment: Number(l.extraPayment) || 0
       }, start)
       const pv = presentValue(
