@@ -14,6 +14,7 @@ import { frequencyToPayments } from '../../utils/financeUtils'
 import { calculateAmortizedPayment } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
 import ExpensesStackedBarChart from '../ExpensesStackedBarChart.jsx'
+import CashflowTimelineChart from './CashflowTimelineChart.jsx'
 import buildTimeline from '../../selectors/timeline'
 import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
@@ -555,6 +556,13 @@ export default function ExpensesGoalsTab() {
         )}
         <p>Peak surplus: {formatCurrency(maxSurplus, settings.locale, settings.currency)}</p>
       </Card>
+
+      {/* Cashflow Projection Chart */}
+      <CashflowTimelineChart
+        data={timelineData}
+        locale={settings.locale}
+        currency={settings.currency}
+      />
 
       <div className="text-right space-x-2">
         <button
