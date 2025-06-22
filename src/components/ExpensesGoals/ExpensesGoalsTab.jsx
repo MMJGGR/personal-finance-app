@@ -467,16 +467,18 @@ export default function ExpensesGoalsTab() {
   )
 
   useEffect(() => {
-    const expPV = timelineData.reduce((sum, r) => sum + r.expenses, 0)
-    const goalPV = timelineData.reduce((sum, r) => sum + r.goals, 0)
-    const loanPV = timelineData.reduce((s, r) => s + r.loans, 0)
-    setExpensesPV(expPV)
-    if (typeof setGoalsPV === 'function') setGoalsPV(goalPV)
-    storage.set('expensesPV', expPV.toString())
-    storage.set('goalsPV', goalPV.toString())
-    storage.set('loansPV', loanPV.toString())
-    storage.set('totalPV', (expPV + goalPV + loanPV).toString())
-  }, [timelineData, setExpensesPV, setGoalsPV])
+    if (typeof setGoalsPV === 'function') setGoalsPV(pvGoals)
+    storage.set('goalsPV', pvGoals.toString())
+  }, [pvGoals, setGoalsPV])
+
+  useEffect(() => {
+    storage.set('loansPV', totalLiabilitiesPV.toString())
+  }, [totalLiabilitiesPV])
+
+  useEffect(() => {
+    const totalPV = pvExpensesLife + pvGoals + totalLiabilitiesPV
+    storage.set('totalPV', totalPV.toString())
+  }, [pvExpensesLife, pvGoals, totalLiabilitiesPV])
 
   // --- 5) PV Summary data ---
   const pvSummaryData = [
