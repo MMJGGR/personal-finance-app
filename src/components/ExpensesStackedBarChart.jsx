@@ -1,8 +1,19 @@
 import React from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts'
 import { useFinance } from '../FinanceContext'
+import {
+  generateRecurringFlows,
+  frequencyToPayments,
+} from '../utils/financeUtils'
 
 export default function ExpensesStackedBarChart() {
   const {
@@ -22,13 +33,24 @@ export default function ExpensesStackedBarChart() {
 
   const dataByYear = {}
   filtered.forEach(exp => {
-    const { category, frequency, amount, startYear, endYear = startYear } = exp
-    for (let year = startYear; year <= (endYear ?? startYear); year++) {
+    const flows = generateRecurringFlows({
+      amount: Number(exp.amount) || 0,
+      paymentsPerYear:
+        typeof exp.paymentsPerYear === 'number'
+          ? exp.paymentsPerYear
+          : typeof exp.frequency === 'number'
+            ? exp.frequency
+            : frequencyToPayments(exp.frequency),
+      growth: Number(exp.growth) || 0,
+      startYear: exp.startYear,
+      endYear: exp.endYear ?? exp.startYear,
+    })
+
+    flows.forEach(({ year, amount }) => {
       if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
-      // Convert monthly to annual amount
-      const value = frequency === 'Monthly' ? amount * 12 : amount
-      dataByYear[year][category] = (dataByYear[year][category] || 0) + value
-    }
+      dataByYear[year][exp.category] =
+        (dataByYear[year][exp.category] || 0) + amount
+    })
   })
 
   if (includeGoalsPV) {
