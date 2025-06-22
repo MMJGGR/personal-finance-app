@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   BarChart,
   Bar,
@@ -23,6 +23,24 @@ export default function ExpensesStackedBarChart() {
     includeLowPV,
     includeGoalsPV,
   } = useFinance()
+
+  const BASE_COLORS = {
+    Fixed: '#1f77b4',
+    Variable: '#ff7f0e',
+    Other: '#2ca02c',
+    Goal: '#9467bd',
+  }
+
+  const PALETTE = [
+    '#e41a1c',
+    '#377eb8',
+    '#4daf4a',
+    '#984ea3',
+    '#ff7f00',
+    '#a65628',
+    '#f781bf',
+    '#999999',
+  ]
 
   // Aggregate expenses by year and category
   const filtered = expensesList.filter(e => {
@@ -65,6 +83,30 @@ export default function ExpensesStackedBarChart() {
 
   const chartData = Object.values(dataByYear).sort((a, b) => a.year - b.year)
 
+  const categories = useMemo(() => {
+    const set = new Set()
+    filtered.forEach(e => set.add(e.category))
+    if (includeGoalsPV && goalsList.length > 0) set.add('Goal')
+    const baseOrder = ['Fixed', 'Variable', 'Other', 'Goal']
+    const unique = [
+      ...baseOrder.filter(c => set.has(c)),
+      ...Array.from(set).filter(c => !baseOrder.includes(c)),
+    ]
+    return unique
+  }, [filtered, goalsList, includeGoalsPV])
+
+  const colorMap = useMemo(() => {
+    const map = { ...BASE_COLORS }
+    let i = 0
+    categories.forEach(cat => {
+      if (!map[cat]) {
+        map[cat] = PALETTE[i % PALETTE.length]
+        i += 1
+      }
+    })
+    return map
+  }, [categories])
+
   return (
     <div className="w-full h-80 bg-white p-4 rounded-xl shadow-md">
       <h3 className="text-lg font-semibold mb-2">Expenses Over Time</h3>
@@ -74,11 +116,10 @@ export default function ExpensesStackedBarChart() {
           <XAxis dataKey="year" />
           <YAxis />
           <Tooltip />
-          <Legend formatter={(value) => value} />
-          <Bar dataKey="Fixed" stackId="a" fill="#1f77b4" />
-          <Bar dataKey="Variable" stackId="a" fill="#ff7f0e" />
-          <Bar dataKey="Other" stackId="a" fill="#2ca02c" />
-          <Bar dataKey="Goal" stackId="a" fill="#9467bd" />
+          <Legend formatter={value => value} />
+          {categories.map(cat => (
+            <Bar key={cat} dataKey={cat} stackId="a" fill={colorMap[cat]} />
+          ))}
         </BarChart>
       </ResponsiveContainer>
     </div>
