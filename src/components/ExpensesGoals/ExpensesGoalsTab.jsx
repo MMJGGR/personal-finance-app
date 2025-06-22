@@ -545,10 +545,11 @@ export default function ExpensesGoalsTab() {
   const INTEREST_COLOR  = '#f87171'
   return (
     <div className="space-y-8 p-6">
-      <section>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ResponsiveContainer width="100%" height={400} role="img" aria-label="Cashflow timeline chart">
           <LifetimeStackedChart data={timelineData} locale={settings.locale} currency={settings.currency} />
         </ResponsiveContainer>
+        <ExpensesStackedBarChart />
       </section>
 
       <Card>
@@ -628,8 +629,6 @@ export default function ExpensesGoalsTab() {
       </CardBody>
         )}
       </Card>
-
-      <ExpensesStackedBarChart />
 
       <Card className="mb-6">
         <CardHeader>
