@@ -15,7 +15,7 @@ import { calculateAmortizedPayment } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
 import ExpensesStackedBarChart from '../ExpensesStackedBarChart.jsx'
 import CashflowTimelineChart from './CashflowTimelineChart.jsx'
-import buildTimeline from '../../selectors/timeline'
+import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
 import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
@@ -413,7 +413,7 @@ export default function ExpensesGoalsTab() {
       retirementAge: retirementYear - 1,
       deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
     }
-    const rows = buildTimeline(
+    const rows = buildCashflowTimeline(
       minYear,
       maxYear,
       incomeFn,

@@ -1,4 +1,4 @@
-import buildTimeline from '../selectors/timeline'
+import { buildCashflowTimeline as buildTimeline } from '../utils/cashflowTimeline'
 
 test('goal added only in target year when startYear equals endYear', () => {
   const timeline = buildTimeline(

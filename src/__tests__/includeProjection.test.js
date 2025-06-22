@@ -1,4 +1,5 @@
-import { calculatePV, generateIncomeTimeline } from '../components/Income/helpers'
+import { calculatePV } from '../components/Income/helpers'
+import { generateIncomeTimeline } from '../utils/cashflowTimeline'
 
 test('inactive income excluded from PV totals and timeline', () => {
   const current = new Date().getFullYear()

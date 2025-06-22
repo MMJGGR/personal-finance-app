@@ -1,4 +1,4 @@
-import buildTimeline from '../selectors/timeline'
+import { buildCashflowTimeline as buildTimeline } from '../utils/cashflowTimeline'
 
 test('timeline spans retirement horizon when expenses extend forward', () => {
   const current = 2024
