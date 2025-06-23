@@ -72,6 +72,7 @@ export default function ExpensesGoalsTab() {
   const [showAssumptions, setShowAssumptions] = useState(false)
   const [_expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
+  const [chartMode, setChartMode] = useState('nominal')
 
   const filteredExpenses = useMemo(
     () =>
@@ -548,7 +549,21 @@ export default function ExpensesGoalsTab() {
   return (
     <div className="space-y-8 p-6">
       <section className="grid grid-cols-1 gap-6">
-        <ExpensesStackedBarChart />
+        <div className="mb-2 space-x-2">
+          <button
+            className={`px-3 py-1 rounded ${chartMode === 'nominal' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+            onClick={() => setChartMode('nominal')}
+          >
+            Nominal
+          </button>
+          <button
+            className={`px-3 py-1 rounded ${chartMode === 'pv' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+            onClick={() => setChartMode('pv')}
+          >
+            Discounted
+          </button>
+        </div>
+        <ExpensesStackedBarChart chartMode={chartMode} />
       </section>
 
       <Card>

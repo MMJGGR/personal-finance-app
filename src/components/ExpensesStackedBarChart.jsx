@@ -16,7 +16,7 @@ import {
 } from '../utils/financeUtils'
 import { getLoanFlowsByYear } from '../utils/loanHelpers'
 
-export default function ExpensesStackedBarChart() {
+export default function ExpensesStackedBarChart({ chartMode = 'nominal' }) {
   const {
     expensesList,
     goalsList,
@@ -25,6 +25,7 @@ export default function ExpensesStackedBarChart() {
     includeLowPV,
     includeGoalsPV,
     settings,
+    startYear,
   } = useFinance()
 
   const BASE_COLORS = {
@@ -92,7 +93,22 @@ export default function ExpensesStackedBarChart() {
     dataByYear[y]['Debt Service'] = (dataByYear[y]['Debt Service'] || 0) + amt
   })
 
-  const chartData = Object.values(dataByYear).sort((a, b) => a.year - b.year)
+  const nominalData = Object.values(dataByYear).sort((a, b) => a.year - b.year)
+
+  const chartData = useMemo(() => {
+    if (chartMode !== 'pv') return nominalData
+    const rate = settings.discountRate ?? 0
+    return nominalData.map(row => {
+      const diff = Number(row.year) - startYear + 1
+      const factor = Math.pow(1 + rate / 100, diff)
+      const discounted = { year: row.year }
+      Object.keys(row).forEach(k => {
+        if (k === 'year') return
+        discounted[k] = row[k] / factor
+      })
+      return discounted
+    })
+  }, [nominalData, chartMode, settings.discountRate, startYear])
 
   const categories = useMemo(() => {
     const set = new Set()
