@@ -5,7 +5,7 @@
  *    set projection assumptions, calculate present value,
  *    and visualize annual projections.
  *
- * Inputs (context): incomeSources, startYear, discountRate, years, monthlyExpense, settings
+ * Inputs (context): incomeSources, startYear, years, discountRate, monthlyExpense, settings
  * Outputs (context): incomePV (updated each render)
  */
 
@@ -34,22 +34,21 @@ export default function IncomeTab() {
     expensesList,
     assetsList,
     setIncomePV,
+    startYear,
+    years,
   } = useFinance();
 
 
   const currentYear = new Date().getFullYear();
-  const startYear = settings.startYear ?? currentYear;
   const discountRate = settings.discountRate ?? 0;
 
   const assumptions = useMemo(
     () => ({
       retirementAge: currentYear + (settings.retirementAge - profile.age),
-      deathAge: currentYear + (profile.lifeExpectancy - profile.age),
+      deathAge: currentYear + years,
     }),
-    [currentYear, settings.retirementAge, profile.lifeExpectancy, profile.age]
+    [currentYear, settings.retirementAge, profile.age, years]
   )
-
-  const years = assumptions.deathAge - currentYear
 
   // 1. Compute PV per stream & total
   const pvResults = useMemo(
