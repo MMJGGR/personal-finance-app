@@ -40,7 +40,27 @@ const FinanceContext = createContext()
 export function FinanceProvider({ children }) {
   // === Core financial state ===
   const [discountRate, setDiscountRate]     = useState(0)
-  const [years, setYears]                   = useState(1)
+  const [years, setYears] = useState(() => {
+    try {
+      const s = storage.get('settings')
+      if (s) {
+        const parsed = JSON.parse(s)
+        if (typeof parsed.projectionYears === 'number') {
+          return parsed.projectionYears
+        }
+      }
+    } catch {}
+    try {
+      const pStr = storage.get('profile')
+      if (pStr) {
+        const p = JSON.parse(pStr)
+        if (typeof p.lifeExpectancy === 'number' && typeof p.age === 'number') {
+          return Math.max(1, p.lifeExpectancy - p.age)
+        }
+      }
+    } catch {}
+    return 85 - 30
+  })
   const [monthlyExpense, setMonthlyExpense] = useState(() => {
     const s = storage.get('monthlyExpense')
     return s ? parseFloat(s) : 0
@@ -377,7 +397,7 @@ export function FinanceProvider({ children }) {
     const s = storage.get('settings')
     const defaults = {
       startYear: new Date().getFullYear(),
-      projectionYears: 1,
+      projectionYears: profile.lifeExpectancy - profile.age,
       chartView: 'nominal',
       discountRate: 0,
       inflationRate: 5,
@@ -572,11 +592,6 @@ export function FinanceProvider({ children }) {
       setStartYear(settings.startYear)
     }
   }, [settings.startYear])
-  useEffect(() => {
-    if (settings.projectionYears !== undefined && settings.projectionYears !== years) {
-      setYears(settings.projectionYears)
-    }
-  }, [settings.projectionYears])
   useEffect(() => { storage.set('goalsList', JSON.stringify(goalsList)) }, [goalsList])
   useEffect(() => { storage.set('assetsList', JSON.stringify(assetsList)) }, [assetsList])
   useEffect(() => { storage.set('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
