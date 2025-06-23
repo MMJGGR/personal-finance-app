@@ -14,11 +14,13 @@ import {
   generateRecurringFlows,
   frequencyToPayments,
 } from '../utils/financeUtils'
+import { getLoanFlowsByYear } from '../utils/loanHelpers'
 
 export default function ExpensesStackedBarChart() {
   const {
     expensesList,
     goalsList,
+    liabilitiesList,
     includeMediumPV,
     includeLowPV,
     includeGoalsPV,
@@ -29,6 +31,7 @@ export default function ExpensesStackedBarChart() {
     Variable: '#ff7f0e',
     Other: '#2ca02c',
     Goal: '#9467bd',
+    'Debt Service': '#34d399',
   }
 
   const PALETTE = [
@@ -81,6 +84,13 @@ export default function ExpensesStackedBarChart() {
     })
   }
 
+  const loanFlows = getLoanFlowsByYear(liabilitiesList)
+  Object.entries(loanFlows).forEach(([year, amt]) => {
+    const y = Number(year)
+    if (!dataByYear[y]) dataByYear[y] = { year: String(y) }
+    dataByYear[y]['Debt Service'] = (dataByYear[y]['Debt Service'] || 0) + amt
+  })
+
   const chartData = Object.values(dataByYear).sort((a, b) => a.year - b.year)
 
   const categories = useMemo(() => {
@@ -120,6 +130,9 @@ export default function ExpensesStackedBarChart() {
           {categories.map(cat => (
             <Bar key={cat} dataKey={cat} stackId="a" fill={colorMap[cat]} />
           ))}
+          {Object.keys(loanFlows).length > 0 && (
+            <Bar dataKey="Debt Service" stackId="a" fill="#34d399" />
+          )}
         </BarChart>
       </ResponsiveContainer>
     </div>
