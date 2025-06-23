@@ -9,7 +9,7 @@
  * Outputs (context): incomePV (updated each render)
  */
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from '../../FinanceContext';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
 import { calculatePV, findLinkedAsset } from './helpers';
@@ -41,6 +41,8 @@ export default function IncomeTab() {
 
   const currentYear = new Date().getFullYear();
   const discountRate = settings.discountRate ?? 0;
+
+  const [chartMode, setChartMode] = useState('nominal');
 
   const assumptions = useMemo(
     () => ({
@@ -86,6 +88,20 @@ export default function IncomeTab() {
         years
       ),
     [incomeSources, assumptions, assetsList, years, monthlyExpense]
+  )
+
+  const timelinePV = useMemo(
+    () =>
+      timelineData.map((row, idx) => {
+        const factor = Math.pow(1 + discountRate / 100, idx + 1)
+        return {
+          ...row,
+          gross: row.gross / factor,
+          net: row.net / factor,
+          expenses: row.expenses / factor,
+        }
+      }),
+    [timelineData, discountRate]
   )
 
   const gaps = useMemo(
@@ -368,8 +384,22 @@ export default function IncomeTab() {
       )}
 
       {/* Projection Chart */}
+      <div className="mb-2 space-x-2">
+        <button
+          className={`px-3 py-1 rounded ${chartMode === 'nominal' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setChartMode('nominal')}
+        >
+          Nominal
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${chartMode === 'pv' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setChartMode('pv')}
+        >
+          Discounted
+        </button>
+      </div>
       <IncomeTimelineChart
-        data={timelineData}
+        data={chartMode === 'pv' ? timelinePV : timelineData}
         locale={settings.locale}
         currency={settings.currency}
       />

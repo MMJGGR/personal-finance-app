@@ -155,8 +155,9 @@ Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 ## Income Views
 
 Above the income chart you'll find **Nominal** and **Discounted** buttons. Use
-them to toggle between raw projections and present value figures. The discount
-rate and projection horizon (Years) are both configured under **Settings**.
+them to toggle between raw projections and present value figures. The expenses
+chart in **Expenses & Goals** offers the same controls. The discount rate and
+projection horizon (Years) are both configured under **Settings**.
 
 ## Manual Verification
 
