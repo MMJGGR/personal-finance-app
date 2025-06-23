@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { FinanceProvider, useFinance } from '../FinanceContext'
 import { calculatePV } from '../utils/financeUtils'
 
@@ -69,4 +69,38 @@ test('expense PV defaults to inflation rate when growth missing', () => {
 
   const expected = calculatePV(1000, 1, 2, 5, 2)
   expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(expected)
+})
+
+function ExpensePVUpdate({ years, newGrowth }) {
+  const { expensesPV, setYears, setExpensesList } = useFinance()
+  useEffect(() => { setYears(years) }, [years, setYears])
+  const handle = () => setExpensesList(prev => prev.map((e, i) => i === 0 ? { ...e, growth: newGrowth } : e))
+  return (
+    <div>
+      <div data-testid="pv">{expensesPV}</div>
+      <button onClick={handle} data-testid="update">update</button>
+    </div>
+  )
+}
+
+test('expense PV updates when growth changes', async () => {
+  const current = new Date().getFullYear()
+  localStorage.setItem('profile', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 32 }))
+  localStorage.setItem('settings', JSON.stringify({ discountRate: 5, inflationRate: 0, startYear: current, projectionYears: 2 }))
+  localStorage.setItem('expensesList', JSON.stringify([
+    { name: 'Rent', amount: 100, frequency: 1, growth: 0, startYear: current }
+  ]))
+
+  render(
+    <FinanceProvider>
+      <ExpensePVUpdate years={2} newGrowth={10} />
+    </FinanceProvider>
+  )
+
+  const pvNode = screen.getByTestId('pv')
+  const before = Number(pvNode.textContent)
+  fireEvent.click(screen.getByTestId('update'))
+  await waitFor(() => Number(pvNode.textContent) !== before)
+  const expected = calculatePV(100, 1, 10, 5, 2)
+  expect(Number(pvNode.textContent)).toBeCloseTo(expected)
 })
