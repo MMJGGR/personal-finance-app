@@ -1,6 +1,6 @@
 import { calculateAmortizedPayment } from '../../utils/financeUtils.js'
 
-export function defaultExpenses(start, end) {
+export function defaultExpenses(start, end, inflation = 0) {
   return [
     {
       id: crypto.randomUUID(),
@@ -8,7 +8,7 @@ export function defaultExpenses(start, end) {
       amount: 1200,
       frequency: 'Monthly',
       paymentsPerYear: 12,
-      growth: 0,
+      growth: inflation,
       category: 'Fixed',
       priority: 1,
       include: true,
@@ -21,7 +21,7 @@ export function defaultExpenses(start, end) {
       amount: 300,
       frequency: 'Monthly',
       paymentsPerYear: 12,
-      growth: 0,
+      growth: inflation,
       category: 'Variable',
       priority: 2,
       include: true,
@@ -34,7 +34,7 @@ export function defaultExpenses(start, end) {
       amount: 100,
       frequency: 'Monthly',
       paymentsPerYear: 12,
-      growth: 0,
+      growth: inflation,
       category: 'Other',
       priority: 3,
       include: true,

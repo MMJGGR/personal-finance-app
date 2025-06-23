@@ -1,5 +1,5 @@
 import { getStreamEndYear } from '../../utils/incomeProjection'
-import { calculatePV as calcPV, generateRecurringFlows, frequencyToPayments } from '../../utils/financeUtils'
+import { calculatePV as calcPV, frequencyToPayments } from '../../utils/financeUtils'
 
 export function findLinkedAsset(id, assetsList = []) {
   return assetsList.find(a => a.id === id)

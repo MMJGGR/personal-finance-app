@@ -86,7 +86,7 @@ test('buildCashflowTimeline matches previous implementation', () => {
   const expenses = [{ amount: 100, paymentsPerYear: 12, growth: 0, startYear: 2024, endYear: 2025 }]
   const goals = [{ amount: 500, targetYear: 2025 }]
   const loans = y => (y === 2025 ? 200 : 0)
-  const newRes = buildCashflowTimeline(2024, 2025, incomeFn, expenses, goals, loans)
+  const newRes = buildCashflowTimeline(2024, 2025, incomeFn, expenses, goals, loans, 0)
   const oldRes = oldBuildTimeline(2024, 2025, incomeFn, expenses, goals, loans)
   expect(newRes).toEqual(oldRes)
 })

@@ -50,9 +50,9 @@ This ensures that ESLint and Jest are available locally.
 
 ## Configuration
 
-Application settings are stored in local storage and can be modified under the **Settings** tab.  Available keys include:
+-Application settings are stored in local storage and can be modified under the **Settings** tab.  Available keys include:
 
-- `inflationRate` – stored for reference only; PV calculations use nominal growth
+- `inflationRate` – annual rate applied to expenses when no specific growth is set
 - `expectedReturn` – expected yearly portfolio return
 - `currency` – default ISO currency code
 - `locale` – locale for number formatting
