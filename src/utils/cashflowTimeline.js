@@ -67,7 +67,7 @@ export function buildCashflowTimeline(
           typeof e.paymentsPerYear === 'number'
             ? e.paymentsPerYear
             : frequencyToPayments(e.frequency) || 1;
-        const growth = e.growth ?? inflationRate;
+        const growth = Number(e.growth ?? inflationRate) || 0;
         expenses += (Number(e.amount) || 0) * freq * Math.pow(1 + growth / 100, t);
       }
     });

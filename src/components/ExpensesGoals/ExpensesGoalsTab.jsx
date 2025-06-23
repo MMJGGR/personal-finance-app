@@ -326,7 +326,7 @@ export default function ExpensesGoalsTab() {
       const first = Math.max(start, currentYear)
       const last = Math.min(end, horizonEnd)
       if (last < first) return sum
-      const growth = e.growth ?? settings.inflationRate
+      const growth = Number(e.growth ?? settings.inflationRate) || 0
       let pv = 0
       const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
       for (let yr = first; yr <= last; yr++) {
@@ -605,10 +605,11 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showExpenses && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-8 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Amt ({settings.currency})</div>
               <div>Pay/Yr</div>
+              <div>Growth %</div>
               <div>Category</div>
               <div>Start</div>
               <div>End</div>
@@ -624,6 +625,7 @@ export default function ExpensesGoalsTab() {
                 name={e.name}
                 amount={e.amount}
                 frequency={e.frequency}
+                growth={e.growth}
                 category={e.category}
                 startYear={e.startYear ?? defaultStart}
                 endYear={e.endYear ?? defaultEnd}
