@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { FinanceProvider } from '../FinanceContext'
 import ExpensesGoalsTab from '../components/ExpensesGoals/ExpensesGoalsTab'
 import { formatCurrency } from '../utils/formatters'
+import { calculatePV } from '../utils/financeUtils'
 
 beforeAll(() => {
   global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
@@ -36,7 +37,8 @@ test('adding an expense updates PV totals', async () => {
 
   const profile = JSON.parse(localStorage.getItem('profile'))
   const years = profile.lifeExpectancy - profile.age
-  const expectedVal = formatCurrency(100 * 12 * years, 'en-US', 'KES').replace('KES', '')
+  const expectedPV = calculatePV(100, 12, 5, 0, years)
+  const expectedVal = formatCurrency(expectedPV, 'en-US', 'KES').replace('KES', '')
   await waitFor(() => {
     expect(valueNode.textContent).toContain(expectedVal.trim())
   })

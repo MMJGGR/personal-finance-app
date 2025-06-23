@@ -48,7 +48,8 @@ export function buildCashflowTimeline(
   incomeFn,
   expensesList,
   goalsList,
-  getLoansForYear = () => 0
+  getLoansForYear = () => 0,
+  inflationRate = 0
 ) {
   const timeline = [];
   let prevSurplus = 0;
@@ -66,7 +67,7 @@ export function buildCashflowTimeline(
           typeof e.paymentsPerYear === 'number'
             ? e.paymentsPerYear
             : frequencyToPayments(e.frequency) || 1;
-        const growth = e.growth || 0;
+        const growth = e.growth ?? inflationRate;
         expenses += (Number(e.amount) || 0) * freq * Math.pow(1 + growth / 100, t);
       }
     });

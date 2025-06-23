@@ -9,6 +9,7 @@ const getYears = state => state.years || 1
 const getDiscountRate = state => state.settings?.discountRate ?? state.discountRate ?? 0
 const getRetirementAge = state => state.settings?.retirementAge ?? 65
 const getCurrentAge = state => state.profile?.age ?? 0
+const getInflationRate = state => state.settings?.inflationRate ?? 0
 
 export const selectAnnualIncome = createSelector(
   [getIncomeSources, getStartYear, getYears, getRetirementAge, getCurrentAge],
@@ -45,14 +46,14 @@ export const selectAnnualIncomePV = createSelector(
 )
 
 export const selectAnnualOutflow = createSelector(
-  [getExpenses, getGoals, getStartYear, getYears],
-  (expenses, goals, startYear, years) => {
+  [getExpenses, getGoals, getStartYear, getYears, getInflationRate],
+  (expenses, goals, startYear, years, inflationRate) => {
     return Array.from({ length: years }, (_, idx) => {
       const year = startYear + idx
       const horizonEnd = startYear + years - 1
       const expTotal = expenses.reduce((sum, e) => {
         const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
-        const growth = e.growth || 0
+        const growth = e.growth ?? inflationRate
         const s = e.startYear ?? startYear
         const end = e.endYear ?? horizonEnd
         if (year < s || year > end) return sum

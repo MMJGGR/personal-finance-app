@@ -53,3 +53,20 @@ test('expense PV uses nominal growth rate', () => {
   const expected = calculatePV(500, 1, 4, 8, 5)
   expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(expected)
 })
+
+test('expense PV defaults to inflation rate when growth missing', () => {
+  const current = new Date().getFullYear()
+  localStorage.setItem('settings', JSON.stringify({ discountRate: 5, inflationRate: 2, startYear: current }))
+  localStorage.setItem('expensesList', JSON.stringify([
+    { name: 'Rent', amount: 1000, frequency: 1, startYear: current }
+  ]))
+
+  render(
+    <FinanceProvider>
+      <ExpensePV years={2} />
+    </FinanceProvider>
+  )
+
+  const expected = calculatePV(1000, 1, 2, 5, 2)
+  expect(Number(screen.getByTestId('pv').textContent)).toBeCloseTo(expected)
+})

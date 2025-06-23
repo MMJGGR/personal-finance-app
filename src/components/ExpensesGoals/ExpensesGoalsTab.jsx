@@ -92,7 +92,7 @@ export default function ExpensesGoalsTab() {
   // Populate defaults on first mount when no data is present
   useEffect(() => {
     if (expensesList.length === 0) {
-      const list = defaultExpenses(defaultStart, defaultEnd)
+      const list = defaultExpenses(defaultStart, defaultEnd, settings.inflationRate)
       setExpensesList(list)
       storage.set('expensesList', JSON.stringify(list))
     }
@@ -183,7 +183,7 @@ export default function ExpensesGoalsTab() {
         amount: 0,
         frequency: 'Monthly',
         paymentsPerYear: 12,
-        growth: 0,
+        growth: settings.inflationRate,
         category: 'Fixed',
         priority: 2,
         include: true,
@@ -309,7 +309,7 @@ export default function ExpensesGoalsTab() {
   }
 
   const resetDefaults = () => {
-    setExpensesList(defaultExpenses(defaultStart, defaultEnd))
+    setExpensesList(defaultExpenses(defaultStart, defaultEnd, settings.inflationRate))
     setGoalsList(defaultGoals(defaultStart))
     setLiabilitiesList(defaultLiabilities(defaultStart))
   }
@@ -326,7 +326,7 @@ export default function ExpensesGoalsTab() {
       const first = Math.max(start, currentYear)
       const last = Math.min(end, horizonEnd)
       if (last < first) return sum
-      const growth = e.growth || 0
+      const growth = e.growth ?? settings.inflationRate
       let pv = 0
       const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
       for (let yr = first; yr <= last; yr++) {
@@ -337,7 +337,7 @@ export default function ExpensesGoalsTab() {
       }
       return sum + pv
     }, 0)
-  }, [filteredExpenses, discountRate, lifeYears, currentYear])
+  }, [filteredExpenses, discountRate, lifeYears, currentYear, settings.inflationRate])
 
   useEffect(() => {
     setExpensesPV(pvExpensesLife)
@@ -419,7 +419,8 @@ export default function ExpensesGoalsTab() {
       incomeFn,
       filteredExpenses,
       filteredGoals,
-      loanForYear
+      loanForYear,
+      settings.inflationRate
     )
     let running = 0
     return rows.map(row => {
@@ -454,6 +455,7 @@ export default function ExpensesGoalsTab() {
     retirementYear,
     profile.age,
     profile.lifeExpectancy,
+    settings.inflationRate,
   ])
 
   const maxSurplus = useMemo(() => {

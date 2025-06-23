@@ -49,7 +49,7 @@ export function FinanceProvider({ children }) {
           return parsed.projectionYears
         }
       }
-    } catch {}
+    } catch { /* ignore parse error */ }
     try {
       const pStr = storage.get('profile')
       if (pStr) {
@@ -58,7 +58,7 @@ export function FinanceProvider({ children }) {
           return Math.max(1, p.lifeExpectancy - p.age)
         }
       }
-    } catch {}
+    } catch { /* ignore parse error */ }
     return 85 - 30
   })
   const [monthlyExpense, setMonthlyExpense] = useState(() => {
@@ -747,7 +747,7 @@ export function FinanceProvider({ children }) {
     const rate = settings.discountRate ?? discountRate
     const horizonEnd = startYear + years - 1
     const totalPv = expensesList.reduce((sum, exp) => {
-      const growth = exp.growth || 0
+      const growth = exp.growth ?? settings.inflationRate
       const s = exp.startYear ?? startYear
       const e = exp.endYear ?? horizonEnd
       const first = Math.max(s, startYear)

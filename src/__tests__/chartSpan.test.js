@@ -6,6 +6,6 @@ test('timeline spans retirement horizon when expenses extend forward', () => {
   const expenses = [
     { amount: 100, paymentsPerYear: 12, startYear: current, endYear: retirementYear }
   ]
-  const timeline = buildTimeline(current, retirementYear, () => 0, expenses, [])
+  const timeline = buildTimeline(current, retirementYear, () => 0, expenses, [], undefined, 0)
   expect(timeline).toHaveLength(retirementYear - current + 1)
 })

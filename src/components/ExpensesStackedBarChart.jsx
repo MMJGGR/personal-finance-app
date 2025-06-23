@@ -24,6 +24,7 @@ export default function ExpensesStackedBarChart() {
     includeMediumPV,
     includeLowPV,
     includeGoalsPV,
+    settings,
   } = useFinance()
 
   const BASE_COLORS = {
@@ -62,7 +63,7 @@ export default function ExpensesStackedBarChart() {
           : typeof exp.frequency === 'number'
             ? exp.frequency
             : frequencyToPayments(exp.frequency),
-      growth: Number(exp.growth) || 0,
+      growth: Number(exp.growth ?? settings.inflationRate) || 0,
       startYear: exp.startYear,
       endYear: exp.endYear ?? exp.startYear,
     })
