@@ -18,6 +18,7 @@ import calcDiscretionaryAdvice from '../../utils/discretionaryUtils';
 import IncomeSourceRow from './IncomeSourceRow'
 import IncomeTimelineChart from './IncomeTimelineChart'
 import { defaultIncomeSources } from './defaults.js'
+import { usePersona } from '../../PersonaContext.jsx'
 
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
@@ -38,6 +39,7 @@ export default function IncomeTab() {
     startYear,
     years,
   } = useFinance();
+  const { currentData } = usePersona();
 
 
   const currentYear = new Date().getFullYear();
@@ -232,7 +234,19 @@ export default function IncomeTab() {
   }
 
   const resetDefaults = () => {
-    setIncomeSources(defaultIncomeSources(startYear))
+    if (Array.isArray(currentData?.incomeSources) && currentData.incomeSources.length > 0) {
+      const migrated = currentData.incomeSources.map(src => ({
+        id: src.id || crypto.randomUUID(),
+        startYear: src.startYear ?? startYear,
+        endYear: src.endYear ?? null,
+        linkedAssetId: src.linkedAssetId ?? '',
+        active: src.active !== false,
+        ...src,
+      }))
+      setIncomeSources(migrated)
+    } else {
+      setIncomeSources(defaultIncomeSources(startYear))
+    }
   }
 
   const updateIncome = onFieldChange;

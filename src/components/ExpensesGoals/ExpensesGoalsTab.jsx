@@ -309,9 +309,60 @@ export default function ExpensesGoalsTab() {
   }
 
   const resetDefaults = () => {
-    setExpensesList(defaultExpenses(defaultStart, defaultEnd, settings.inflationRate))
-    setGoalsList(defaultGoals(defaultStart))
-    setLiabilitiesList(defaultLiabilities(defaultStart))
+    if (Array.isArray(currentData?.expensesList) && currentData.expensesList.length > 0) {
+      const list = currentData.expensesList.map(e => ({
+        paymentsPerYear: typeof e.frequency === 'number'
+          ? e.frequency
+          : frequencyToPayments(e.frequency) || 1,
+        startYear: e.startYear ?? defaultStart,
+        endYear: e.endYear ?? null,
+        priority: e.priority ?? 2,
+        include: e.include !== false,
+        id: e.id || crypto.randomUUID(),
+        ...e,
+      }))
+      setExpensesList(list)
+    } else {
+      setExpensesList(defaultExpenses(defaultStart, defaultEnd, settings.inflationRate))
+    }
+
+    if (Array.isArray(currentData?.goalsList) && currentData.goalsList.length > 0) {
+      const goals = currentData.goalsList.map(g => ({
+        id: g.id || crypto.randomUUID(),
+        startYear: g.startYear ?? g.targetYear ?? defaultStart,
+        endYear: g.endYear ?? g.targetYear ?? defaultStart,
+        ...g,
+      }))
+      setGoalsList(goals)
+    } else {
+      setGoalsList(defaultGoals(defaultStart))
+    }
+
+    if (Array.isArray(currentData?.liabilitiesList) && currentData.liabilitiesList.length > 0) {
+      const liabs = currentData.liabilitiesList.map(l => {
+        const principal = Number(l.principal) || 0
+        const rate = Number(l.interestRate ?? l.ratePct) || 0
+        const term = Number(l.termYears ?? (l.termMonths || 0) / 12) || 0
+        const ppy = Number(l.paymentsPerYear) || 12
+        const computedPayment = calculateAmortizedPayment(principal, rate, term, ppy)
+        return {
+          id: l.id || crypto.randomUUID(),
+          name: l.name,
+          principal,
+          interestRate: rate,
+          termYears: term,
+          paymentsPerYear: ppy,
+          extraPayment: l.extraPayment ?? 0,
+          startYear: l.startYear ?? defaultStart,
+          endYear: l.endYear ?? defaultEnd,
+          payment: l.monthlyPayment ?? computedPayment,
+          include: l.include !== false,
+        }
+      })
+      setLiabilitiesList(liabs)
+    } else {
+      setLiabilitiesList(defaultLiabilities(defaultStart))
+    }
   }
 
   // --- 1) Remaining lifetime horizon ---
