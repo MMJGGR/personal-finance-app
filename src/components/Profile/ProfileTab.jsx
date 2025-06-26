@@ -6,7 +6,13 @@ import sanitize from '../../utils/sanitize'
 import { appendAuditLog } from '../../utils/auditLog'
 
 export default function ProfileTab() {
-  const { profile, updateProfile, riskScore } = useFinance()
+  const {
+    profile,
+    updateProfile,
+    clearProfile,
+    resetProfile,
+    riskScore,
+  } = useFinance()
   const [form, setForm] = useState(profile)
 
   // Whenever the context’s profile changes, reset the form
@@ -184,7 +190,24 @@ export default function ProfileTab() {
         </div>
       </div>
 
-      <div className="text-right text-sm text-slate-500 italic">
+      <div className="text-right space-x-2">
+        <button
+          onClick={clearProfile}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Clear profile form"
+        >
+          Clear
+        </button>
+        <button
+          onClick={resetProfile}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Reset profile to defaults"
+        >
+          Reset to Defaults
+        </button>
+      </div>
+
+      <div className="text-right text-sm text-slate-500 italic mt-2">
         All data is auto-saved and can be exported for KYC or broker integrations.
       </div>
     </div>
