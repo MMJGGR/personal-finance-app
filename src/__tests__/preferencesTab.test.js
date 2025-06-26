@@ -14,4 +14,6 @@ test('preferences tab renders correctly', () => {
     </FinanceProvider>
   );
   expect(screen.getByText(/Global Settings/i)).toBeInTheDocument();
+  expect(screen.getByTitle('Discount rate')).toBeInTheDocument();
+  expect(screen.getByTitle('Projection years')).toBeInTheDocument();
 });

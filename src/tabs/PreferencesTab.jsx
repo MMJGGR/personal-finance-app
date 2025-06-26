@@ -60,6 +60,36 @@ export default function PreferencesTab() {
           />
         </label>
 
+        {/* Discount Rate */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Discount Rate (%)</span>
+          <input
+            type="number"
+            value={form.discountRate}
+            onChange={e => handleChange('discountRate', parseFloat(e.target.value) || 0)}
+            className="w-full border rounded-md p-2"
+            title="Discount rate"
+          />
+        </label>
+
+        {/* Projection Years */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Projection Years</span>
+          <input
+            type="number"
+            min={1}
+            value={form.projectionYears}
+            onChange={e =>
+              handleChange(
+                'projectionYears',
+                Math.max(1, parseInt(e.target.value) || 1)
+              )
+            }
+            className="w-full border rounded-md p-2"
+            title="Projection years"
+          />
+        </label>
+
         {/* Currency */}
         <label className="block">
           <span className="text-sm text-slate-600">Default Currency</span>
