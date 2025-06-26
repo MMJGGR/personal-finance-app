@@ -26,6 +26,7 @@ export default function ExpensesStackedBarChart({ chartMode = 'nominal' }) {
     includeGoalsPV,
     settings,
     startYear,
+    years,
   } = useFinance()
 
   const BASE_COLORS = {
@@ -49,6 +50,7 @@ export default function ExpensesStackedBarChart({ chartMode = 'nominal' }) {
 
   // Aggregate expenses by year and category
   const filtered = expensesList.filter(e => {
+    if (e.include === false) return false
     if (e.priority === 2 && !includeMediumPV) return false
     if (e.priority > 2 && !includeLowPV) return false
     return true
@@ -66,7 +68,7 @@ export default function ExpensesStackedBarChart({ chartMode = 'nominal' }) {
             : frequencyToPayments(exp.frequency),
       growth: Number(exp.growth ?? settings.inflationRate) || 0,
       startYear: exp.startYear,
-      endYear: exp.endYear ?? exp.startYear,
+      endYear: exp.endYear ?? startYear + years - 1,
     })
 
     flows.forEach(({ year, amount }) => {

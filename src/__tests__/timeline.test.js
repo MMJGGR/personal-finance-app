@@ -79,3 +79,16 @@ test('expense growth overrides inflation rate', () => {
   )
   expect(timeline[1].expenses).toBeCloseTo(timeline[0].expenses * 1.1)
 })
+
+test('expense without endYear persists through maxYear', () => {
+  const timeline = buildTimeline(
+    2024,
+    2026,
+    () => 0,
+    [{ amount: 100, paymentsPerYear: 1, startYear: 2024 }],
+    [],
+    undefined,
+    0
+  )
+  expect(timeline.map(r => r.expenses)).toEqual([100, 100, 100])
+})
