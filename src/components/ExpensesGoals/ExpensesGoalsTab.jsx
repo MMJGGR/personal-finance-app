@@ -839,13 +839,14 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showLiabilities && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-8 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Principal</div>
               <div className="text-right">Rate %</div>
               <div className="text-right">Term</div>
               <div>Pay/Yr</div>
               <div className="text-right">Extra</div>
+              <div className="text-right">Pmt</div>
               <div>Include</div>
               <div></div>
             </div>
@@ -853,7 +854,7 @@ export default function ExpensesGoalsTab() {
               <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
             )}
             {liabilitiesList.map(l => (
-              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1">
+              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
                 <div>
                   <label htmlFor={`liab-name-${l.id}`} className="sr-only">Liability name</label>
                   <input
@@ -920,6 +921,7 @@ export default function ExpensesGoalsTab() {
                     aria-label="Extra payment"
                   />
                 </div>
+                <div className="text-right">{l.computedPayment?.toFixed(0)}</div>
                 <div className="flex items-center mt-6 sm:mt-0">
                   <input
                     id={`liab-include-${l.id}`}
