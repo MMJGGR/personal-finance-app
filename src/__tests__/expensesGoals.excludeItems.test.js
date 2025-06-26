@@ -4,6 +4,24 @@ import { FinanceProvider } from '../FinanceContext'
 import ExpensesGoalsTab from '../components/ExpensesGoals/ExpensesGoalsTab'
 import { calculateAmortizedPayment } from '../utils/financeUtils'
 
+jest.mock('recharts', () => {
+  const actual = jest.requireActual('recharts')
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }) => <div>{children}</div>,
+    BarChart: props => {
+      global.__chartData = props.data
+      return <div />
+    },
+    Bar: () => null,
+    XAxis: () => null,
+    YAxis: () => null,
+    CartesianGrid: () => null,
+    Tooltip: () => null,
+    Legend: () => null,
+  }
+})
+
 beforeAll(() => {
   global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
 })
@@ -63,10 +81,12 @@ test('unchecking an expense removes it from PV totals and chart data', async () 
   const label = await screen.findByText('PV of Expenses')
   const valueNode = label.nextSibling
   await waitFor(() => numeric(valueNode.textContent) > 0)
+  expect(global.__chartData[0]['Fixed']).toBeGreaterThan(0)
   const chk = screen.getByLabelText('Include in PV')
   fireEvent.click(chk)
   await waitFor(() => expect(numeric(valueNode.textContent)).toBe(0))
   expect(localStorage.getItem('expensesPV')).toBe('0')
+  expect(global.__chartData[0].Fixed).toBeUndefined()
 })
 
 test('unchecking a liability removes it from PV totals and chart data', async () => {

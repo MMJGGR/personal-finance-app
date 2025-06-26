@@ -52,6 +52,7 @@ export const selectAnnualOutflow = createSelector(
       const year = startYear + idx
       const horizonEnd = startYear + years - 1
       const expTotal = expenses.reduce((sum, e) => {
+        if (e.include === false) return sum
         const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
         const growth = Number(e.growth ?? inflationRate) || 0
         const s = e.startYear ?? startYear
