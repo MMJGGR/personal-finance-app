@@ -61,7 +61,9 @@ export function buildCashflowTimeline(
     const loans = getLoansForYear(y);
 
     expensesList.forEach(e => {
-      if (y >= e.startYear && y <= e.endYear) {
+      if (e.include === false) return;
+      const end = e.endYear ?? maxYear;
+      if (y >= e.startYear && y <= end) {
         const t = y - e.startYear;
         const freq =
           typeof e.paymentsPerYear === 'number'
