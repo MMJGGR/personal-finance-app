@@ -48,6 +48,7 @@ export default function BalanceSheetTab() {
   } = useFinance()
 
   const [expandedAssets, setExpandedAssets] = useState({})
+  const [chartMode, setChartMode] = useState('nominal')
 
   const assetReturn = useMemo(() => {
     const total = assetsList.reduce((s, a) => s + Number(a.amount || 0), 0)
@@ -250,6 +251,24 @@ export default function BalanceSheetTab() {
     includeLiabilitiesNPV,
     settings.inflationRate
   ])
+
+  const timelinePV = useMemo(
+    () =>
+      timelineData.map((row, idx) => {
+        const factor = Math.pow(1 + (settings.discountRate ?? 0) / 100, idx + 1)
+        return {
+          ...row,
+          income: row.income / factor,
+          expenses: row.expenses / factor,
+          goals: row.goals / factor,
+          loans: row.loans / factor,
+          debtService: row.debtService / factor,
+          net: row.net / factor,
+          surplus: row.surplus / factor,
+        }
+      }),
+    [timelineData, settings.discountRate]
+  )
 
   const summaryRows = [
     { label: 'Income PV', value: incomePV },
@@ -544,8 +563,22 @@ export default function BalanceSheetTab() {
 
       <div className="bg-white p-4 rounded-xl shadow-md">
         <h4 className="font-semibold text-slate-700 mb-2">Cashflow Projection</h4>
+        <div className="mb-2 space-x-2">
+          <button
+            className={`px-3 py-1 rounded ${chartMode === 'nominal' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+            onClick={() => setChartMode('nominal')}
+          >
+            Nominal
+          </button>
+          <button
+            className={`px-3 py-1 rounded ${chartMode === 'pv' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+            onClick={() => setChartMode('pv')}
+          >
+            Discounted
+          </button>
+        </div>
         <CashflowTimelineChart
-          data={timelineData}
+          data={chartMode === 'pv' ? timelinePV : timelineData}
           locale={settings.locale}
           currency={settings.currency}
         />
