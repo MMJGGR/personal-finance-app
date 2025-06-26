@@ -156,6 +156,9 @@ Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
 Above the income chart you'll find **Nominal** and **Discounted** buttons used to toggle between raw projections and present value figures. The expenses chart in **Expenses & Goals** and the surplus (cashflow) chart on the **Balance Sheet** tab offer the same controls. Adjust the assumptions using the **Discount Rate (%)** and **Projection Years** fields under **Settings**.
 
+### Managing Income Sources
+The **Income** tab now includes **Clear** and **Reset Defaults** buttons next to the export options. Use **Clear** to remove all entries and **Reset Defaults** to insert a starter salary stream beginning in the selected start year.
+
 ## Manual Verification
 
 ### Verifying Charts

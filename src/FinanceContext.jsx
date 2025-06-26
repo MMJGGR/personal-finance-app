@@ -21,6 +21,7 @@ import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
 import storage from './utils/storage'
+import { defaultIncomeSources } from './components/Income/defaults.js'
 
 const DEFAULT_CURRENCY_MAP = {
   Kenyan: 'KES',
@@ -166,19 +167,7 @@ export function FinanceProvider({ children }) {
   const [incomeSources, setIncomeSources] = useState(() => {
     const s = storage.get('incomeSources')
     const now = new Date().getFullYear()
-    const defaults = [{
-      id: crypto.randomUUID(),
-      name: 'Salary',
-      type: 'Employment',
-      amount: 10000,
-      frequency: 12,
-      growth: 5,
-      taxRate: 30,
-      startYear: now,
-      endYear: null,
-      linkedAssetId: '',
-      active: true,
-    }]
+    const defaults = defaultIncomeSources(now)
     if (s) {
       try {
         const parsed = JSON.parse(s)
