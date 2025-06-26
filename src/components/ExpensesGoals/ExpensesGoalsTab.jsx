@@ -547,23 +547,6 @@ export default function ExpensesGoalsTab() {
   const INTEREST_COLOR  = '#f87171'
   return (
     <div className="space-y-8 p-6">
-      <section className="grid grid-cols-1 gap-6">
-        <div className="mb-2 space-x-2">
-          <button
-            className={`px-3 py-1 rounded ${chartMode === 'nominal' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
-            onClick={() => setChartMode('nominal')}
-          >
-            Nominal
-          </button>
-          <button
-            className={`px-3 py-1 rounded ${chartMode === 'pv' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
-            onClick={() => setChartMode('pv')}
-          >
-            Discounted
-          </button>
-        </div>
-        <ExpensesStackedBarChart chartMode={chartMode} />
-      </section>
 
       <Card>
         <h3 className="text-lg font-bold text-amber-800">Advisor Insights</h3>
@@ -915,6 +898,22 @@ export default function ExpensesGoalsTab() {
           🚀 Submit to API
         </button>
       </div>
+
+      <div className="mb-2 space-x-2">
+        <button
+          className={`px-3 py-1 rounded ${chartMode === 'nominal' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setChartMode('nominal')}
+        >
+          Nominal
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${chartMode === 'pv' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setChartMode('pv')}
+        >
+          Discounted
+        </button>
+      </div>
+      <ExpensesStackedBarChart chartMode={chartMode} />
       <AssumptionsModal open={showAssumptions} onClose={() => setShowAssumptions(false)} />
     </div>
   )
