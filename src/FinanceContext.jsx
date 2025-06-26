@@ -8,6 +8,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react'
+import { usePersona } from './PersonaContext.jsx'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
 import {
   selectAnnualIncome,
@@ -35,9 +36,32 @@ function safeParse(str, fallback) {
   }
 }
 
+const defaultProfile = {
+  name: '', // FIXME: unused - pending integration
+  email: '', // FIXME: unused - pending integration
+  phone: '', // FIXME: unused - pending integration
+  age: 30,
+  maritalStatus: '', // FIXME: unused - pending integration
+  numDependents: 0, // FIXME: unused - pending integration
+  residentialAddress: '', // FIXME: unused - pending integration
+  nationality: '', // FIXME: unused - pending integration
+  idNumber: '', // FIXME: unused - pending integration
+  taxResidence: '', // FIXME: unused - pending integration
+  employmentStatus: '', // FIXME: unused - pending integration
+  annualIncome: 0,
+  liquidNetWorth: 0,
+  sourceOfFunds: '', // FIXME: unused - pending integration
+  investmentKnowledge: '',
+  lossResponse: '',
+  investmentHorizon: '',
+  investmentGoal: '',
+  lifeExpectancy: 85,
+}
+
 const FinanceContext = createContext()
 
 export function FinanceProvider({ children }) {
+  const { currentData } = usePersona()
   // === Core financial state ===
   const [discountRate, setDiscountRate]     = useState(0)
   const [years, setYears] = useState(() => {
@@ -357,28 +381,7 @@ export function FinanceProvider({ children }) {
   // === Profile & KYC fields (with lifeExpectancy) ===
   const [profile, setProfile] = useState(() => {
     const s = storage.get('profile')
-    const defaults = {
-      name: '', // FIXME: unused - pending integration
-      email: '', // FIXME: unused - pending integration
-      phone: '', // FIXME: unused - pending integration
-      age: 30,
-      maritalStatus: '', // FIXME: unused - pending integration
-      numDependents: 0, // FIXME: unused - pending integration
-      residentialAddress: '', // FIXME: unused - pending integration
-      nationality: '', // FIXME: unused - pending integration
-      idNumber: '', // FIXME: unused - pending integration
-      taxResidence: '', // FIXME: unused - pending integration
-      employmentStatus: '', // FIXME: unused - pending integration
-      annualIncome: 0,
-      liquidNetWorth: 0,
-      sourceOfFunds: '', // FIXME: unused - pending integration
-      investmentKnowledge: '',
-      lossResponse: '',
-      investmentHorizon: '',
-      investmentGoal: '',
-      lifeExpectancy: 85,
-    }
-    return s ? safeParse(s, defaults) : defaults
+    return s ? safeParse(s, defaultProfile) : defaultProfile
   })
 
   // Utility to create a new asset with defaults
@@ -463,6 +466,28 @@ export function FinanceProvider({ children }) {
       if (cur) updateSettings({ ...settings, currency: cur })
     }
   }, [])
+
+  const clearProfile = useCallback(() => {
+    updateProfile(defaultProfile)
+  }, [updateProfile])
+
+  const resetProfile = useCallback(async () => {
+    let data = currentData?.profile
+    if (!data && typeof fetch === 'function') {
+      try {
+        const res = await fetch('/hadiSeed.json')
+        if (res.ok) {
+          const seed = await res.json()
+          data = seed.profile
+        }
+      } catch (err) {
+        console.error('Failed to fetch seed profile', err)
+      }
+    }
+    if (data) {
+      updateProfile(data)
+    }
+  }, [currentData, updateProfile])
 
   // Derive default currency when none chosen
   useEffect(() => {
@@ -1064,6 +1089,8 @@ export function FinanceProvider({ children }) {
 
       // Profile & lifeExpectancy
       profile,       updateProfile,
+      clearProfile,
+      resetProfile,
       riskScore,
       strategy,     setStrategy,
 

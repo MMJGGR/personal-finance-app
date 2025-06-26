@@ -76,8 +76,8 @@ fields.
 
 A sample user profile is provided in `public/hadiSeed.json`. When the app starts
 with no saved data, this file is fetched automatically so you can explore the
-features immediately. Clear the site's local storage and refresh to reload the
-defaults.
+features immediately. Use the **Reset to Defaults** button on the Profile tab to
+reload the starter data at any time.
 
 ## Household & KYC Data
 
