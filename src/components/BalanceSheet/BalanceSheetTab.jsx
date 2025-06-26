@@ -12,6 +12,9 @@ import {
   Cell,
 } from 'recharts'
 import { useFinance } from '../../FinanceContext'
+import CashflowTimelineChart from '../ExpensesGoals/CashflowTimelineChart.jsx'
+import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
+import { getLoanFlowsByYear } from '../../utils/loanHelpers'
 import LTCMA from '../../ltcmaAssumptions'
 import InvestmentStrategies from '../../investmentStrategies'
 import { formatCurrency } from '../../utils/formatters'
@@ -32,6 +35,11 @@ export default function BalanceSheetTab() {
     liabilitiesList,
     setLiabilitiesList,
     goalsList,
+    expensesList,
+    annualIncome,
+    startYear,
+    years,
+    includeLiabilitiesNPV,
     discountRate,
     humanCapitalShare,
     settings,
@@ -208,6 +216,40 @@ export default function BalanceSheetTab() {
     { name: 'Human Capital', value: incomePV },
     { name: 'Financial Capital', value: totalAssets - incomePV },
   ]
+
+  const loanFlows = useMemo(
+    () => getLoanFlowsByYear(liabilitiesList),
+    [liabilitiesList]
+  )
+
+  const timelineData = useMemo(() => {
+    const minYear = startYear
+    const maxYear = startYear + years - 1
+    const incomeFn = y => {
+      const idx = y - startYear
+      return annualIncome[idx] || 0
+    }
+    const loanForYear = y =>
+      includeLiabilitiesNPV ? loanFlows[y] || 0 : 0
+    return buildCashflowTimeline(
+      minYear,
+      maxYear,
+      incomeFn,
+      expensesList,
+      goalsList,
+      loanForYear,
+      settings.inflationRate
+    )
+  }, [
+    annualIncome,
+    startYear,
+    years,
+    expensesList,
+    goalsList,
+    loanFlows,
+    includeLiabilitiesNPV,
+    settings.inflationRate
+  ])
 
   const summaryRows = [
     { label: 'Income PV', value: incomePV },
@@ -498,6 +540,15 @@ export default function BalanceSheetTab() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      <div className="bg-white p-4 rounded-xl shadow-md">
+        <h4 className="font-semibold text-slate-700 mb-2">Cashflow Projection</h4>
+        <CashflowTimelineChart
+          data={timelineData}
+          locale={settings.locale}
+          currency={settings.currency}
+        />
       </div>
     </div>
   )
