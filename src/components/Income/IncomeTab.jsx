@@ -11,6 +11,7 @@
 
 import React, { useMemo, useEffect, useState } from 'react';
 import { useFinance } from '../../FinanceContext';
+import { usePersona } from '../../PersonaContext.jsx';
 import { buildIncomeJSON, buildIncomeCSV, submitProfile } from '../../utils/exportHelpers'
 import { calculatePV, findLinkedAsset } from './helpers';
 import { generateIncomeTimeline } from '../../utils/cashflowTimeline';
@@ -38,6 +39,7 @@ export default function IncomeTab() {
     startYear,
     years,
   } = useFinance();
+  const { currentData } = usePersona();
 
 
   const currentYear = new Date().getFullYear();
@@ -232,7 +234,27 @@ export default function IncomeTab() {
   }
 
   const resetDefaults = () => {
-    setIncomeSources(defaultIncomeSources(startYear))
+    if (currentData?.incomeSources?.length) {
+      const now = new Date().getFullYear()
+      const birthYear = now - (profile.age ?? 0)
+      const list = currentData.incomeSources.map(src => {
+        let sYear = src.startYear ?? startYear
+        if (src.startAge != null) {
+          sYear = birthYear + src.startAge
+        }
+        return {
+          id: crypto.randomUUID(),
+          active: src.active !== false,
+          linkedAssetId: src.linkedAssetId ?? '',
+          ...src,
+          startYear: sYear,
+          endYear: src.endYear ?? null,
+        }
+      })
+      setIncomeSources(list)
+    } else {
+      setIncomeSources(defaultIncomeSources(startYear))
+    }
   }
 
   const updateIncome = onFieldChange;

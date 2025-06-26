@@ -92,17 +92,54 @@ export default function ExpensesGoalsTab() {
   // Populate defaults on first mount when no data is present
   useEffect(() => {
     if (expensesList.length === 0) {
-      const list = defaultExpenses(defaultStart, defaultEnd, settings.inflationRate)
+      let list
+      if (currentData?.expensesList?.length) {
+        list = currentData.expensesList.map(e => ({
+          id: crypto.randomUUID(),
+          paymentsPerYear: typeof e.frequency === 'number'
+            ? e.frequency
+            : frequencyToPayments(e.frequency) || 1,
+          startYear: e.startYear ?? defaultStart,
+          endYear: e.endYear ?? defaultEnd,
+          priority: e.priority ?? 2,
+          include: e.include !== false,
+          ...e,
+        }))
+      } else {
+        list = defaultExpenses(defaultStart, defaultEnd, settings.inflationRate)
+      }
       setExpensesList(list)
       storage.set('expensesList', JSON.stringify(list))
     }
     if (goalsList.length === 0) {
-      const list = defaultGoals(defaultStart)
+      let list
+      if (currentData?.goalsList?.length) {
+        list = currentData.goalsList.map(g => ({
+          id: crypto.randomUUID(),
+          startYear: g.startYear ?? g.targetYear ?? defaultStart,
+          endYear: g.endYear ?? g.targetYear ?? defaultStart,
+          ...g,
+        }))
+      } else {
+        list = defaultGoals(defaultStart)
+      }
       setGoalsList(list)
       storage.set('goalsList', JSON.stringify(list))
     }
     if (liabilitiesList.length === 0) {
-      const list = defaultLiabilities(defaultStart)
+      let list
+      if (currentData?.liabilitiesList?.length) {
+        list = currentData.liabilitiesList.map(l => ({
+          id: crypto.randomUUID(),
+          paymentsPerYear: l.paymentsPerYear ?? 12,
+          payment: l.monthlyPayment ?? l.payment,
+          termYears: l.termYears ?? Math.ceil((l.termMonths || 0) / 12),
+          include: l.include !== false,
+          ...l,
+        }))
+      } else {
+        list = defaultLiabilities(defaultStart)
+      }
       setLiabilitiesList(list)
       storage.set('liabilitiesList', JSON.stringify(list))
     }
@@ -309,9 +346,48 @@ export default function ExpensesGoalsTab() {
   }
 
   const resetDefaults = () => {
-    setExpensesList(defaultExpenses(defaultStart, defaultEnd, settings.inflationRate))
-    setGoalsList(defaultGoals(defaultStart))
-    setLiabilitiesList(defaultLiabilities(defaultStart))
+    if (currentData?.expensesList?.length) {
+      const list = currentData.expensesList.map(e => ({
+        id: crypto.randomUUID(),
+        paymentsPerYear: typeof e.frequency === 'number'
+          ? e.frequency
+          : frequencyToPayments(e.frequency) || 1,
+        startYear: e.startYear ?? defaultStart,
+        endYear: e.endYear ?? defaultEnd,
+        priority: e.priority ?? 2,
+        include: e.include !== false,
+        ...e,
+      }))
+      setExpensesList(list)
+    } else {
+      setExpensesList(defaultExpenses(defaultStart, defaultEnd, settings.inflationRate))
+    }
+
+    if (currentData?.goalsList?.length) {
+      const list = currentData.goalsList.map(g => ({
+        id: crypto.randomUUID(),
+        startYear: g.startYear ?? g.targetYear ?? defaultStart,
+        endYear: g.endYear ?? g.targetYear ?? defaultStart,
+        ...g,
+      }))
+      setGoalsList(list)
+    } else {
+      setGoalsList(defaultGoals(defaultStart))
+    }
+
+    if (currentData?.liabilitiesList?.length) {
+      const list = currentData.liabilitiesList.map(l => ({
+        id: crypto.randomUUID(),
+        paymentsPerYear: l.paymentsPerYear ?? 12,
+        payment: l.monthlyPayment ?? l.payment,
+        termYears: l.termYears ?? Math.ceil((l.termMonths || 0) / 12),
+        include: l.include !== false,
+        ...l,
+      }))
+      setLiabilitiesList(list)
+    } else {
+      setLiabilitiesList(defaultLiabilities(defaultStart))
+    }
   }
 
   // --- 1) Remaining lifetime horizon ---

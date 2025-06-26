@@ -65,8 +65,9 @@
       "name": "Pension Drawdown",
       "amount": 180000,
       "frequency": 12,
-      "taxed": false
-    }    
+      "taxed": false,
+      "startAge": 65
+    }
   ],
   "expensesList": [
     {
