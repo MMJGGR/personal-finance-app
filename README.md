@@ -50,14 +50,14 @@ This ensures that ESLint and Jest are available locally.
 
 ## Configuration
 
--Application settings are stored in local storage and can be modified under the **Settings** tab.  Available keys include:
+-Application settings are stored in local storage and can be modified under the **Settings** tab (Preferences). Available keys include:
 
 - `inflationRate` – annual rate applied to expenses when no specific growth is set
 - `expectedReturn` – expected yearly portfolio return
 - `currency` – default ISO currency code
 - `locale` – locale for number formatting
-- `discountRate` – rate used when discounting future cash flows
-- `projectionYears` – number of years to project on the Income tab
+- `discountRate` – rate used when discounting future cash flows (edit **Discount Rate (%)** under *Settings*)
+- `projectionYears` – number of years to project on the Income tab (edit **Projection Years** under *Settings*)
 - `apiEndpoint` – URL to POST exported data
 - `discretionaryCutThreshold` – percentage of monthly expenses that triggers discretionary advice
 - `survivalThresholdMonths` – minimum months of PV coverage considered healthy
@@ -154,10 +154,7 @@ Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
 ## Income Views
 
-Above the income chart you'll find **Nominal** and **Discounted** buttons. Use
-them to toggle between raw projections and present value figures. The expenses
-chart in **Expenses & Goals** offers the same controls. The discount rate and
-projection horizon (Years) are both configured under **Settings**.
+Above the income chart you'll find **Nominal** and **Discounted** buttons used to toggle between raw projections and present value figures. The expenses chart in **Expenses & Goals** offers the same controls. Adjust the assumptions using the **Discount Rate (%)** and **Projection Years** fields under **Settings**.
 
 ## Manual Verification
 
