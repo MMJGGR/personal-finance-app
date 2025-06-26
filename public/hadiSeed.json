@@ -60,14 +60,8 @@
       "frequency": 12,
       "startDate": "2080-01-01",
       "taxed": false
-    },
-    {
-      "name": "Pension Drawdown",
-      "amount": 180000,
-      "frequency": 12,
-      "taxed": false,
-      "startAge": 65
     }
+
   ],
   "expensesList": [
     {
