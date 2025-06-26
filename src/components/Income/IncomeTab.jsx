@@ -17,6 +17,7 @@ import { generateIncomeTimeline } from '../../utils/cashflowTimeline';
 import calcDiscretionaryAdvice from '../../utils/discretionaryUtils';
 import IncomeSourceRow from './IncomeSourceRow'
 import IncomeTimelineChart from './IncomeTimelineChart'
+import { defaultIncomeSources } from './defaults.js'
 
 import { formatCurrency } from '../../utils/formatters'
 import storage from '../../utils/storage'
@@ -217,14 +218,22 @@ export default function IncomeTab() {
         startYear: startYear,
         endYear: null,
         linkedAssetId: '',
-        active: true,
-      },
+      active: true,
+    },
     ]);
   };
 
   const removeIncome = (idx) => {
     setIncomeSources(incomeSources.filter((_, i) => i !== idx));
   };
+
+  const clearIncomeSources = () => {
+    setIncomeSources([])
+  }
+
+  const resetDefaults = () => {
+    setIncomeSources(defaultIncomeSources(startYear))
+  }
 
   const updateIncome = onFieldChange;
   const deleteIncome = removeIncome;
@@ -407,6 +416,23 @@ export default function IncomeTab() {
       {gaps.length > 0 && (
         <p className="text-red-600 font-bold mt-2">Warning: Income shortfall in {gaps[0].year} to {gaps[gaps.length - 1].year}</p>
       )}
+
+      <div className="text-right space-x-2">
+        <button
+          onClick={clearIncomeSources}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Clear income sources"
+        >
+          Clear
+        </button>
+        <button
+          onClick={resetDefaults}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Reset income sources to defaults"
+        >
+          Reset Defaults
+        </button>
+      </div>
 
       {/* Export */}
       <section>
