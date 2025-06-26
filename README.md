@@ -154,7 +154,7 @@ Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
 ## Income Views
 
-Above the income chart you'll find **Nominal** and **Discounted** buttons used to toggle between raw projections and present value figures. The expenses chart in **Expenses & Goals** offers the same controls. Adjust the assumptions using the **Discount Rate (%)** and **Projection Years** fields under **Settings**.
+Above the income chart you'll find **Nominal** and **Discounted** buttons used to toggle between raw projections and present value figures. The expenses chart in **Expenses & Goals** and the surplus (cashflow) chart on the **Balance Sheet** tab offer the same controls. Adjust the assumptions using the **Discount Rate (%)** and **Projection Years** fields under **Settings**.
 
 ## Manual Verification
 
