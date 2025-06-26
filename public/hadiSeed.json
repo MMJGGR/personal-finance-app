@@ -1,130 +1,154 @@
 {
   "profile": {
-    "name": "Hadi Mwangi",
+    "name": "Hadi Alsawad",
     "email": "hadi.mwangi@example.com",
     "phone": "+254712345678",
+    "birthDate": "1988-06-15",
     "age": 35,
     "lifeExpectancy": 85,
-    "maritalStatus": "Married",
-    "numDependents": 2,
+    "maritalStatus": "Single",
+    "numDependents": 0,
+    "education": "BSc Economics",
     "residentialAddress": "Nairobi, Kenya",
+    "location": "Nairobi, Kenya",
     "nationality": "Kenyan",
+    "citizenship": "Kenyan",
     "idNumber": "34567890",
     "taxResidence": "Kenya",
+    "taxJurisdiction": "Kenya",
     "employmentStatus": "Full-Time",
+    "occupation": "Credit Risk Analyst",
     "annualIncome": 3000000,
     "liquidNetWorth": 2000000,
     "sourceOfFunds": "Employment, rental income, long-term ETF investments",
     "investmentKnowledge": "Moderate",
     "lossResponse": "Wait",
     "investmentHorizon": ">7 years",
-    "investmentGoal": "Growth"
+    "investmentGoal": "Growth",
+    "behaviouralProfile": {
+      "spendingHabits": "frugal",
+      "biases": ["loss aversion"],
+      "financialWorries": "retirement funding"
+    }
   },
   "incomeSources": [
     {
       "name": "Salary",
-      "amount": 250000,
+      "amount": 150000,
       "frequency": 12,
-      "growth": 4,
-      "taxRate": 30
+      "growth": 5
     },
     {
-      "name": "Rental Income",
-      "amount": 30000,
-      "frequency": 12,
+      "name": "Annual Bonus",
+      "amount": 100000,
+      "frequency": 1,
       "growth": 3,
-      "taxRate": 10
+      "monthPaid": 12
+    },
+    {
+      "name": "Stock Options",
+      "totalGrant": 1000,
+      "vestSchedule": [
+        { "year": 2025, "pct": 25 },
+        { "year": 2026, "pct": 25 }
+      ],
+      "fairValuePerShare": 20
+    },
+    {
+      "name": "Health Allowance",
+      "amount": 10000,
+      "frequency": 12,
+      "taxed": false
     }
   ],
   "expensesList": [
     {
       "name": "Rent",
-      "amount": 80000,
-      "frequency": "Monthly",
-      "growth": 5,
-      "category": "Fixed",
-      "priority": 1
+      "amount": 40000,
+      "frequency": "Monthly"
     },
     {
-      "name": "Transport",
+      "name": "Utilities",
       "amount": 10000,
-      "frequency": "Monthly",
-      "growth": 2,
-      "category": "Variable",
-      "priority": 2
+      "frequency": "Monthly"
     },
     {
-      "name": "School Fees",
-      "amount": 120000,
-      "frequency": "Annual",
-      "growth": 5,
-      "category": "Fixed",
-      "priority": 1
-    },
-    {
-      "name": "Dining Out",
+      "name": "Childcare",
       "amount": 15000,
-      "frequency": "Monthly",
-      "growth": 2,
-      "category": "Discretionary",
-      "priority": 3
+      "frequency": "Monthly"
+    },
+    {
+      "name": "Insurance Premiums",
+      "amount": 8000,
+      "frequency": "Monthly"
+    },
+    {
+      "name": "Entertainment",
+      "amount": 10000,
+      "frequency": "Monthly"
+    },
+    {
+      "name": "Car Service",
+      "amount": 30000,
+      "frequency": "Annual",
+      "monthDue": 6
     }
   ],
   "goalsList": [
     {
-      "name": "Family Vacation",
-      "amount": 300000,
-      "targetYear": 2026,
-      "priority": 2
+      "name": "House Deposit",
+      "amount": 2000000,
+      "targetYear": 2028
     },
     {
-      "name": "Home Deposit",
+      "name": "MBA Program",
       "amount": 1500000,
-      "targetYear": 2029,
-      "priority": 1
+      "targetYear": 2030
+    },
+    {
+      "name": "Child’s College Fund",
+      "amount": 3000000,
+      "targetYear": 2045
+    },
+    {
+      "name": "Rainy-Day Fund",
+      "type": "liquidity",
+      "daysCover": 90
     }
   ],
   "assetsList": [
     {
-      "id": "real-estate",
-      "name": "Land in Nanyuki",
-      "value": 2500000,
-      "return": 6,
-      "volatility": 12
+      "name": "Cash",
+      "amount": 500000
     },
     {
-      "id": "etf-1",
-      "name": "US Equity ETF",
-      "value": 1200000,
-      "return": 7,
-      "volatility": 15
+      "name": "ETF Portfolio",
+      "amount": 2000000,
+      "returnAssumptionPct": 8,
+      "volatilityPct": 12
     },
     {
-      "id": "cash",
-      "name": "Emergency Savings",
-      "value": 300000,
-      "return": 2,
-      "volatility": 0
+      "name": "Home Equity",
+      "amount": 1500000
+    },
+    {
+      "name": "Pension Account",
+      "amount": 1000000,
+      "vestingSchedule": null
     }
   ],
   "liabilitiesList": [
     {
-      "id": "car-loan",
-      "name": "Car Loan",
-      "principal": 500000,
-      "interestRate": 12,
-      "monthlyPayment": 15000,
-      "termMonths": 48,
-      "startDate": "2023-07-01"
+      "name": "Home Loan",
+      "principal": 3000000,
+      "ratePct": 10,
+      "termYears": 20
     },
     {
-      "id": "helb",
-      "name": "Student Loan",
+      "name": "Credit Card",
       "principal": 200000,
-      "interestRate": 4,
-      "monthlyPayment": 4000,
-      "termMonths": 60,
-      "startDate": "2021-01-01"
+      "ratePct": 18,
+      "minPaymentPct": 2
     }
   ],
   "settings": {
@@ -135,7 +159,17 @@
     "discretionaryCutThreshold": 15,
     "survivalThresholdMonths": 6,
     "bufferPct": 10,
-    "apiEndpoint": "https://api.local/submit"
+    "apiEndpoint": "https://api.local/submit",
+    "retirementAge": 60,
+    "discountRate": 5,
+    "riskCapacityScore": 7,
+    "riskWillingnessScore": 5,
+    "liquidityBucketDays": 90,
+    "taxBrackets": [
+      { "upTo": 288000, "rate": 10 },
+      { "upTo": 388000, "rate": 15 }
+    ],
+    "pensionContributionReliefPct": 30
   },
   "includeMediumPV": true,
   "includeLowPV": true,
