@@ -14,7 +14,7 @@ test('switching personas updates profile and income tabs', async () => {
   render(<App />)
 
   // initial persona is hadi
-  await screen.findByText(/Hadi Mwangi/i)
+  await screen.findByText(/Hadi Alsawad/i)
 
   // switch to Amina via dropdown
   fireEvent.change(screen.getByLabelText(/Persona/i), { target: { value: 'amina' } })
