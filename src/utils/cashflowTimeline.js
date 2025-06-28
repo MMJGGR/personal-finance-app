@@ -2,6 +2,7 @@ import { getStreamEndYear } from "./incomeProjection";
 import { generateRecurringFlows, frequencyToPayments } from "./financeUtils";
 export function generateIncomeTimeline(sources, assumptions, assetsList = [], years) {
   const currentYear = new Date().getFullYear();
+  const birthYear = assumptions.birthYear ?? currentYear;
   const timeline = Array.from({ length: years }, (_, i) => ({
     year: currentYear + i,
     gross: 0,
@@ -12,12 +13,30 @@ export function generateIncomeTimeline(sources, assumptions, assetsList = [], ye
   sources.forEach(s => {
     if (!s.active) return;
     const linkedAsset = assetsList.find(a => a.id === s.linkedAssetId);
-    const start = Math.max(currentYear, s.startYear ?? currentYear);
+    let start = s.startYear;
+    if (start == null && s.startAge != null) {
+      start = birthYear + s.startAge;
+    }
+    start = Math.max(currentYear, start ?? currentYear);
     const end = Math.min(
       getStreamEndYear(s, assumptions, linkedAsset),
       currentYear + years - 1
     );
     if (end < start) return;
+
+    if (Array.isArray(s.vestSchedule) && s.vestSchedule.length) {
+      s.vestSchedule.forEach(v => {
+        if (!v) return;
+        const y = v.year ?? start;
+        if (y < currentYear || y > currentYear + years - 1) return;
+        const shares = (s.totalGrant || 0) * ((v.pct || 0) / 100);
+        const value = shares * (s.fairValuePerShare || 0);
+        const idx = y - currentYear;
+        timeline[idx].gross += value;
+        timeline[idx].net += s.taxed === false ? value : value * (1 - (s.taxRate || 0) / 100);
+      });
+      return;
+    }
 
     const flows = generateRecurringFlows({
       amount: Number(s.amount) || 0,
@@ -35,7 +54,7 @@ export function generateIncomeTimeline(sources, assumptions, assetsList = [], ye
     flows.forEach(f => {
       const idx = f.year - currentYear;
       timeline[idx].gross += f.amount;
-      timeline[idx].net += f.amount * (1 - (s.taxRate || 0) / 100);
+      timeline[idx].net += s.taxed === false ? f.amount : f.amount * (1 - (s.taxRate || 0) / 100);
     });
   });
 

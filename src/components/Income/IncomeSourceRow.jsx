@@ -103,6 +103,19 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         title="Start year"
       />
 
+      <label className="block text-sm font-medium mt-2">Start Age (optional)</label>
+      <input
+        type="number"
+        className="w-full border p-2 rounded-md"
+        value={income.startAge ?? ''}
+        onChange={e => {
+          const val = e.target.value === '' ? null : Number(e.target.value)
+          updateIncome(index, 'startAge', val)
+        }}
+        aria-label="Start age"
+        title="Start age"
+      />
+
       <label className="block text-sm font-medium mt-2">End Year (optional)</label>
       <input
         type="number"
@@ -127,6 +140,15 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
           <option key={asset.id} value={asset.id}>{asset.name || asset.type}</option>
         ))}
       </select>
+
+      <label className="block text-sm font-medium mt-2">
+        <input
+          type="checkbox"
+          checked={income.taxed !== false}
+          onChange={e => updateIncome(index, 'taxed', e.target.checked)}
+        />
+        Subject to Tax
+      </label>
 
       <label className="block text-sm font-medium mt-2">
         <input

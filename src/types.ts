@@ -13,8 +13,20 @@ export interface IncomeItem {
   frequency: number | string
   growth?: number
   taxRate?: number
+  /** if false, taxRate is ignored */
+  taxed?: boolean
   startYear?: number
+  /** start year offset from birth year */
+  startAge?: number
   endYear?: number | null
+  /** vesting schedule for option grants */
+  vestSchedule?: { year: number; pct: number }[]
+  /** number of shares granted */
+  totalGrant?: number
+  /** value per share for option grants */
+  fairValuePerShare?: number
+  /** month of lump-sum payment */
+  monthPaid?: number
   type?: string
   linkedAssetId?: string
   active?: boolean

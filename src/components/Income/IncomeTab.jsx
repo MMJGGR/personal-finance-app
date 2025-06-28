@@ -51,6 +51,7 @@ export default function IncomeTab() {
     () => ({
       retirementAge: currentYear + (settings.retirementAge - profile.age),
       deathAge: currentYear + years,
+      birthYear: currentYear - profile.age,
     }),
     [currentYear, settings.retirementAge, profile.age, years]
   )
@@ -192,6 +193,13 @@ export default function IncomeTab() {
         }
         return { ...src, [field]: val }
       }
+      if (field === 'startAge') {
+        const num = parseFloat(raw)
+        return { ...src, startAge: isNaN(num) ? null : num }
+      }
+      if (field === 'taxed') {
+        return { ...src, taxed: value }
+      }
       const num = parseFloat(raw)
       if (field === 'frequency') {
         return { ...src, [field]: isNaN(num) ? 1 : Math.max(1, num) }
@@ -217,7 +225,9 @@ export default function IncomeTab() {
         frequency: 1,
         growth: 0,
         taxRate: 0,
+        taxed: true,
         startYear: startYear,
+        startAge: null,
         endYear: null,
         linkedAssetId: '',
       active: true,
@@ -246,8 +256,10 @@ export default function IncomeTab() {
           id: crypto.randomUUID(),
           active: src.active !== false,
           linkedAssetId: src.linkedAssetId ?? '',
+          taxed: src.taxed ?? true,
           ...src,
           startYear: sYear,
+          startAge: src.startAge ?? null,
           endYear: src.endYear ?? null,
         }
       })
