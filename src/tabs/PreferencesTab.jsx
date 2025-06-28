@@ -3,6 +3,14 @@ import React, { useState, useEffect } from 'react'
 import { useFinance } from '../FinanceContext'
 import sanitize from '../utils/sanitize'
 
+function safeParse(str, fallback) {
+  try {
+    return JSON.parse(str)
+  } catch {
+    return fallback
+  }
+}
+
 export default function PreferencesTab() {
   const {
     settings,
@@ -182,6 +190,82 @@ export default function PreferencesTab() {
             }
             className="w-full border rounded-md p-2"
             title="Buffer percentage"
+          />
+        </label>
+
+        {/* Risk Capacity Score */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Risk Capacity Score</span>
+          <input
+            type="number"
+            min={0}
+            value={form.riskCapacityScore}
+            onChange={e =>
+              handleChange('riskCapacityScore', parseFloat(e.target.value) || 0)
+            }
+            className="w-full border rounded-md p-2"
+            title="Risk capacity score"
+          />
+        </label>
+
+        {/* Risk Willingness Score */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Risk Willingness Score</span>
+          <input
+            type="number"
+            min={0}
+            value={form.riskWillingnessScore}
+            onChange={e =>
+              handleChange('riskWillingnessScore', parseFloat(e.target.value) || 0)
+            }
+            className="w-full border rounded-md p-2"
+            title="Risk willingness score"
+          />
+        </label>
+
+        {/* Liquidity Bucket Days */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Liquidity Bucket Days</span>
+          <input
+            type="number"
+            min={0}
+            value={form.liquidityBucketDays}
+            onChange={e =>
+              handleChange('liquidityBucketDays', Math.max(0, parseInt(e.target.value) || 0))
+            }
+            className="w-full border rounded-md p-2"
+            title="Liquidity bucket days"
+          />
+        </label>
+
+        {/* Tax Brackets */}
+        <label className="block md:col-span-2">
+          <span className="text-sm text-slate-600">Tax Brackets (JSON)</span>
+          <textarea
+            value={JSON.stringify(form.taxBrackets || [], null, 2)}
+            onChange={e => handleChange('taxBrackets', safeParse(e.target.value, []))}
+            className="w-full border rounded-md p-2 font-mono"
+            rows={3}
+            title="Tax brackets"
+          />
+        </label>
+
+        {/* Pension Contribution Relief (%) */}
+        <label className="block">
+          <span className="text-sm text-slate-600">Pension Contribution Relief (%)</span>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={form.pensionContributionReliefPct}
+            onChange={e =>
+              handleChange(
+                'pensionContributionReliefPct',
+                Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
+              )
+            }
+            className="w-full border rounded-md p-2"
+            title="Pension contribution relief"
           />
         </label>
 
