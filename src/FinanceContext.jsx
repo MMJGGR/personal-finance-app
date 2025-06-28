@@ -180,9 +180,11 @@ export function FinanceProvider({ children }) {
         const migrated = parsed.map(src => ({
           id: src.id || crypto.randomUUID(),
           startYear: src.startYear ?? now,
+          startAge: src.startAge ?? null,
           endYear: src.endYear ?? null,
           linkedAssetId: src.linkedAssetId ?? '',
           active: src.active !== false,
+          taxed: src.taxed ?? true,
           ...src,
         }))
         storage.set('incomeSources', JSON.stringify(migrated))

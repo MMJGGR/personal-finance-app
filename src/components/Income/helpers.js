@@ -7,9 +7,31 @@ export function findLinkedAsset(id, assetsList = []) {
 
 export function calculatePV(stream, discountRate, years, assumptions = {}, linkedAsset) {
   const now = new Date().getFullYear()
-  const startYear = Math.max(now, stream.startYear ?? now)
+  const birthYear = assumptions.birthYear ?? now
+  let startYear = stream.startYear
+  if (startYear == null && stream.startAge != null) {
+    startYear = birthYear + stream.startAge
+  }
+  startYear = Math.max(now, startYear ?? now)
   const endYear = Math.min(getStreamEndYear(stream, assumptions, linkedAsset), startYear + years - 1)
   if (endYear < startYear) return { gross: 0, net: 0 }
+
+  if (Array.isArray(stream.vestSchedule) && stream.vestSchedule.length) {
+    let gross = 0
+    for (const v of stream.vestSchedule) {
+      if (!v) continue
+      const y = v.year ?? startYear
+      if (y < startYear || y > startYear + years - 1) continue
+      const shares = (stream.totalGrant || 0) * ((v.pct || 0) / 100)
+      const value = shares * (stream.fairValuePerShare || 0)
+      const offset = y - now
+      gross += value / Math.pow(1 + discountRate / 100, offset)
+    }
+    return {
+      gross,
+      net: stream.taxed === false ? gross : gross * (1 - (stream.taxRate || 0) / 100)
+    }
+  }
 
   const paymentsPerYear =
     typeof stream.paymentsPerYear === 'number'
@@ -29,7 +51,7 @@ export function calculatePV(stream, discountRate, years, assumptions = {}, linke
   const gross = pvImmediate / Math.pow(1 + discountRate / 100, offsetYears)
   return {
     gross,
-    net: gross * (1 - (stream.taxRate || 0) / 100)
+    net: stream.taxed === false ? gross : gross * (1 - (stream.taxRate || 0) / 100)
   }
 }
 
