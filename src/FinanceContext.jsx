@@ -46,12 +46,18 @@ const defaultProfile = {
   numDependents: 0, // FIXME: unused - pending integration
   residentialAddress: '', // FIXME: unused - pending integration
   nationality: '', // FIXME: unused - pending integration
+  education: '', // FIXME: unused - pending integration
+  location: '', // FIXME: unused - pending integration
+  citizenship: '', // FIXME: unused - pending integration
+  taxJurisdiction: '', // FIXME: unused - pending integration
   idNumber: '', // FIXME: unused - pending integration
   taxResidence: '', // FIXME: unused - pending integration
   employmentStatus: '', // FIXME: unused - pending integration
   annualIncome: 0,
   liquidNetWorth: 0,
   sourceOfFunds: '', // FIXME: unused - pending integration
+  behaviouralProfile: {}, // FIXME: unused - pending integration
+  financialChallenge: '', // FIXME: unused - pending integration
   investmentKnowledge: '',
   lossResponse: '',
   investmentHorizon: '',
