@@ -407,6 +407,11 @@ export function FinanceProvider({ children }) {
       survivalThresholdMonths: 0,
       bufferPct: 0,
       retirementAge: 65,
+      riskCapacityScore: 0,
+      riskWillingnessScore: 0,
+      liquidityBucketDays: 0,
+      taxBrackets: [],
+      pensionContributionReliefPct: 0,
     }
     const loaded = s ? { ...defaults, ...safeParse(s, {}) } : defaults
     if (!loaded.currency) {
