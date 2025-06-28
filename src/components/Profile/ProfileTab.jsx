@@ -76,7 +76,8 @@ export default function ProfileTab() {
             ['Age', 'age', 'number'],
             ['Life Expectancy', 'lifeExpectancy', 'number'],
             ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']], // FIXME: unused - pending integration
-            ['Dependents', 'numDependents', 'number'] // FIXME: unused - pending integration
+            ['Dependents', 'numDependents', 'number'], // FIXME: unused - pending integration
+            ['Education', 'education', 'text'] // FIXME: unused - pending integration
           ].map(([label, field, type, options]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -116,8 +117,11 @@ export default function ProfileTab() {
           {[
             ['Residential Address', 'residentialAddress'], // FIXME: unused - pending integration
             ['Nationality', 'nationality'], // FIXME: unused - pending integration
+            ['Location', 'location'], // FIXME: unused - pending integration
+            ['Citizenship', 'citizenship'], // FIXME: unused - pending integration
             ['ID / Passport #', 'idNumber'], // FIXME: unused - pending integration
             ['Tax Residence', 'taxResidence'], // FIXME: unused - pending integration
+            ['Tax Jurisdiction', 'taxJurisdiction'], // FIXME: unused - pending integration
             ['Employment Status', 'employmentStatus'] // FIXME: unused - pending integration
           ].map(([label, field]) => (
             <label key={field} className="block">
@@ -158,6 +162,69 @@ export default function ProfileTab() {
               title="Source of funds"
             />
           </label>
+
+          <label className="block">
+            <span className="text-sm text-slate-600">Primary Financial Challenge</span>
+            <input
+              type="text"
+              value={form.financialChallenge}
+              onChange={e => handleChange('financialChallenge', e.target.value)}
+              className="w-full border rounded-md p-2"
+              title="Primary Financial Challenge"
+            />
+          </label>
+
+          <div className="space-y-2">
+            <span className="text-sm text-slate-600 font-medium">Behavioural Profile</span>
+            <label className="block">
+              <span className="text-sm text-slate-600">Spending Habits</span>
+              <input
+                type="text"
+                value={form.behaviouralProfile?.spendingHabits || ''}
+                onChange={e =>
+                  handleChange('behaviouralProfile', {
+                    ...form.behaviouralProfile,
+                    spendingHabits: e.target.value
+                  })
+                }
+                className="w-full border rounded-md p-2"
+                title="Spending Habits"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm text-slate-600">Biases</span>
+              <input
+                type="text"
+                value={(form.behaviouralProfile?.biases || []).join(', ')}
+                onChange={e =>
+                  handleChange('behaviouralProfile', {
+                    ...form.behaviouralProfile,
+                    biases: e.target.value
+                      .split(',')
+                      .map(b => b.trim())
+                      .filter(Boolean)
+                  })
+                }
+                className="w-full border rounded-md p-2"
+                title="Biases"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm text-slate-600">Financial Worries</span>
+              <input
+                type="text"
+                value={form.behaviouralProfile?.financialWorries || ''}
+                onChange={e =>
+                  handleChange('behaviouralProfile', {
+                    ...form.behaviouralProfile,
+                    financialWorries: e.target.value
+                  })
+                }
+                className="w-full border rounded-md p-2"
+                title="Financial Worries"
+              />
+            </label>
+          </div>
         </div>
 
         {/* Risk Tolerance Questionnaire */}
