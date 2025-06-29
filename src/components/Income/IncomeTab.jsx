@@ -224,11 +224,6 @@ export default function IncomeTab() {
         amount: 0,
         grossSalary: 0,
         contractedOutTier2: false,
-        // Ensure these are always defined for new income sources
-        // to prevent React controlled/uncontrolled component warnings
-        // and potential rendering issues.
-        // These were added during the Kenyan Salary feature implementation.
-        // They are now explicitly initialized here.
         frequency: 1,
         growth: 0,
         taxRate: 0,

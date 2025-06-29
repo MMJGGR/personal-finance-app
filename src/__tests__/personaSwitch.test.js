@@ -25,7 +25,7 @@ test('switching personas updates profile and income tabs', async () => {
 
   // open Income tab so FinanceProvider loads income data
   fireEvent.click(screen.getByRole('tab', { name: /Income/i }))
-  await waitFor(() => screen.findByText(/Income Sources/i))
+  await screen.findByText(/Income Sources/i)
   await waitFor(() => {
     const stored = JSON.parse(localStorage.getItem('incomeSources-amina'))
     expect(stored[0].name).toBe('Consulting')

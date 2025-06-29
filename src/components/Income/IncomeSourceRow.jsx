@@ -1,19 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 
-export default function IncomeSourceRow({ income, index, updateIncome, deleteIncome, currency, assetsList = [], locale }) {
-  const [grossSalary, setGrossSalary] = useState(income.grossSalary ?? 0)
-  const [contractedOutTier2, setContractedOutTier2] = useState(income.contractedOutTier2 ?? false)
-
-  useEffect(() => {
-    setGrossSalary(income.grossSalary ?? 0)
-    setContractedOutTier2(income.contractedOutTier2 ?? false)
-  }, [income.grossSalary, income.contractedOutTier2])
-
-  useEffect(() => {
-    // Update parent when grossSalary or contractedOutTier2 changes
-    updateIncome(index, 'grossSalary', grossSalary)
-    updateIncome(index, 'contractedOutTier2', contractedOutTier2)
-  }, [grossSalary, contractedOutTier2, index, updateIncome])
+export default function IncomeSourceRow({ income, index, updateIncome, deleteIncome, currency, assetsList = [] }) {
   return (
     <div className="bg-white p-4 rounded-xl shadow-md relative transition-all">
       <label className="block text-sm font-medium">Source Name</label>
