@@ -10,6 +10,7 @@ import React, {
 } from 'react'
 import { usePersona } from './PersonaContext.jsx'
 import { calculatePV, frequencyToPayments } from './utils/financeUtils'
+import { projectPensionGrowth } from './utils/pensionProjection'
 import {
   selectAnnualIncome,
   selectAnnualIncomePV,
@@ -276,6 +277,19 @@ export function FinanceProvider({ children }) {
         endYear: now + 4,
       },
     ]
+  })
+
+  const [privatePensionContributions, setPrivatePensionContributions] = useState(() => {
+    const s = storage.get('privatePensionContributions')
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        return parsed.map(p => ({ id: p.id || crypto.randomUUID(), ...p }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return []
   })
 
   const [pensionStreams, setPensionStreams] = useState(() => {
