@@ -8,9 +8,6 @@ import sanitize from '../utils/sanitize'
 import { preferencesSchema } from '../utils/validationSchemas'
 import Tooltip from '../components/Tooltip.jsx'
 import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
-import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
-import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
-import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
 
 function safeParse(str, fallback) {
   try {
@@ -34,7 +31,7 @@ export default function PreferencesTab() {
     setIncludeLiabilitiesNPV,
     profile,
   } = useFinance()
-  const { currentData } = usePersona()
+  const { currentData, currentPersonaId } = usePersona()
   const [form, setForm] = useState(settings)
   const [scenarioName, setScenarioName] = useState('Default')
   const [savedScenarios, setSavedScenarios] = useState(() => {
