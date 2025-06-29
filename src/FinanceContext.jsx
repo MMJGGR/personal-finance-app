@@ -211,10 +211,7 @@ export function FinanceProvider({ children }) {
     }
     return []
   })
-  const [startYear, setStartYear] = useState(() => {
-    const s = storage.get('incomeStartYear')
-    return s ? Number(s) : new Date().getFullYear()
-  })
+  
 
   // === Expenses & Goals state ===
   const [expensesList, setExpensesList] = useState(() => {
@@ -437,8 +434,9 @@ export function FinanceProvider({ children }) {
   // === Settings state ===
   const [settings, setSettings] = useState(() => {
     const s = storage.get('settings')
+    const incomeStartYearFromStorage = storage.get('incomeStartYear')
     const defaults = {
-      startYear: new Date().getFullYear(),
+      startYear: incomeStartYearFromStorage ? Number(incomeStartYearFromStorage) : new Date().getFullYear(),
       projectionYears: profile.lifeExpectancy - profile.age,
       chartView: 'nominal',
       discountRate: 0,
@@ -464,6 +462,10 @@ export function FinanceProvider({ children }) {
     }
     return loaded
   })
+
+  const startYear = useMemo(() => {
+    return settings.startYear
+  }, [settings.startYear])
 
   // === Risk scoring ===
   const [riskScore, setRiskScore] = useState(0)
@@ -634,13 +636,8 @@ export function FinanceProvider({ children }) {
 
   // === Persist state slices ===
   useEffect(() => { storage.set('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
-  useEffect(() => { storage.set('incomeStartYear', String(startYear)) }, [startYear])
-  useEffect(() => { storage.set('expensesList', JSON.stringify(expensesList)) }, [expensesList])
-  useEffect(() => {
-    if (settings.startYear !== undefined && settings.startYear !== startYear) {
-      setStartYear(settings.startYear)
-    }
-  }, [settings.startYear])
+  
+  
   useEffect(() => { storage.set('goalsList', JSON.stringify(goalsList)) }, [goalsList])
   useEffect(() => { storage.set('assetsList', JSON.stringify(assetsList)) }, [assetsList])
   useEffect(() => { storage.set('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
@@ -1076,7 +1073,7 @@ export function FinanceProvider({ children }) {
       }
     }
     const sSY = storage.get('incomeStartYear')
-    if (sSY) setStartYear(+sSY)
+    if (sSY) setSettings(prevSettings => ({ ...prevSettings, startYear: +sSY }));
 
     const sExp = storage.get('expensesList')
     if (sExp) {
@@ -1224,7 +1221,7 @@ export function FinanceProvider({ children }) {
 
       // IncomeTab
       incomeSources, setIncomeSources,
-      startYear,     setStartYear,
+      startYear,
 
       // Expenses & Goals
       expensesList,  setExpensesList,
