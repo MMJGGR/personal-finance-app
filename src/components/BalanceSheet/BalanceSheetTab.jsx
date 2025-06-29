@@ -122,6 +122,7 @@ export default function BalanceSheetTab() {
       if (idx === -1) {
         return [...prev, { id: 'pv-income', name: 'PV of Lifetime Income', amount: incomePV }]
       }
+      if (prev[idx].amount === incomePV) return prev
       const updated = [...prev]
       updated[idx] = { ...updated[idx], amount: incomePV }
       return updated
@@ -135,6 +136,7 @@ export default function BalanceSheetTab() {
       if (idx === -1) {
         return [...prev, { id: 'pv-expenses', name: 'PV of Lifetime Expenses', amount: expensesPV }]
       }
+      if (prev[idx].amount === expensesPV) return prev
       const updated = [...prev]
       updated[idx] = { ...updated[idx], amount: expensesPV }
       return updated
