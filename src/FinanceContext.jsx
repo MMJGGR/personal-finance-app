@@ -785,7 +785,20 @@ export function FinanceProvider({ children }) {
       const discounted = pvImmediate / Math.pow(1 + rate / 100, offsetYears)
       return sum + discounted
     }, 0)
-  }, [incomeSources, assetsList, settings.discountRate, settings.inflationRate, settings.retirementAge, profile.age, profile.lifeExpectancy, discountRate, years, startYear])
+  }, [
+    incomeSources,
+    assetsList,
+    settings.discountRate,
+    settings.inflationRate,
+    settings.retirementAge,
+    settings.taxBrackets,
+    settings.pensionContributionReliefPct,
+    profile.age,
+    profile.lifeExpectancy,
+    discountRate,
+    years,
+    startYear
+  ])
 
   const recalcIncomePV = useCallback(() => {
     setIncomePV(incomePvValue)
@@ -870,6 +883,17 @@ export function FinanceProvider({ children }) {
     recalcIncomePV()
     recalcExpensesPV()
   }, [recalcIncomePV, recalcExpensesPV, settings.discountRate, settings.inflationRate])
+
+  useEffect(() => {
+    recalcIncomePV()
+    recalcExpensesPV()
+  }, [
+    settings.retirementAge,
+    settings.taxBrackets,
+    settings.pensionContributionReliefPct,
+    recalcIncomePV,
+    recalcExpensesPV
+  ])
 
   useEffect(() => {
     storage.set('includeMediumPV', JSON.stringify(includeMediumPV))
