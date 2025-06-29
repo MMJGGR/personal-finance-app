@@ -1,11 +1,11 @@
 import React from 'react'
 import { FREQUENCY_LABELS } from '../constants.js'
 
-export default function ExpenseRow({ id, name, amount, frequency, growth, category, startYear, endYear, include = true, onChange, onDelete }) {
+export default function ExpenseRow({ id, name, amount, frequency, monthDue = 1, growth, category, startYear, endYear, include = true, onChange, onDelete }) {
   const makeId = field => `${id}-${field}`
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1 bg-white p-2 rounded-md shadow relative">
+    <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1 bg-white p-2 rounded-md shadow relative">
       <div>
         <label htmlFor={makeId('name')} className="block text-sm font-medium">Name</label>
         <input
@@ -47,6 +47,21 @@ export default function ExpenseRow({ id, name, amount, frequency, growth, catego
             <option key={l} value={l}>{l}</option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label htmlFor={makeId('monthDue')} className="block text-sm font-medium">Month Due</label>
+        <input
+          id={makeId('monthDue')}
+          aria-label="Month due"
+          title="Month due"
+          type="number"
+          min={1}
+          max={12}
+          className="border p-2 rounded-md w-full text-right"
+          value={monthDue}
+          onChange={e => onChange(id, 'monthDue', e.target.value)}
+        />
       </div>
 
       <div>

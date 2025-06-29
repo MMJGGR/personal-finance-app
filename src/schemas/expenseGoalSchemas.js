@@ -27,6 +27,7 @@ export const expenseItemSchema = z
     amount: nonNegNumber(),
     frequency: z.union([z.string(), posIntField()]).default('Monthly'),
     paymentsPerYear: posIntField().optional(),
+    monthDue: intFieldWithRange(1, 12).optional().default(1),
     growth: numField().default(0),
     category: z.string().default(''),
     priority: intFieldWithRange(1, 3).default(2),
@@ -44,6 +45,8 @@ export const goalItemSchema = z
     name: z.string().min(1, 'Required'),
     amount: nonNegNumber(),
     targetYear: intField(),
+    type: z.string().optional().default(''),
+    daysCover: nonNegNumber().optional(),
     startYear: intField(),
     endYear: intField(),
   })

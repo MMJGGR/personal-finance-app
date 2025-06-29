@@ -99,6 +99,7 @@ export default function ExpensesGoalsTab() {
           paymentsPerYear: typeof e.frequency === 'number'
             ? e.frequency
             : frequencyToPayments(e.frequency) || 1,
+          monthDue: e.monthDue ?? 1,
           startYear: e.startYear ?? defaultStart,
           endYear: e.endYear ?? defaultEnd,
           priority: e.priority ?? 2,
@@ -118,6 +119,8 @@ export default function ExpensesGoalsTab() {
           id: crypto.randomUUID(),
           startYear: g.startYear ?? g.targetYear ?? defaultStart,
           endYear: g.endYear ?? g.targetYear ?? defaultStart,
+          type: g.type ?? '',
+          daysCover: g.daysCover ?? 0,
           ...g,
         }))
       } else {
@@ -219,6 +222,7 @@ export default function ExpensesGoalsTab() {
         name: '',
         amount: 0,
         frequency: 'Monthly',
+        monthDue: 1,
         paymentsPerYear: 12,
         growth: settings.inflationRate,
         category: 'Fixed',
@@ -274,6 +278,8 @@ export default function ExpensesGoalsTab() {
         name: '',
         amount: 0,
         targetYear: currentYear,
+        type: '',
+        daysCover: 0,
         startYear: defaultStart,
         endYear: defaultEnd,
       },
@@ -352,6 +358,7 @@ export default function ExpensesGoalsTab() {
         paymentsPerYear: typeof e.frequency === 'number'
           ? e.frequency
           : frequencyToPayments(e.frequency) || 1,
+        monthDue: e.monthDue ?? 1,
         startYear: e.startYear ?? defaultStart,
         endYear: e.endYear ?? defaultEnd,
         priority: e.priority ?? 2,
@@ -368,6 +375,8 @@ export default function ExpensesGoalsTab() {
         id: crypto.randomUUID(),
         startYear: g.startYear ?? g.targetYear ?? defaultStart,
         endYear: g.endYear ?? g.targetYear ?? defaultStart,
+        type: g.type ?? '',
+        daysCover: g.daysCover ?? 0,
         ...g,
       }))
       setGoalsList(list)
@@ -673,10 +682,11 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showExpenses && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-8 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Amt ({settings.currency})</div>
               <div>Pay/Yr</div>
+              <div>Month</div>
               <div>Growth %</div>
               <div>Category</div>
               <div>Start</div>
@@ -693,6 +703,7 @@ export default function ExpensesGoalsTab() {
                 name={e.name}
                 amount={e.amount}
                 frequency={e.frequency}
+                monthDue={e.monthDue ?? 1}
                 growth={e.growth}
                 category={e.category}
                 startYear={e.startYear ?? defaultStart}
@@ -727,10 +738,12 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showGoals && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 font-semibold text-gray-700 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-8 gap-2 font-semibold text-gray-700 mb-1">
               <div>Name</div>
               <div className="text-right">Amt ({settings.currency})</div>
               <div className="text-right">Target Yr</div>
+              <div>Type</div>
+              <div className="text-right">Days</div>
               <div>Start</div>
               <div>End</div>
               <div></div>
@@ -739,7 +752,7 @@ export default function ExpensesGoalsTab() {
               <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
             )}
             {goalsList.map(g => (
-              <div key={g.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center mb-1">
+              <div key={g.id} className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1">
                 <div>
                   <label htmlFor={`goal-name-${g.id}`} className="sr-only">Goal name</label>
                   <input
@@ -782,6 +795,30 @@ export default function ExpensesGoalsTab() {
                     aria-label="Target year"
                   />
                   {goalErrors[g.id]?.targetYear && <span className="text-red-600 text-xs">{goalErrors[g.id].targetYear[0]}</span>}
+                </div>
+                <div>
+                  <label htmlFor={`goal-type-${g.id}`} className="sr-only">Type</label>
+                  <input
+                    id={`goal-type-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full"
+                    value={g.type || ''}
+                    onChange={ev => handleGoalChange(g.id, 'type', ev.target.value)}
+                    aria-label="Goal type"
+                    title="Goal type"
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`goal-days-${g.id}`} className="sr-only">Days cover</label>
+                  <input
+                    id={`goal-days-${g.id}`}
+                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
+                    type="number"
+                    min="0"
+                    value={g.daysCover ?? ''}
+                    onChange={ev => handleGoalChange(g.id, 'daysCover', ev.target.value)}
+                    aria-label="Days cover"
+                    title="Days cover"
+                  />
                 </div>
                 <div>
                   <label htmlFor={`goal-start-${g.id}`} className="sr-only">Start year</label>
