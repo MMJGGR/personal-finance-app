@@ -217,6 +217,7 @@ export function FinanceProvider({ children }) {
           startYear: exp.startYear ?? now,
           endYear: exp.endYear ?? null,
           include: exp.include !== false,
+          monthDue: exp.monthDue ?? 1,
           ...exp,
           paymentsPerYear,
           priority: exp.priority ?? 2,
@@ -239,6 +240,8 @@ export function FinanceProvider({ children }) {
         id: g.id || crypto.randomUUID(),
         startYear: g.startYear ?? g.targetYear ?? now,
         endYear: g.endYear ?? g.targetYear ?? now,
+        type: g.type ?? '',
+        daysCover: g.daysCover ?? 0,
         ...g,
       }))
       storage.set('goalsList', JSON.stringify(migrated))
