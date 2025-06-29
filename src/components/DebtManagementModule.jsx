@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { formatCurrency } from '../../utils/formatters'
+import { formatCurrency } from '../utils/formatters'
 import { calculateLoanSchedule } from '../../modules/loan/loanCalculator'
 import { suggestLoanStrategies } from '../../modules/loan/loanStrategies'
 
