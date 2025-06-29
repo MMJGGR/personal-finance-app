@@ -12,6 +12,7 @@ import {
   Cell,
 } from 'recharts'
 import { useFinance } from '../../FinanceContext'
+import { usePersona } from '../../PersonaContext.jsx'
 import CashflowTimelineChart from '../ExpensesGoals/CashflowTimelineChart.jsx'
 import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
 import { getLoanFlowsByYear } from '../../utils/loanHelpers'
@@ -49,6 +50,7 @@ export default function BalanceSheetTab() {
     strategy,
     setStrategy,
   } = useFinance()
+  const { currentData } = usePersona()
 
   const [expandedAssets, setExpandedAssets] = useState({})
   const [expandedLiabilities, setExpandedLiabilities] = useState({})
@@ -175,6 +177,41 @@ export default function BalanceSheetTab() {
     setAssetsList([...assetsList, createAsset()])
   const addLiability = () =>
     setLiabilitiesList([...liabilitiesList, createLiability()])
+
+  const resetDefaults = () => {
+    const now = new Date().getFullYear()
+    if (currentData?.assetsList?.length) {
+      const list = currentData.assetsList.map(a => ({
+        id: crypto.randomUUID(),
+        name: a.name,
+        amount: a.amount ?? a.value ?? 0,
+        type: a.type ?? '',
+        expectedReturn:
+          a.returnAssumptionPct ?? a.expectedReturn ?? a.return ?? 0,
+        volatility: a.volatilityPct ?? a.volatility ?? 0,
+        horizonYears: a.horizonYears ?? 0,
+        purchaseYear: now,
+        saleYear: null,
+        principal: a.principal ?? a.amount ?? a.value ?? 0,
+      }))
+      setAssetsList(list)
+    }
+    if (currentData?.liabilitiesList?.length) {
+      const list = currentData.liabilitiesList.map(l => ({
+        id: crypto.randomUUID(),
+        name: l.name,
+        principal: l.principal ?? 0,
+        interestRate: l.ratePct ?? l.interestRate ?? 0,
+        termYears: l.termYears ?? Math.ceil((l.termMonths || 0) / 12),
+        paymentsPerYear: l.paymentsPerYear ?? 12,
+        extraPayment: l.extraPayment ?? 0,
+        startYear: l.startYear ?? now,
+        endYear: l.endYear ?? null,
+        include: l.include !== false,
+      }))
+      setLiabilitiesList(list)
+    }
+  }
 
   const validateAsset = (asset, idx, list) => {
     if (
@@ -683,6 +720,15 @@ export default function BalanceSheetTab() {
           locale={settings.locale}
           currency={settings.currency}
         />
+        <div className="text-right mt-2">
+          <button
+            onClick={resetDefaults}
+            className="border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            aria-label="Reset balance sheet to defaults"
+          >
+            Reset Defaults
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 // src/PreferencesTab.jsx
 import React, { useState, useEffect } from 'react'
 import { useFinance } from '../FinanceContext'
+import { usePersona } from '../PersonaContext.jsx'
 import sanitize from '../utils/sanitize'
 
 function safeParse(str, fallback) {
@@ -23,7 +24,9 @@ export default function PreferencesTab() {
     setIncludeGoalsPV,
     includeLiabilitiesNPV,
     setIncludeLiabilitiesNPV,
+    profile,
   } = useFinance()
+  const { currentData } = usePersona()
   const [form, setForm] = useState(settings)
 
   // Whenever persisted settings change, reset the form
@@ -37,6 +40,39 @@ export default function PreferencesTab() {
     const updated = { ...form, [field]: clean }
     setForm(updated)
     updateSettings(updated)
+  }
+
+  const resetDefaults = () => {
+    const base = {
+      startYear: new Date().getFullYear(),
+      projectionYears: profile.lifeExpectancy - profile.age,
+      chartView: 'nominal',
+      discountRate: 0,
+      inflationRate: 5,
+      expectedReturn: 8,
+      currency: '',
+      locale: 'en-KE',
+      apiEndpoint: '',
+      discretionaryCutThreshold: 0,
+      survivalThresholdMonths: 0,
+      bufferPct: 0,
+      retirementAge: 65,
+      riskCapacityScore: 0,
+      riskWillingnessScore: 0,
+      liquidityBucketDays: 0,
+      taxBrackets: [],
+      pensionContributionReliefPct: 0,
+    }
+    const persona = currentData?.settings || {}
+    const merged = { ...base, ...persona }
+    setForm(merged)
+    updateSettings(merged)
+    setIncludeMediumPV(
+      currentData?.includeMediumPV ?? true
+    )
+    setIncludeLowPV(currentData?.includeLowPV ?? true)
+    setIncludeGoalsPV(currentData?.includeGoalsPV ?? false)
+    setIncludeLiabilitiesNPV(currentData?.includeLiabilitiesNPV ?? false)
   }
 
   return (
@@ -321,6 +357,16 @@ export default function PreferencesTab() {
             title="API endpoint"
           />
         </label>
+      </div>
+
+      <div className="text-right">
+        <button
+          onClick={resetDefaults}
+          className="mt-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Reset settings to defaults"
+        >
+          Reset Defaults
+        </button>
       </div>
 
       <div className="text-right text-sm text-slate-500 italic">
