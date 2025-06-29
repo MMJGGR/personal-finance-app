@@ -527,9 +527,11 @@ export function FinanceProvider({ children }) {
   useEffect(() => {
     if (!settings.currency) {
       const cur = DEFAULT_CURRENCY_MAP[profile.nationality] || 'KES'
-      updateSettings({ ...settings, currency: cur })
+      if (settings.currency !== cur) {
+        updateSettings({ ...settings, currency: cur })
+      }
     }
-  }, [profile.nationality, settings.currency])
+  }, [profile.nationality, settings.currency, updateSettings])
 
   // === Load default persona data if no saved profile ===
   useEffect(() => {
@@ -776,9 +778,10 @@ export function FinanceProvider({ children }) {
       }
       const afterTaxAmt = incomeAmount * (1 - (src.taxRate || 0) / 100)
       const growth = src.growth || 0
-      const linked = assetsList.find(a => a.id === src.linkedAssetId)
+      // Removed dependency on assetsList here to break circular dependency
+      // const linked = assetsList.find(a => a.id === src.linkedAssetId)
       const srcStart = Math.max(src.startYear ?? planStart, planStart)
-      let srcEnd = getStreamEndYear(src, assumptions, linked)
+      let srcEnd = getStreamEndYear(src, assumptions, null) // Pass null for linked asset
       srcEnd = Math.min(srcEnd, planEnd)
       if (srcEnd < srcStart) return sum
       const activeYears = srcEnd - srcStart + 1
@@ -795,7 +798,6 @@ export function FinanceProvider({ children }) {
     }, 0)
   }, [
     incomeSources,
-    assetsList,
     settings.discountRate,
     settings.inflationRate,
     settings.retirementAge,
