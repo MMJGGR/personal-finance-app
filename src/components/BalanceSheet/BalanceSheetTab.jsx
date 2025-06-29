@@ -15,6 +15,8 @@ import { useFinance } from '../../FinanceContext'
 import CashflowTimelineChart from '../ExpensesGoals/CashflowTimelineChart.jsx'
 import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
 import { getLoanFlowsByYear } from '../../utils/loanHelpers'
+import { estimateFutureValue } from '../../utils/financeUtils'
+import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
 import LTCMA from '../../ltcmaAssumptions'
 import InvestmentStrategies from '../../investmentStrategies'
 import { formatCurrency } from '../../utils/formatters'
@@ -34,6 +36,7 @@ export default function BalanceSheetTab() {
     createAsset,
     liabilitiesList,
     setLiabilitiesList,
+    createLiability,
     goalsList,
     expensesList,
     annualIncome,
@@ -48,6 +51,7 @@ export default function BalanceSheetTab() {
   } = useFinance()
 
   const [expandedAssets, setExpandedAssets] = useState({})
+  const [expandedLiabilities, setExpandedLiabilities] = useState({})
   const [chartMode, setChartMode] = useState('nominal')
 
   const assetReturn = useMemo(() => {
@@ -70,6 +74,20 @@ export default function BalanceSheetTab() {
     )
   }, [assetsList])
 
+  const assetFutureValue = useMemo(
+    () =>
+      assetsList.reduce(
+        (sum, a) =>
+          sum + estimateFutureValue(
+            Number(a.amount) || 0,
+            Number(a.expectedReturn) || 0,
+            Number(a.horizonYears) || 0
+          ),
+        0
+      ),
+    [assetsList]
+  )
+
   const strategyReturn = useMemo(() => {
     if (!strategy) return 0
     const weights = InvestmentStrategies[strategy]
@@ -89,6 +107,11 @@ export default function BalanceSheetTab() {
       0
     )
   }, [strategy])
+
+  const loanStrategies = useMemo(
+    () => suggestLoanStrategies(liabilitiesList.filter(l => l.include !== false)),
+    [liabilitiesList]
+  )
 
   // Keep PV of Lifetime Income in sync with context changes
   useEffect(() => {
@@ -151,7 +174,7 @@ export default function BalanceSheetTab() {
   const addAsset = () =>
     setAssetsList([...assetsList, createAsset()])
   const addLiability = () =>
-    setLiabilitiesList([...liabilitiesList, { id: crypto.randomUUID(), name: '', amount: 0 }])
+    setLiabilitiesList([...liabilitiesList, createLiability()])
 
   const validateAsset = (asset, idx, list) => {
     if (
@@ -175,7 +198,19 @@ export default function BalanceSheetTab() {
     const updatedItem = {
       ...list[index],
       [field]:
-        ['amount', 'expectedReturn', 'volatility', 'horizonYears', 'purchaseYear', 'saleYear', 'principal'].includes(field)
+        [
+          'amount',
+          'expectedReturn',
+          'volatility',
+          'horizonYears',
+          'purchaseYear',
+          'saleYear',
+          'principal',
+          'interestRate',
+          'termYears',
+          'paymentsPerYear',
+          'extraPayment'
+        ].includes(field)
           ? Number(value)
           : value,
     }
@@ -196,6 +231,9 @@ export default function BalanceSheetTab() {
 
   const toggleAsset = id =>
     setExpandedAssets(prev => ({ ...prev, [id]: !prev[id] }))
+
+  const toggleLiability = id =>
+    setExpandedLiabilities(prev => ({ ...prev, [id]: !prev[id] }))
 
   const barData = [
     { name: 'Assets', value: totalAssets },
@@ -275,6 +313,7 @@ export default function BalanceSheetTab() {
     { label: 'Expenses PV', value: expensesPV },
     { label: 'Goals PV', value: pvGoals },
     { label: 'Liabilities PV', value: pvLiabilities },
+    { label: 'Future Value', value: assetFutureValue },
     { label: 'Debt/Asset Ratio', value: debtAssetRatio },
     { label: 'Human Cap Share', value: humanCapitalShare },
     { label: 'Portfolio Return', value: assetReturn },
@@ -438,34 +477,82 @@ export default function BalanceSheetTab() {
         <div>
           <h3 className="text-md font-medium mb-2">Liabilities</h3>
           {liabilitiesList.map((item, i) => (
-            <div
-              key={item.id}
-              className={`grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2 items-center ${
-                item.id === 'pv-expenses'
-                  ? 'italic bg-slate-100'
-                  : 'border rounded-md p-2 sm:p-0'
-              }`}
-            >
-              <input
-                className="border p-2 rounded-md"
-                value={item.name}
-                onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'name', e.target.value)}
-                disabled={item.id === 'pv-expenses'}
-                aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
-                aria-label="Liability name"
-                title="Liability name"
-              />
-              <input
-                type="number"
-                className="border p-2 rounded-md"
-                value={item.amount}
-                onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'amount', e.target.value)}
-                disabled={item.id === 'pv-expenses'}
-                aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
-                aria-label="Liability amount"
-                title="Liability amount"
-              />
-            </div>
+            <React.Fragment key={item.id}>
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-3 gap-2 mb-1 items-center ${
+                  item.id === 'pv-expenses'
+                    ? 'italic bg-slate-100'
+                    : 'border rounded-md p-2 sm:p-0'
+                }`}
+              >
+                <button
+                  onClick={() => toggleLiability(item.id)}
+                  aria-expanded={expandedLiabilities[item.id] ? 'true' : 'false'}
+                  className="text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  title="Toggle details"
+                >
+                  <span className="hidden sm:inline">{expandedLiabilities[item.id] ? '▾' : '▸'}</span>
+                  <span className="sm:hidden text-sm underline">
+                    {expandedLiabilities[item.id] ? 'Hide' : 'Details'}
+                  </span>
+                </button>
+                <input
+                  className="border p-2 rounded-md"
+                  value={item.name}
+                  onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'name', e.target.value)}
+                  disabled={item.id === 'pv-expenses'}
+                  aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
+                  aria-label="Liability name"
+                  title="Liability name"
+                />
+                <input
+                  type="number"
+                  className="border p-2 rounded-md"
+                  value={item.principal ?? item.amount}
+                  onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'principal', e.target.value)}
+                  disabled={item.id === 'pv-expenses'}
+                  aria-disabled={item.id === 'pv-expenses' ? 'true' : undefined}
+                  aria-label="Principal"
+                  title="Principal"
+                />
+              </div>
+              {expandedLiabilities[item.id] && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 ml-4 sm:ml-6 border-t pt-2 sm:border-none">
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.interestRate ?? 0}
+                    onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'interestRate', e.target.value)}
+                    aria-label="Interest rate"
+                    title="Interest rate"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.termYears ?? 1}
+                    onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'termYears', e.target.value)}
+                    aria-label="Term years"
+                    title="Term years"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.paymentsPerYear ?? 12}
+                    onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'paymentsPerYear', e.target.value)}
+                    aria-label="Payments per year"
+                    title="Payments per year"
+                  />
+                  <input
+                    type="number"
+                    className="border p-2 rounded-md text-right"
+                    value={item.extraPayment ?? 0}
+                    onChange={e => updateItem(setLiabilitiesList, liabilitiesList, i, 'extraPayment', e.target.value)}
+                    aria-label="Extra payment"
+                    title="Extra payment"
+                  />
+                </div>
+              )}
+            </React.Fragment>
           ))}
           <button
             onClick={addLiability}
@@ -501,6 +588,20 @@ export default function BalanceSheetTab() {
           ))}
         </tbody>
       </table>
+
+      {loanStrategies.length > 0 && (
+        <div className="mb-4">
+          <h4 className="font-semibold text-slate-700 mb-2">Debt Optimization Tips</h4>
+          <ul className="list-disc list-inside text-sm">
+            {loanStrategies.map(s => (
+              <li key={s.name}>
+                {s.name}: save {formatCurrency(s.interestSaved, settings.locale, settings.currency)}
+                {s.paymentsSaved ? `, ${s.paymentsSaved} fewer payments` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow-md">

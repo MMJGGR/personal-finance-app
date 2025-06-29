@@ -365,6 +365,14 @@ export function FinanceProvider({ children }) {
         const parsed = JSON.parse(s)
         return parsed.map(l => ({
           id: l.id || crypto.randomUUID(),
+          name: l.name || '',
+          principal: l.principal ?? 0,
+          interestRate: l.interestRate ?? 0,
+          termYears: l.termYears ?? 1,
+          paymentsPerYear: l.paymentsPerYear ?? 12,
+          extraPayment: l.extraPayment ?? 0,
+          startYear: l.startYear ?? new Date().getFullYear(),
+          endYear: l.endYear ?? null,
           include: l.include !== false,
           ...l,
         }))
@@ -373,6 +381,19 @@ export function FinanceProvider({ children }) {
       }
     }
     return []
+  })
+
+  const createLiability = () => ({
+    id: crypto.randomUUID(),
+    name: '',
+    principal: 0,
+    interestRate: 0,
+    termYears: 1,
+    paymentsPerYear: 12,
+    extraPayment: 0,
+    startYear: new Date().getFullYear(),
+    endYear: null,
+    include: true,
   })
 
   // === Profile & KYC fields (with lifeExpectancy) ===
@@ -386,6 +407,8 @@ export function FinanceProvider({ children }) {
     id: crypto.randomUUID(),
     name: '',
     amount: 0,
+    expectedReturn: 0,
+    volatility: 0,
     horizonYears: profile.lifeExpectancy - profile.age,
     purchaseYear: new Date().getFullYear(),
     saleYear: null,
@@ -1088,6 +1111,7 @@ export function FinanceProvider({ children }) {
 
       // Liabilities
       liabilitiesList, setLiabilitiesList,
+      createLiability,
 
       // Profile & lifeExpectancy
       profile,       updateProfile,
