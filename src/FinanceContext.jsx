@@ -1146,26 +1146,6 @@ export function FinanceProvider({ children }) {
       }
     }
 
-    const sPPC = storage.get('privatePensionContributions')
-    if (sPPC) {
-      try {
-        const parsed = JSON.parse(sPPC)
-        setPrivatePensionContributions(parsed.map(ppc => ({ id: ppc.id || crypto.randomUUID(), ...ppc })))
-      } catch {
-        // ignore malformed stored data
-      }
-    }
-
-    const sPPC = storage.get('privatePensionContributions')
-    if (sPPC) {
-      try {
-        const parsed = JSON.parse(sPPC)
-        setPrivatePensionContributions(parsed.map(ppc => ({ id: ppc.id || crypto.randomUUID(), ...ppc })))
-      } catch {
-        // ignore malformed stored data
-      }
-    }
-
     const me = storage.get('monthlyExpense')
     if (me) setMonthlyExpense(+me)
 
