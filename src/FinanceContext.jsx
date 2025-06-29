@@ -198,6 +198,18 @@ export function FinanceProvider({ children }) {
     }
     return defaults
   })
+  const [privatePensionContributions, setPrivatePensionContributions] = useState(() => {
+    const s = storage.get('privatePensionContributions')
+    if (s) {
+      try {
+        const parsed = JSON.parse(s)
+        return parsed.map(ppc => ({ id: ppc.id || crypto.randomUUID(), ...ppc }))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+    return []
+  })
   const [startYear, setStartYear] = useState(() => {
     const s = storage.get('incomeStartYear')
     return s ? Number(s) : new Date().getFullYear()
@@ -1134,6 +1146,26 @@ export function FinanceProvider({ children }) {
       }
     }
 
+    const sPPC = storage.get('privatePensionContributions')
+    if (sPPC) {
+      try {
+        const parsed = JSON.parse(sPPC)
+        setPrivatePensionContributions(parsed.map(ppc => ({ id: ppc.id || crypto.randomUUID(), ...ppc })))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+
+    const sPPC = storage.get('privatePensionContributions')
+    if (sPPC) {
+      try {
+        const parsed = JSON.parse(sPPC)
+        setPrivatePensionContributions(parsed.map(ppc => ({ id: ppc.id || crypto.randomUUID(), ...ppc })))
+      } catch {
+        // ignore malformed stored data
+      }
+    }
+
     const me = storage.get('monthlyExpense')
     if (me) setMonthlyExpense(+me)
 
@@ -1218,6 +1250,7 @@ export function FinanceProvider({ children }) {
       goalsList,     setGoalsList,
       investmentContributions, setInvestmentContributions,
       pensionStreams, setPensionStreams,
+      privatePensionContributions, setPrivatePensionContributions,
       assetsList,    setAssetsList,
       createAsset,
 
