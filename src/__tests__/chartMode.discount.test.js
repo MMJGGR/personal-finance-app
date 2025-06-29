@@ -38,8 +38,9 @@ afterEach(() => {
 
 function setupIncome() {
   const now = 2024
-  localStorage.setItem('settings', JSON.stringify({ discountRate: 10, startYear: now, projectionYears: 2 }))
-  localStorage.setItem('incomeSources', JSON.stringify([
+  localStorage.setItem('currentPersonaId', 'hadi')
+  localStorage.setItem('settings-hadi', JSON.stringify({ discountRate: 10, startYear: now, projectionYears: 2 }))
+  localStorage.setItem('incomeSources-hadi', JSON.stringify([
     { name: 'Job', amount: 1000, frequency: 1, growth: 0, taxRate: 0, startYear: now, active: true }
   ]))
   return render(
@@ -51,14 +52,15 @@ function setupIncome() {
 
 function setupExpenses() {
   const now = 2024
-  localStorage.setItem('settings', JSON.stringify({ discountRate: 10, startYear: now }))
-  localStorage.setItem('expensesList', JSON.stringify([
+  localStorage.setItem('currentPersonaId', 'hadi')
+  localStorage.setItem('settings-hadi', JSON.stringify({ discountRate: 10, startYear: now }))
+  localStorage.setItem('expensesList-hadi', JSON.stringify([
     { id:'e1', name:'Rent', amount: 120, frequency:'Annually', paymentsPerYear:1, growth:0, category:'Fixed', priority:1, include:true, startYear: now, endYear: now + 1 }
   ]))
-  localStorage.setItem('goalsList', JSON.stringify([]))
-  localStorage.setItem('liabilitiesList', JSON.stringify([]))
-  localStorage.setItem('includeGoalsPV', 'false')
-  localStorage.setItem('includeLiabilitiesNPV', 'false')
+  localStorage.setItem('goalsList-hadi', JSON.stringify([]))
+  localStorage.setItem('liabilitiesList-hadi', JSON.stringify([]))
+  localStorage.setItem('includeGoalsPV-hadi', 'false')
+  localStorage.setItem('includeLiabilitiesNPV-hadi', 'false')
   return render(
     <FinanceProvider>
       <ExpensesGoalsTab />

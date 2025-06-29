@@ -2,6 +2,13 @@ import mitt from 'mitt'
 
 const emitter = mitt()
 
+let personaId = ''
+
+function applyKey(key) {
+  if (!personaId || key === 'currentPersonaId') return key
+  return `${key}-${personaId}`
+}
+
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', event => {
     if (event.storageArea === localStorage) {
@@ -11,20 +18,26 @@ if (typeof window !== 'undefined') {
 }
 
 const storage = {
+  setPersona(id) {
+    personaId = id
+  },
   get(key) {
-    return localStorage.getItem(key)
+    return localStorage.getItem(applyKey(key))
   },
   set(key, value) {
-    localStorage.setItem(key, value)
-    emitter.emit(key, value)
+    const k = applyKey(key)
+    localStorage.setItem(k, value)
+    emitter.emit(k, value)
   },
   remove(key) {
-    localStorage.removeItem(key)
-    emitter.emit(key, null)
+    const k = applyKey(key)
+    localStorage.removeItem(k)
+    emitter.emit(k, null)
   },
   subscribe(key, cb) {
-    emitter.on(key, cb)
-    return () => emitter.off(key, cb)
+    const k = applyKey(key)
+    emitter.on(k, cb)
+    return () => emitter.off(k, cb)
   }
 }
 

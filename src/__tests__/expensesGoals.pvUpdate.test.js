@@ -14,9 +14,10 @@ afterEach(() => {
 })
 
 function setup() {
-  localStorage.setItem('profile', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 85 }))
-  localStorage.setItem('includeGoalsPV', 'true')
-  localStorage.setItem('includeLiabilitiesNPV', 'true')
+  localStorage.setItem('currentPersonaId', 'hadi')
+  localStorage.setItem('profile-hadi', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 85 }))
+  localStorage.setItem('includeGoalsPV-hadi', 'true')
+  localStorage.setItem('includeLiabilitiesNPV-hadi', 'true')
   return render(
     <FinanceProvider>
       <ExpensesGoalsTab />
@@ -35,7 +36,7 @@ test('adding an expense updates PV totals', async () => {
   const amtInput = screen.getByTitle('Expense amount')
   fireEvent.change(amtInput, { target: { value: '100' } })
 
-  const profile = JSON.parse(localStorage.getItem('profile'))
+  const profile = JSON.parse(localStorage.getItem('profile-hadi'))
   const years = profile.lifeExpectancy - profile.age
   const expectedPV = calculatePV(100, 12, 5, 0, years)
   const expectedVal = formatCurrency(expectedPV, 'en-US', 'KES').replace('KES', '')

@@ -22,12 +22,13 @@ test('renders nothing when no gaps', () => {
 })
 
 test('shows funding gaps table', async () => {
+  localStorage.setItem('currentPersonaId', 'hadi')
   localStorage.setItem(
-    'incomeSources',
+    'incomeSources-hadi',
     JSON.stringify([{ name: 'Job', amount: 1000, frequency: 1, growth: 0, taxRate: 0 }])
   )
   localStorage.setItem(
-    'expensesList',
+    'expensesList-hadi',
     JSON.stringify([{ name: 'Big', amount: 1500, paymentsPerYear: 1, growth: 0, priority: 1 }])
   )
   function Wrapper({ children }) {
