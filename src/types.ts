@@ -52,6 +52,12 @@ export interface Asset {
   expectedReturn?: number
   volatility?: number
   horizonYears?: number
+  /** year asset was purchased */
+  purchaseYear?: number
+  /** year asset will be sold */
+  saleYear?: number | null
+  /** original principal amount */
+  principal?: number
   return?: number
 }
 
