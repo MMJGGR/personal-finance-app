@@ -1,9 +1,11 @@
 // src/ProfileTab.jsx
 import React, { useState, useEffect } from 'react'
 import { useFinance } from '../../FinanceContext'
+import { usePersona } from '../../PersonaContext'
 import storage from '../../utils/storage'
 import sanitize from '../../utils/sanitize'
 import { appendAuditLog } from '../../utils/auditLog'
+import { profileSchema } from '../../utils/validationSchemas'
 
 export default function ProfileTab() {
   const {
@@ -13,7 +15,9 @@ export default function ProfileTab() {
     resetProfile,
     riskScore,
   } = useFinance()
+  const { currentPersonaId } = usePersona()
   const [form, setForm] = useState(profile)
+  const [errors, setErrors] = useState({})
 
   // Whenever the context’s profile changes, reset the form
   useEffect(() => {
@@ -23,18 +27,31 @@ export default function ProfileTab() {
   // Handle any field change locally, then persist via context
   const handleChange = (field, value) => {
     const clean = typeof value === 'string' ? sanitize(value) : value
-    const updated = { ...form, [field]: clean }
-    appendAuditLog(storage, {
-      field: `profile.${field}`,
-      oldValue: form[field],
-      newValue: clean,
-    })
+    let updated = { ...form, [field]: clean }
 
     if (field === 'lifeExpectancy' && value <= updated.age) {
       updated.lifeExpectancy = updated.age + 1
     } else if (field === 'age' && updated.lifeExpectancy <= value) {
       updated.lifeExpectancy = value + 1
     }
+
+    const result = profileSchema.safeParse(updated)
+    if (!result.success) {
+      const newErrors = {}
+      for (const issue of result.error.issues) {
+        newErrors[issue.path[0]] = issue.message
+      }
+      setErrors(newErrors)
+    } else {
+      setErrors({})
+      updated = result.data // Use the parsed data which might have transformations
+    }
+
+    appendAuditLog(storage, {
+      field: `profile.${field}`,
+      oldValue: form[field],
+      newValue: clean,
+    }, currentPersonaId)
 
     setForm(updated)
     updateProfile(updated)
@@ -70,14 +87,14 @@ export default function ProfileTab() {
             Personal & KYC Information
           </h3>
           {[
-            ['Full Name', 'name', 'text'], // FIXME: unused - pending integration
-            ['Email Address', 'email', 'email'], // FIXME: unused - pending integration
-            ['Phone Number', 'phone', 'tel'], // FIXME: unused - pending integration
+            ['Full Name', 'name', 'text'],
+            ['Email Address', 'email', 'email'],
+            ['Phone Number', 'phone', 'tel'],
             ['Age', 'age', 'number'],
             ['Life Expectancy', 'lifeExpectancy', 'number'],
-            ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']], // FIXME: unused - pending integration
-            ['Dependents', 'numDependents', 'number'], // FIXME: unused - pending integration
-            ['Education', 'education', 'text'] // FIXME: unused - pending integration
+            ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']],
+            ['Dependents', 'numDependents', 'number'],
+            ['Education', 'education', 'text']
           ].map(([label, field, type, options]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -108,6 +125,7 @@ export default function ProfileTab() {
                   title={label}
                 />
               )}
+              {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
             </label>
           ))}
           {remainingYears <= 0 && (
@@ -115,14 +133,14 @@ export default function ProfileTab() {
           )}
 
           {[
-            ['Residential Address', 'residentialAddress'], // FIXME: unused - pending integration
-            ['Nationality', 'nationality'], // FIXME: unused - pending integration
-            ['Location', 'location'], // FIXME: unused - pending integration
-            ['Citizenship', 'citizenship'], // FIXME: unused - pending integration
-            ['ID / Passport #', 'idNumber'], // FIXME: unused - pending integration
-            ['Tax Residence', 'taxResidence'], // FIXME: unused - pending integration
-            ['Tax Jurisdiction', 'taxJurisdiction'], // FIXME: unused - pending integration
-            ['Employment Status', 'employmentStatus'] // FIXME: unused - pending integration
+            ['Residential Address', 'residentialAddress'],
+            ['Nationality', 'nationality'],
+            ['Location', 'location'],
+            ['Citizenship', 'citizenship'],
+            ['ID / Passport #', 'idNumber'],
+            ['Tax Residence', 'taxResidence'],
+            ['Tax Jurisdiction', 'taxJurisdiction'],
+            ['Employment Status', 'employmentStatus']
           ].map(([label, field]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -133,6 +151,7 @@ export default function ProfileTab() {
                 className="w-full border rounded-md p-2"
                 title={label}
               />
+              {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
             </label>
           ))}
 
@@ -149,11 +168,12 @@ export default function ProfileTab() {
                 className="w-full border rounded-md p-2"
                 title={label}
               />
+              {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
             </label>
           ))}
 
           <label className="block">
-            <span className="text-sm text-slate-600">Source of Funds</span>{/* FIXME: unused - pending integration */}
+            <span className="text-sm text-slate-600">Source of Funds</span>
             <textarea
               value={form.sourceOfFunds}
               onChange={e => handleChange('sourceOfFunds', e.target.value)}
@@ -161,6 +181,7 @@ export default function ProfileTab() {
               rows={3}
               title="Source of funds"
             />
+            {errors.sourceOfFunds && <p className="text-red-500 text-xs mt-1">{errors.sourceOfFunds}</p>}
           </label>
 
           <label className="block">
@@ -172,6 +193,7 @@ export default function ProfileTab() {
               className="w-full border rounded-md p-2"
               title="Primary Financial Challenge"
             />
+            {errors.financialChallenge && <p className="text-red-500 text-xs mt-1">{errors.financialChallenge}</p>}
           </label>
 
           <div className="space-y-2">
@@ -190,6 +212,7 @@ export default function ProfileTab() {
                 className="w-full border rounded-md p-2"
                 title="Spending Habits"
               />
+              {errors.spendingHabits && <p className="text-red-500 text-xs mt-1">{errors.spendingHabits}</p>}
             </label>
             <label className="block">
               <span className="text-sm text-slate-600">Biases</span>
@@ -208,6 +231,7 @@ export default function ProfileTab() {
                 className="w-full border rounded-md p-2"
                 title="Biases"
               />
+              {errors.biases && <p className="text-red-500 text-xs mt-1">{errors.biases}</p>}
             </label>
             <label className="block">
               <span className="text-sm text-slate-600">Financial Worries</span>
@@ -223,6 +247,7 @@ export default function ProfileTab() {
                 className="w-full border rounded-md p-2"
                 title="Financial Worries"
               />
+              {errors.financialWorries && <p className="text-red-500 text-xs mt-1">{errors.financialWorries}</p>}
             </label>
           </div>
         </div>
@@ -236,7 +261,9 @@ export default function ProfileTab() {
             ['Investment Knowledge', 'investmentKnowledge', ['', 'None', 'Basic', 'Moderate', 'Advanced']],
             ['Reaction to 20% Loss', 'lossResponse', ['', 'Sell', 'Wait', 'BuyMore']],
             ['Investment Horizon', 'investmentHorizon', ['', '<3 years', '3–7 years', '>7 years']],
-            ['Investment Goal', 'investmentGoal', ['', 'Preservation', 'Income', 'Growth']]
+            ['Investment Goal', 'investmentGoal', ['', 'Preservation', 'Income', 'Growth']],
+            ['Risk Capacity', 'riskCapacity', ['', 'Very Low', 'Low', 'Medium', 'High', 'Very High']],
+            ['Risk Willingness', 'riskWillingness', ['', 'Very Low', 'Low', 'Medium', 'High', 'Very High']]
           ].map(([label, field, options]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -252,6 +279,7 @@ export default function ProfileTab() {
                   </option>
                 ))}
               </select>
+              {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
             </label>
           ))}
         </div>

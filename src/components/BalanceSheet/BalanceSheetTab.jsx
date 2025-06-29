@@ -1,29 +1,22 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts'
-import { useFinance } from '../../FinanceContext'
-import { usePersona } from '../../PersonaContext.jsx'
-import CashflowTimelineChart from '../ExpensesGoals/CashflowTimelineChart.jsx'
-import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
-import { getLoanFlowsByYear } from '../../utils/loanHelpers'
-import { estimateFutureValue } from '../../utils/financeUtils'
-import suggestLoanStrategies from '../../utils/suggestLoanStrategies'
-import LTCMA from '../../ltcmaAssumptions'
-import InvestmentStrategies from '../../investmentStrategies'
 import { formatCurrency } from '../../utils/formatters'
+import { useFinance } from '../../FinanceContext'
+import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
+
+import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
+
 import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
 import sanitize from '../../utils/sanitize'
+import { getLoanFlowsByYear } from '../../utils/loanHelpers'
+import { estimateFutureValue } from '../../utils/financeUtils'
+import suggestLoanStrategies from '../../modules/loan/loanStrategies'
+import LTCMA from '../../ltcmaAssumptions'
+import InvestmentStrategies from '../../investmentStrategies'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { usePersona } from '../../PersonaContext.jsx'
+import CashflowTimelineChart from '../ExpensesGoals/CashflowTimelineChart.jsx'
+import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
@@ -55,6 +48,7 @@ export default function BalanceSheetTab() {
   const [expandedAssets, setExpandedAssets] = useState({})
   const [expandedLiabilities, setExpandedLiabilities] = useState({})
   const [chartMode, setChartMode] = useState('nominal')
+  const [historicalNetWorth, setHistoricalNetWorth] = useState([])
 
   const assetReturn = useMemo(() => {
     const total = assetsList.reduce((s, a) => s + Number(a.amount || 0), 0)
@@ -140,6 +134,20 @@ export default function BalanceSheetTab() {
       return updated
     })
   }, [expensesPV, setLiabilitiesList])
+
+  useEffect(() => {
+    // Calculate historical net worth (simplified: assumes linear growth/decline)
+    const yearsToProject = 10; // Project 10 years into the past
+    const historicalData = [];
+    for (let i = yearsToProject; i >= 0; i--) {
+      const year = currentYear - i;
+      // This is a very simplified calculation. A real historical net worth would require historical data.
+      // For demonstration, we'll just interpolate backwards from current net worth.
+      const interpolatedNetWorth = netWorth - (netWorth - (totalAssets - totalLiabilities)) * (i / yearsToProject);
+      historicalData.push({ year, netWorth: interpolatedNetWorth });
+    }
+    setHistoricalNetWorth(historicalData);
+  }, [netWorth, totalAssets, totalLiabilities, currentYear]);
 
   const totalAssets = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
   const totalLiabilities = liabilitiesList.reduce(
@@ -356,6 +364,75 @@ export default function BalanceSheetTab() {
     { label: 'Portfolio Return', value: assetReturn },
     { label: 'Portfolio Vol', value: assetVol },
   ]
+
+  // --- Export JSON ---
+  const exportJSON = () => {
+    const exportPlan = {
+      profile,
+      assumptions: settings,
+      timeline: timelineData,
+      assets: assetsList,
+      liabilities: liabilitiesList,
+      PV: {
+        income: incomePV,
+        expenses: expensesPV,
+        goals: pvGoals,
+        liabilities: pvLiabilities,
+        total: netWorth,
+      },
+    }
+    const blob = new Blob([JSON.stringify(exportPlan, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = profile.name.replace(/\s+/g, '_');
+    a.download = `balance-sheet-${name}.json`;
+    a.click();
+  };
+
+  const exportCSV = () => {
+    // For CSV export, we'll create a simplified version of the balance sheet
+    const csvContent = [
+      ['Metric', 'Value'],
+      ['Total Assets', totalAssets],
+      ['Total Liabilities', totalLiabilities],
+      ['Net Worth', netWorth],
+      ['Income PV', incomePV],
+      ['Expenses PV', expensesPV],
+      ['Goals PV', pvGoals],
+      ['Liabilities PV', pvLiabilities],
+      ['Future Value', assetFutureValue],
+      ['Debt/Asset Ratio', debtAssetRatio],
+      ['Human Capital Share', humanCapitalShare],
+      ['Portfolio Return', assetReturn],
+      ['Portfolio Volatility', assetVol],
+    ].map(e => e.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = profile.name.replace(/\s+/g, '_');
+    a.download = `balance-sheet-${name}.csv`;
+    a.click();
+  };
+
+  const submitToAPI = () => {
+    const payload = {
+      profile,
+      settings,
+      assets: assetsList,
+      liabilities: liabilitiesList,
+      summary: {
+        netWorth,
+        debtAssetRatio,
+        humanCapitalShare,
+        portfolioReturn: assetReturn,
+        portfolioVolatility: assetVol,
+      },
+    };
+    submitProfile(payload, settings);
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -604,8 +681,8 @@ export default function BalanceSheetTab() {
 
       <div className="text-md text-slate-700 italic">
         Net Worth: <span className="text-2xl font-bold text-amber-800">{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
-        {debtAssetRatio > 1 && (
-          <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtAssetRatio * 100).toFixed(1)}%).</span>
+        {debtAssetRatio > 0.5 && (
+          <span className="block text-red-600 text-sm">Warning: Debt/Asset Ratio is high ({(debtAssetRatio * 100).toFixed(1)}%). Consider reducing debt.</span>
         )}
       </div>
 
@@ -642,15 +719,16 @@ export default function BalanceSheetTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-4 rounded-xl shadow-md">
-          <h4 className="font-semibold text-slate-700 mb-2">Balance Sheet Overview</h4>
-          <ResponsiveContainer width="100%" height={250} role="img" aria-label="Balance sheet bar chart">
-            <BarChart data={barData}>
-              <XAxis dataKey="name" />
+          <h4 className="font-semibold text-slate-700 mb-2">Historical Net Worth</h4>
+          <ResponsiveContainer width="100%" height={250} role="img" aria-label="Historical net worth chart">
+            <LineChart data={historicalNetWorth}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="year" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" fill="#f59e0b" />
-            </BarChart>
+              <Line type="monotone" dataKey="netWorth" stroke="#8884d8" />
+            </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-md">
@@ -721,14 +799,46 @@ export default function BalanceSheetTab() {
           currency={settings.currency}
         />
         <div className="text-right mt-2">
-          <button
-            onClick={resetDefaults}
-            className="border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            aria-label="Reset balance sheet to defaults"
-          >
-            Reset Defaults
-          </button>
-        </div>
+        <button
+          onClick={resetDefaults}
+          className="border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Reset balance sheet to defaults"
+        >
+          Reset Defaults
+        </button>
+        <button
+          onClick={exportJSON}
+          className="ml-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Export to JSON"
+          title="Export to JSON"
+        >
+          📁 Export to JSON
+        </button>
+        <button
+          onClick={exportCSV}
+          className="ml-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Export to CSV"
+          title="Export to CSV"
+        >
+          📊 Export to CSV
+        </button>
+        <button
+          onClick={submitToAPI}
+          className="ml-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Submit plan to API"
+          title="Submit plan to API"
+        >
+          🚀 Submit to API
+        </button>
+        <button
+          onClick={() => window.print()}
+          className="ml-2 border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Print report"
+          title="Print report"
+        >
+          🖨️ Print
+        </button>
+      </div>
       </div>
     </div>
   )

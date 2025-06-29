@@ -26,7 +26,7 @@ This document outlines a multi-phase plan to refactor and enhance the core tabs 
 ## Phase 2: ProfileTab.jsx — Enterprise-Grade KYC & Risk
 
 **Files:**  
-- `src/tabs/ProfileTab.jsx`  
+- `src/components/Profile/ProfileTab.jsx`  
 - `src/utils/auditLog.js`  
 - `src/context/PersonaContext.jsx`
 

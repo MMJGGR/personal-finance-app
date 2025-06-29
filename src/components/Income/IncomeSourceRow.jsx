@@ -30,6 +30,9 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         title="Income type"
       >
         <option value="Salary">Salary</option>
+        <option value="Salary - Base">Salary - Base</option>
+        <option value="Salary - Bonus">Salary - Bonus</option>
+        <option value="Salary - Variable">Salary - Variable</option>
         <option value="Rental">Rental</option>
         <option value="Bond">Bond</option>
         <option value="Dividend">Dividend</option>

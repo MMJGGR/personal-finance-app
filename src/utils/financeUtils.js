@@ -228,11 +228,10 @@ export function generateRecurringFlows(stream = {}) {
  * @param {number} grossSalary - The gross salary.
  * @returns {object} An object containing employee and employer contributions.
  */
-export function calculateNSSF(grossSalary) {
-  // Simplified placeholder logic
-  const employeeContribution = Math.min(grossSalary * 0.06, 1080); // Example: 6% up to a cap
-  const employerContribution = employeeContribution; // Often matched by employer
-  return { employeeContribution, employerContribution };
+export function calculateNSSF(grossSalary, nssfRates = { employee: 0.06, employer: 0.06 }, nssfCaps = { employee: 1080, employer: 1080 }) {
+  const employeeContribution = Math.min(grossSalary * nssfRates.employee, nssfCaps.employee);
+  const employerContribution = Math.min(grossSalary * nssfRates.employer, nssfCaps.employer);
+  return { employeeContribution, employerContribution, totalContribution: employeeContribution + employerContribution };
 }
 
 /**
@@ -241,11 +240,24 @@ export function calculateNSSF(grossSalary) {
  * @param {number} totalPensionContribution - Total pension contributions.
  * @returns {number} The calculated PAYE.
  */
-export function calculatePAYE(taxableIncome) {
-  // Simplified placeholder logic
+export function calculatePAYE(taxableIncome, taxBrackets = [], pensionContributionReliefPct = 0) {
   let paye = 0;
-  if (taxableIncome > 24000) {
-    paye = (taxableIncome - 24000) * 0.3; // Example: 30% for income above 24000
+  let remainingTaxable = taxableIncome;
+
+  // Apply pension contribution relief
+  const pensionRelief = taxableIncome * (pensionContributionReliefPct / 100);
+  remainingTaxable = Math.max(0, remainingTaxable - pensionRelief);
+
+  for (const bracket of taxBrackets) {
+    if (remainingTaxable <= 0) break;
+
+    const lowerBound = bracket.min || 0;
+    const upperBound = bracket.max || Infinity;
+    const rate = bracket.rate || 0;
+
+    const taxableInBracket = Math.min(remainingTaxable, upperBound - lowerBound);
+    paye += taxableInBracket * rate;
+    remainingTaxable -= taxableInBracket;
   }
   return paye;
 }

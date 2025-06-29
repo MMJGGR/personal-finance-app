@@ -7,9 +7,9 @@ export function readAuditLog(storage) {
   }
 }
 
-export function appendAuditLog(storage, entry = {}) {
+export function appendAuditLog(storage, entry = {}, userId = 'anonymous') {
   const log = readAuditLog(storage)
-  log.push({ ts: new Date().toISOString(), ...entry })
+  log.push({ ts: new Date().toISOString(), userId, ...entry })
   try {
     storage.set('auditLog', JSON.stringify(log))
   } catch (err) {
