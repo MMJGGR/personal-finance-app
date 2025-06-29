@@ -9,7 +9,7 @@ import React, {
   useMemo,
 } from 'react'
 import { usePersona } from './PersonaContext.jsx'
-import { calculatePV, frequencyToPayments } from './utils/financeUtils'
+import { calculatePV, frequencyToPayments, calculateNSSF, calculatePAYE } from './utils/financeUtils'
 import {
   selectAnnualIncome,
   selectAnnualIncomePV,
@@ -20,7 +20,7 @@ import {
 import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
-import { projectPensionGrowth } from './utils/pensionProjection'
+import { projectPensionGrowth } from './utils/pensionProjection.js'
 import storage from './utils/storage'
 import { defaultIncomeSources } from './components/Income/defaults.js'
 
@@ -497,8 +497,13 @@ export function FinanceProvider({ children }) {
 
   // === Updaters that persist to localStorage ===
   const updateSettings = useCallback(updated => {
-    setSettings(updated)
-    storage.set('settings', JSON.stringify(updated))
+    setSettings(prevSettings => {
+      if (JSON.stringify(updated) !== JSON.stringify(prevSettings)) {
+        storage.set('settings', JSON.stringify(updated))
+        return updated
+      }
+      return prevSettings
+    })
   }, [])
 
   const updateProfile = useCallback(updated => {
@@ -511,7 +516,7 @@ export function FinanceProvider({ children }) {
       const cur = DEFAULT_CURRENCY_MAP[updated.nationality]
       if (cur) updateSettings({ ...settings, currency: cur })
     }
-  }, [])
+  }, [settings, updateSettings, setProfile, setRiskScore])
 
   const clearProfile = useCallback(() => {
     updateProfile(defaultProfile)
@@ -531,7 +536,7 @@ export function FinanceProvider({ children }) {
         updateSettings({ ...settings, currency: cur })
       }
     }
-  }, [profile.nationality, settings.currency, updateSettings])
+  }, [profile.nationality, settings.currency, updateSettings, settings])
 
   // === Load default persona data if no saved profile ===
   useEffect(() => {
@@ -637,26 +642,58 @@ export function FinanceProvider({ children }) {
   }, [profile.age, settings.retirementAge, startYear])
 
   // === Persist state slices ===
-  useEffect(() => { storage.set('incomeSources', JSON.stringify(incomeSources)) }, [incomeSources])
+  useEffect(() => {
+    const storedIncomeSources = storage.get('incomeSources');
+    if (JSON.stringify(incomeSources) !== storedIncomeSources) {
+      storage.set('incomeSources', JSON.stringify(incomeSources));
+    }
+  }, [incomeSources]);
   
   
-  useEffect(() => { storage.set('goalsList', JSON.stringify(goalsList)) }, [goalsList])
-  useEffect(() => { storage.set('assetsList', JSON.stringify(assetsList)) }, [assetsList])
-  useEffect(() => { storage.set('liabilitiesList', JSON.stringify(liabilitiesList)) }, [liabilitiesList])
-  useEffect(() => { storage.set('investmentContributions', JSON.stringify(investmentContributions)) }, [investmentContributions])
-  useEffect(() => { storage.set('pensionStreams', JSON.stringify(pensionStreams)) }, [pensionStreams])
+  useEffect(() => {
+    const storedGoalsList = storage.get('goalsList');
+    if (JSON.stringify(goalsList) !== storedGoalsList) {
+      storage.set('goalsList', JSON.stringify(goalsList));
+    }
+  }, [goalsList]);
+  useEffect(() => {
+    const storedAssetsList = storage.get('assetsList');
+    if (JSON.stringify(assetsList) !== storedAssetsList) {
+      storage.set('assetsList', JSON.stringify(assetsList));
+    }
+  }, [assetsList]);
+  useEffect(() => {
+    const storedLiabilitiesList = storage.get('liabilitiesList');
+    if (JSON.stringify(liabilitiesList) !== storedLiabilitiesList) {
+      storage.set('liabilitiesList', JSON.stringify(liabilitiesList));
+    }
+  }, [liabilitiesList]);
+  useEffect(() => {
+    const storedInvestmentContributions = storage.get('investmentContributions');
+    if (JSON.stringify(investmentContributions) !== storedInvestmentContributions) {
+      storage.set('investmentContributions', JSON.stringify(investmentContributions));
+    }
+  }, [investmentContributions]);
+  useEffect(() => {
+    const storedPensionStreams = storage.get('pensionStreams');
+    if (JSON.stringify(pensionStreams) !== storedPensionStreams) {
+      storage.set('pensionStreams', JSON.stringify(pensionStreams));
+    }
+  }, [pensionStreams]);
 
   useEffect(() => {
-    const monthlyTotal = expensesList.reduce((sum, e) => {
+    const newMonthlyTotal = expensesList.reduce((sum, e) => {
       const amt = parseFloat(e.amount) || 0
       return sum + amt * (e.paymentsPerYear / 12)
     }, 0)
-    setMonthlyExpense(monthlyTotal)
-    storage.set('monthlyExpense', monthlyTotal.toString())
-  }, [expensesList])
+    if (newMonthlyTotal !== monthlyExpense) {
+      setMonthlyExpense(newMonthlyTotal)
+      storage.set('monthlyExpense', newMonthlyTotal.toString())
+    }
+  }, [expensesList, monthlyExpense])
 
   useEffect(() => {
-    const monthlyIncome = incomeSources.reduce((sum, src) => {
+    const newMonthlyIncome = incomeSources.reduce((sum, src) => {
       if (src.active === false) return sum
       let monthlyGross = src.amount / (src.frequency / 12)
       let monthlyNSSF = 0
@@ -674,12 +711,18 @@ export function FinanceProvider({ children }) {
       const netIncome = monthlyGross - monthlyNSSF - monthlyPAYE
       return sum + netIncome
     }, 0)
-    setMonthlyIncomeNominal(monthlyIncome)
-    storage.set('monthlyIncomeNominal', monthlyIncome.toString())
-    const surplus = monthlyIncome - monthlyExpense
-    setMonthlySurplusNominal(surplus)
-    storage.set('monthlySurplusNominal', surplus.toString())
-  }, [incomeSources, monthlyExpense])
+
+    if (newMonthlyIncome !== monthlyIncomeNominal) {
+      setMonthlyIncomeNominal(newMonthlyIncome)
+      storage.set('monthlyIncomeNominal', newMonthlyIncome.toString())
+    }
+
+    const newSurplus = newMonthlyIncome - monthlyExpense
+    if (newSurplus !== monthlySurplusNominal) {
+      setMonthlySurplusNominal(newSurplus)
+      storage.set('monthlySurplusNominal', newSurplus.toString())
+    }
+  }, [incomeSources, monthlyExpense, monthlyIncomeNominal, monthlySurplusNominal, privatePensionContributions])
 
   const annualIncome = useMemo(
     () =>
@@ -689,7 +732,7 @@ export function FinanceProvider({ children }) {
         years,
         settings
       }),
-    [incomeSources, startYear, years, settings, profile]
+    [incomeSources, startYear, years, settings]
   )
 
   const annualIncomePV = useMemo(
@@ -712,7 +755,7 @@ export function FinanceProvider({ children }) {
         years,
         settings
       }),
-    [expensesList, goalsList, startYear, years, settings, profile]
+    [expensesList, goalsList, startYear, years, settings]
   )
 
   const discountedNetSeries = useMemo(
@@ -745,7 +788,7 @@ export function FinanceProvider({ children }) {
         years,
         settings
       }),
-    [incomeSources, expensesList, goalsList, startYear, years, settings, profile]
+    [incomeSources, expensesList, goalsList, startYear, years, settings]
   )
 
   const cumulativePV = useMemo(
@@ -758,7 +801,7 @@ export function FinanceProvider({ children }) {
         years,
         settings
       }),
-    [incomeSources, expensesList, goalsList, startYear, years, settings, profile]
+    [incomeSources, expensesList, goalsList, startYear, years, settings]
   )
 
   const incomePvValue = useMemo(() => {
@@ -811,9 +854,11 @@ export function FinanceProvider({ children }) {
   ])
 
   const recalcIncomePV = useCallback(() => {
-    setIncomePV(incomePvValue)
-    storage.set('incomePV', incomePvValue.toString())
-  }, [incomePvValue])
+    if (incomePvValue !== incomePV) {
+      setIncomePV(incomePvValue)
+      storage.set('incomePV', incomePvValue.toString())
+    }
+  }, [incomePvValue, incomePV])
 
   useEffect(() => {
     recalcIncomePV()
@@ -865,25 +910,43 @@ export function FinanceProvider({ children }) {
 
   const recalcExpensesPV = useCallback(() => {
     const { high, medium, low, totalPv, avgMonthly, mHigh, mMedium, mLow } = expensesPvData
-    setPvHigh(high)
-    storage.set('pvHigh', high.toString())
-    setPvMedium(medium)
-    storage.set('pvMedium', medium.toString())
-    setPvLow(low)
-    storage.set('pvLow', low.toString())
-    setExpensesPV(totalPv)
-    storage.set('expensesPV', totalPv.toString())
-    setPvExpenses(totalPv)
-    storage.set('pvExpenses', totalPv.toString())
-    setMonthlyPVExpense(avgMonthly)
-    storage.set('monthlyPVExpense', avgMonthly.toString())
-    setMonthlyPVHigh(mHigh)
-    storage.set('monthlyPVHigh', mHigh.toString())
-    setMonthlyPVMedium(mMedium)
-    storage.set('monthlyPVMedium', mMedium.toString())
-    setMonthlyPVLow(mLow)
-    storage.set('monthlyPVLow', mLow.toString())
-  }, [expensesPvData])
+    if (high !== pvHigh) {
+      setPvHigh(high)
+      storage.set('pvHigh', high.toString())
+    }
+    if (medium !== pvMedium) {
+      setPvMedium(medium)
+      storage.set('pvMedium', medium.toString())
+    }
+    if (low !== pvLow) {
+      setPvLow(low)
+      storage.set('pvLow', low.toString())
+    }
+    if (totalPv !== expensesPV) {
+      setExpensesPV(totalPv)
+      storage.set('expensesPV', totalPv.toString())
+    }
+    if (totalPv !== pvExpenses) {
+      setPvExpenses(totalPv)
+      storage.set('pvExpenses', totalPv.toString())
+    }
+    if (avgMonthly !== monthlyPVExpense) {
+      setMonthlyPVExpense(avgMonthly)
+      storage.set('monthlyPVExpense', avgMonthly.toString())
+    }
+    if (mHigh !== monthlyPVHigh) {
+      setMonthlyPVHigh(mHigh)
+      storage.set('monthlyPVHigh', mHigh.toString())
+    }
+    if (mMedium !== monthlyPVMedium) {
+      setMonthlyPVMedium(mMedium)
+      storage.set('monthlyPVMedium', mMedium.toString())
+    }
+    if (mLow !== monthlyPVLow) {
+      setMonthlyPVLow(mLow)
+      storage.set('monthlyPVLow', mLow.toString())
+    }
+  }, [expensesPvData, pvHigh, pvMedium, pvLow, expensesPV, pvExpenses, monthlyPVExpense, monthlyPVHigh, monthlyPVMedium, monthlyPVLow])
 
   useEffect(() => {
     recalcExpensesPV()
@@ -906,17 +969,29 @@ export function FinanceProvider({ children }) {
   ])
 
   useEffect(() => {
-    storage.set('includeMediumPV', JSON.stringify(includeMediumPV))
-  }, [includeMediumPV])
+    const storedIncludeMediumPV = storage.get('includeMediumPV');
+    if (JSON.stringify(includeMediumPV) !== storedIncludeMediumPV) {
+      storage.set('includeMediumPV', JSON.stringify(includeMediumPV));
+    }
+  }, [includeMediumPV]);
   useEffect(() => {
-    storage.set('includeLowPV', JSON.stringify(includeLowPV))
-  }, [includeLowPV])
+    const storedIncludeLowPV = storage.get('includeLowPV');
+    if (JSON.stringify(includeLowPV) !== storedIncludeLowPV) {
+      storage.set('includeLowPV', JSON.stringify(includeLowPV));
+    }
+  }, [includeLowPV]);
   useEffect(() => {
-    storage.set('includeGoalsPV', JSON.stringify(includeGoalsPV))
-  }, [includeGoalsPV])
+    const storedIncludeGoalsPV = storage.get('includeGoalsPV');
+    if (JSON.stringify(includeGoalsPV) !== storedIncludeGoalsPV) {
+      storage.set('includeGoalsPV', JSON.stringify(includeGoalsPV));
+    }
+  }, [includeGoalsPV]);
   useEffect(() => {
-    storage.set('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV))
-  }, [includeLiabilitiesNPV])
+    const storedIncludeLiabilitiesNPV = storage.get('includeLiabilitiesNPV');
+    if (JSON.stringify(includeLiabilitiesNPV) !== storedIncludeLiabilitiesNPV) {
+      storage.set('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV));
+    }
+  }, [includeLiabilitiesNPV]);
 
   useEffect(() => {
     const assetTotal = assetsList.reduce(
@@ -938,13 +1013,19 @@ export function FinanceProvider({ children }) {
     const dar = assetTotal > 0 ? liabilityTotal / assetTotal : 0
     const hcs = assetTotal > 0 ? incomePV / assetTotal : 0
 
-    setNetWorth(nw)
-    storage.set('netWorth', nw.toString())
-    setDebtToAssetRatio(dar)
-    storage.set('debtToAssetRatio', dar.toString())
-    setHumanCapitalShare(hcs)
-    storage.set('humanCapitalShare', hcs.toString())
-  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
+    if (nw !== netWorth) {
+      setNetWorth(nw)
+      storage.set('netWorth', nw.toString())
+    }
+    if (dar !== debtToAssetRatio) {
+      setDebtToAssetRatio(dar)
+      storage.set('debtToAssetRatio', dar.toString())
+    }
+    if (hcs !== humanCapitalShare) {
+      setHumanCapitalShare(hcs)
+      storage.set('humanCapitalShare', hcs.toString())
+    }
+  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate, netWorth, debtToAssetRatio, humanCapitalShare])
 
   // Update PV of Lifetime Income asset when incomePV changes
   useEffect(() => {

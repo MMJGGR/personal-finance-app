@@ -145,7 +145,6 @@ export function discountToPresent(amount, rate, years) {
  */
 export function internalRateOfReturn(cashFlows = []) {
   if (!Array.isArray(cashFlows) || cashFlows.length < 2) return NaN
-
   let hasPositive = false
   let hasNegative = false
   for (const cf of cashFlows) {
@@ -153,7 +152,6 @@ export function internalRateOfReturn(cashFlows = []) {
     if (cf < 0) hasNegative = true
   }
   if (!hasPositive || !hasNegative) return NaN
-
   let rate = 0.1 // initial guess (10%)
   for (let i = 0; i < 100; i++) {
     let npv = 0
@@ -166,13 +164,11 @@ export function internalRateOfReturn(cashFlows = []) {
         deriv -= t * cf / (denom * (1 + rate))
       }
     }
-
     const newRate = rate - npv / deriv
     if (!Number.isFinite(newRate)) return NaN
     if (Math.abs(newRate - rate) < 1e-7) return newRate * 100
     rate = newRate
   }
-
   return rate * 100
 }
 
@@ -225,4 +221,31 @@ export function generateRecurringFlows(stream = {}) {
     flows.push({ year, amount: cash })
   }
   return flows
+}
+
+/**
+ * Placeholder for NSSF calculation.
+ * @param {number} grossSalary - The gross salary.
+ * @returns {object} An object containing employee and employer contributions.
+ */
+export function calculateNSSF(grossSalary) {
+  // Simplified placeholder logic
+  const employeeContribution = Math.min(grossSalary * 0.06, 1080); // Example: 6% up to a cap
+  const employerContribution = employeeContribution; // Often matched by employer
+  return { employeeContribution, employerContribution };
+}
+
+/**
+ * Placeholder for PAYE (Pay As You Earn) calculation.
+ * @param {number} taxableIncome - The taxable income.
+ * @param {number} totalPensionContribution - Total pension contributions.
+ * @returns {number} The calculated PAYE.
+ */
+export function calculatePAYE(taxableIncome) {
+  // Simplified placeholder logic
+  let paye = 0;
+  if (taxableIncome > 24000) {
+    paye = (taxableIncome - 24000) * 0.3; // Example: 30% for income above 24000
+  }
+  return paye;
 }

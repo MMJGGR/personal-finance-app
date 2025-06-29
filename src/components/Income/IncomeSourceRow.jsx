@@ -1,6 +1,13 @@
 import React from 'react'
+import { formatCurrency } from '../../utils/formatters'
+import { calculateNSSF } from '../../utils/financeUtils'
 
-export default function IncomeSourceRow({ income, index, updateIncome, deleteIncome, currency, assetsList = [] }) {
+export default function IncomeSourceRow({ income, index, updateIncome, deleteIncome, currency, assetsList = [], locale }) {
+  const grossSalary = income.grossSalary || 0;
+  const contractedOutTier2 = income.contractedOutTier2 || false;
+
+  const nssfContributions = income.type === 'Kenyan Salary' ? calculateNSSF(grossSalary) : null;
+
   return (
     <div className="bg-white p-4 rounded-xl shadow-md relative transition-all">
       <label className="block text-sm font-medium">Source Name</label>
@@ -26,6 +33,7 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         <option value="Rental">Rental</option>
         <option value="Bond">Bond</option>
         <option value="Dividend">Dividend</option>
+        <option value="Kenyan Salary">Kenyan Salary</option>
       </select>
 
       {income.type === 'Kenyan Salary' ? (
@@ -35,7 +43,7 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
             type="number"
             className="w-full border p-2 rounded-md"
             value={grossSalary}
-            onChange={e => setGrossSalary(Number(e.target.value))}
+            onChange={e => updateIncome(index, 'grossSalary', Number(e.target.value))}
             min={0}
             step={0.01}
             required
@@ -51,7 +59,7 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
                 <input
                   type="checkbox"
                   checked={contractedOutTier2}
-                  onChange={e => setContractedOutTier2(e.target.checked)}
+                  onChange={e => updateIncome(index, 'contractedOutTier2', e.target.checked)}
                 />
                 Contract out Tier II
               </label>
