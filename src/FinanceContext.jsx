@@ -68,7 +68,10 @@ const defaultProfile = {
 const FinanceContext = createContext()
 
 export function FinanceProvider({ children }) {
-  const { currentData } = usePersona()
+  const { currentData, currentPersonaId } = usePersona()
+  useEffect(() => {
+    storage.setPersona(currentPersonaId)
+  }, [currentPersonaId])
   // === Core financial state ===
   const [discountRate, setDiscountRate]     = useState(0)
   const [years, setYears] = useState(() => {

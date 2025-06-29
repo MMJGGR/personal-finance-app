@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import personasData from './data/personas.json'
 import storage from './utils/storage'
 
@@ -6,34 +6,41 @@ const PersonaContext = createContext()
 
 export function PersonaProvider({ children }) {
   const [currentPersonaId, _setCurrentPersonaId] = useState(() => {
-    return storage.get('currentPersonaId') || personasData[0].id
+    return localStorage.getItem('currentPersonaId') || personasData[0].id
   })
   const [currentData, setCurrentData] = useState(() => {
-    const id = storage.get('currentPersonaId') || personasData[0].id
+    const id = localStorage.getItem('currentPersonaId') || personasData[0].id
     return personasData.find(p => p.id === id) || personasData[0]
   })
+
+  useEffect(() => {
+    storage.setPersona(currentPersonaId)
+  }, [currentPersonaId])
 
   const setCurrentPersonaId = (id) => {
     const persona = personasData.find(p => p.id === id) || personasData[0]
     _setCurrentPersonaId(id)
     setCurrentData(persona)
-    storage.set('currentPersonaId', id)
+    localStorage.setItem('currentPersonaId', id)
+    storage.setPersona(id)
 
-    Object.keys(localStorage).forEach(k => {
-      if (k !== 'currentPersonaId') localStorage.removeItem(k)
-    })
+    const maybeInit = (key, value) => {
+      if (value && !storage.get(key)) {
+        storage.set(key, JSON.stringify(value))
+      }
+    }
 
-    if (persona.profile) storage.set('profile', JSON.stringify(persona.profile))
-    if (persona.incomeSources) storage.set('incomeSources', JSON.stringify(persona.incomeSources))
-    if (persona.expensesList) storage.set('expensesList', JSON.stringify(persona.expensesList))
-    if (persona.goalsList) storage.set('goalsList', JSON.stringify(persona.goalsList))
-    if (persona.assetsList) storage.set('assetsList', JSON.stringify(persona.assetsList))
-    if (persona.liabilitiesList) storage.set('liabilitiesList', JSON.stringify(persona.liabilitiesList))
-    if (persona.settings) storage.set('settings', JSON.stringify(persona.settings))
-    if ('includeMediumPV' in persona) storage.set('includeMediumPV', JSON.stringify(persona.includeMediumPV))
-    if ('includeLowPV' in persona) storage.set('includeLowPV', JSON.stringify(persona.includeLowPV))
-    if ('includeGoalsPV' in persona) storage.set('includeGoalsPV', JSON.stringify(persona.includeGoalsPV))
-    if ('includeLiabilitiesNPV' in persona) storage.set('includeLiabilitiesNPV', JSON.stringify(persona.includeLiabilitiesNPV))
+    maybeInit('profile', persona.profile)
+    maybeInit('incomeSources', persona.incomeSources)
+    maybeInit('expensesList', persona.expensesList)
+    maybeInit('goalsList', persona.goalsList)
+    maybeInit('assetsList', persona.assetsList)
+    maybeInit('liabilitiesList', persona.liabilitiesList)
+    maybeInit('settings', persona.settings)
+    if ('includeMediumPV' in persona) maybeInit('includeMediumPV', persona.includeMediumPV)
+    if ('includeLowPV' in persona) maybeInit('includeLowPV', persona.includeLowPV)
+    if ('includeGoalsPV' in persona) maybeInit('includeGoalsPV', persona.includeGoalsPV)
+    if ('includeLiabilitiesNPV' in persona) maybeInit('includeLiabilitiesNPV', persona.includeLiabilitiesNPV)
   }
 
   return (

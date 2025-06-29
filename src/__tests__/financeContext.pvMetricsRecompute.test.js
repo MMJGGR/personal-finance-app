@@ -32,8 +32,9 @@ function MetricsTest() {
 }
 
 test('expense PV metrics update after settings change', async () => {
+  localStorage.setItem('currentPersonaId', 'hadi')
   localStorage.setItem(
-    'expensesList',
+    'expensesList-hadi',
     JSON.stringify([
       { name: 'Rent', amount: 1200, frequency: 'Monthly', growth: 0, priority: 1 }
     ])

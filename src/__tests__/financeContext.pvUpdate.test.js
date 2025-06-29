@@ -32,14 +32,15 @@ function PVTest() {
 }
 
 test('PV totals update after settings change', async () => {
+  localStorage.setItem('currentPersonaId', 'hadi')
   localStorage.setItem(
-    'incomeSources',
+    'incomeSources-hadi',
     JSON.stringify([
       { name: 'Job', type: 'Salary', amount: 1000, frequency: 1, growth: 0, taxRate: 0 }
     ])
   )
   localStorage.setItem(
-    'expensesList',
+    'expensesList-hadi',
     JSON.stringify([
       { name: 'Rent', amount: 500, frequency: 'Annually', growth: 0, priority: 1 }
     ])
