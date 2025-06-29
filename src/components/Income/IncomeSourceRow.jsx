@@ -28,22 +28,65 @@ export default function IncomeSourceRow({ income, index, updateIncome, deleteInc
         <option value="Dividend">Dividend</option>
       </select>
 
-      <label className="block text-sm font-medium mt-2">Amount ({currency})</label>
-      <input
-        type="number"
-        className="w-full border p-2 rounded-md"
-        value={income.amount}
-        onChange={e => {
-          let val = Number(e.target.value)
-          if (val < 0) val = 0
-          updateIncome(index, 'amount', val)
-        }}
-        min={0}
-        step={0.01}
-        required
-        aria-label="Income amount"
-        title="Income amount"
-      />
+      {income.type === 'Kenyan Salary' ? (
+        <>
+          <label className="block text-sm font-medium mt-2">Gross Monthly Salary ({currency})</label>
+          <input
+            type="number"
+            className="w-full border p-2 rounded-md"
+            value={grossSalary}
+            onChange={e => setGrossSalary(Number(e.target.value))}
+            min={0}
+            step={0.01}
+            required
+            aria-label="Gross monthly salary"
+            title="Gross monthly salary"
+          />
+          {nssfContributions && (
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Employee NSSF: {formatCurrency(nssfContributions.employeeContribution, locale, currency)}</p>
+              <p>Employer NSSF: {formatCurrency(nssfContributions.employerContribution, locale, currency)}</p>
+              <p>Total NSSF: {formatCurrency(nssfContributions.totalContribution, locale, currency)}</p>
+              <label className="block text-sm font-medium mt-2">
+                <input
+                  type="checkbox"
+                  checked={contractedOutTier2}
+                  onChange={e => setContractedOutTier2(e.target.checked)}
+                />
+                Contract out Tier II
+              </label>
+            </div>
+          )}
+          <label className="block text-sm font-medium mt-2">Taxable Income ({currency})</label>
+          <input
+            type="number"
+            className="w-full border p-2 rounded-md bg-gray-100"
+            value={grossSalary - (nssfContributions ? nssfContributions.employeeContribution : 0)}
+            readOnly
+            aria-label="Taxable income"
+            title="Taxable income"
+          />
+        </>
+      ) : (
+        <>
+          <label className="block text-sm font-medium mt-2">Amount ({currency})</label>
+          <input
+            type="number"
+            className="w-full border p-2 rounded-md"
+            value={income.amount}
+            onChange={e => {
+              let val = Number(e.target.value)
+              if (val < 0) val = 0
+              updateIncome(index, 'amount', val)
+            }}
+            min={0}
+            step={0.01}
+            required
+            aria-label="Income amount"
+            title="Income amount"
+          />
+        </>
+      )}
 
       <label className="block text-sm font-medium mt-2">Frequency (/yr)</label>
       <input

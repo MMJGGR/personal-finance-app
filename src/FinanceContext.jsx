@@ -646,8 +646,21 @@ export function FinanceProvider({ children }) {
   useEffect(() => {
     const monthlyIncome = incomeSources.reduce((sum, src) => {
       if (src.active === false) return sum
-      const afterTax = src.amount * (1 - (src.taxRate || 0) / 100)
-      return sum + (afterTax * src.frequency) / 12
+      let monthlyGross = src.amount / (src.frequency / 12)
+      let monthlyNSSF = 0
+      let monthlyPAYE = 0
+
+      if (src.type === 'Kenyan Salary') {
+        const nssf = calculateNSSF(src.grossSalary)
+        monthlyNSSF = nssf.employeeContribution
+        const taxableIncome = src.grossSalary - monthlyNSSF
+        const totalPensionContribution = monthlyNSSF + privatePensionContributions.reduce((s, ppc) => s + ppc.amount / (ppc.frequency / 12), 0)
+        monthlyPAYE = calculatePAYE(taxableIncome, totalPensionContribution)
+        monthlyGross = src.grossSalary
+      }
+
+      const netIncome = monthlyGross - monthlyNSSF - monthlyPAYE
+      return sum + netIncome
     }, 0)
     setMonthlyIncomeNominal(monthlyIncome)
     storage.set('monthlyIncomeNominal', monthlyIncome.toString())
@@ -746,7 +759,12 @@ export function FinanceProvider({ children }) {
     }
     return incomeSources.reduce((sum, src) => {
       if (src.active === false) return sum
-      const afterTaxAmt = src.amount * (1 - (src.taxRate || 0) / 100)
+      let incomeAmount = src.amount
+      if (src.type === 'Kenyan Salary') {
+        const nssf = calculateNSSF(src.grossSalary)
+        incomeAmount = (src.grossSalary * 12) - nssf.employeeContribution // Annualized gross salary minus annual employee NSSF
+      }
+      const afterTaxAmt = incomeAmount * (1 - (src.taxRate || 0) / 100)
       const growth = src.growth || 0
       const linked = assetsList.find(a => a.id === src.linkedAssetId)
       const srcStart = Math.max(src.startYear ?? planStart, planStart)
@@ -914,7 +932,73 @@ export function FinanceProvider({ children }) {
     storage.set('debtToAssetRatio', dar.toString())
     setHumanCapitalShare(hcs)
     storage.set('humanCapitalShare', hcs.toString())
+
+    // Update PV of Lifetime Income asset
+    setAssetsList(prevAssets => {
+      const pvIncomeAsset = prevAssets.find(a => a.id === 'pv-income')
+      if (pvIncomeAsset && pvIncomeAsset.amount !== incomePV) {
+        return prevAssets.map(a =>
+          a.id === 'pv-income' ? { ...a, amount: incomePV, principal: incomePV } : a
+        )
+      }
+      return prevAssets
+    })
   }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
+
+  // Project Pension Growth and update assetsList
+  useEffect(() => {
+    const currentYear = new Date().getFullYear();
+    const yearsToRetirement = (settings.retirementAge ?? 65) - (profile.age ?? 0);
+
+    const totalAnnualNSSFContributions = incomeSources.reduce((sum, src) => {
+      if (src.type === 'Kenyan Salary') {
+        const nssf = calculateNSSF(src.grossSalary);
+        return sum + nssf.employeeContribution * 12;
+      }
+      return sum;
+    }, 0);
+
+    const totalAnnualPrivatePensionContributions = privatePensionContributions.reduce((sum, ppc) => {
+      return sum + ppc.amount * ppc.frequency;
+    }, 0);
+
+    const totalAnnualPensionContributions = totalAnnualNSSFContributions + totalAnnualPrivatePensionContributions;
+
+    // Assuming initial pension value is 0 for simplicity, or could be added as a new input
+    const initialPensionValue = 0; 
+
+    const projectedPensionValue = projectPensionGrowth(
+      initialPensionValue,
+      totalAnnualPensionContributions,
+      settings.expectedReturn, // Using expectedReturn for pension growth
+      yearsToRetirement
+    );
+
+    setAssetsList(prevAssets => {
+      const existingPensionAsset = prevAssets.find(a => a.id === 'projected-pension-value');
+      if (existingPensionAsset) {
+        return prevAssets.map(a =>
+          a.id === 'projected-pension-value' ? { ...a, amount: projectedPensionValue, principal: projectedPensionValue } : a
+        );
+      } else {
+        return [
+          ...prevAssets,
+          {
+            id: 'projected-pension-value',
+            name: 'Projected Pension Value',
+            amount: projectedPensionValue,
+            type: 'Pension',
+            expectedReturn: settings.expectedReturn,
+            volatility: 0, // Pension growth is often less volatile
+            horizonYears: yearsToRetirement,
+            purchaseYear: currentYear,
+            saleYear: null,
+            principal: projectedPensionValue,
+          },
+        ];
+      }
+    });
+  }, [incomeSources, privatePensionContributions, profile.age, settings.retirementAge, settings.expectedReturn, setAssetsList]);
 
   // === Auto-load persisted state on mount ===
   useEffect(() => {
@@ -957,8 +1041,26 @@ export function FinanceProvider({ children }) {
 
     const sInc = storage.get('incomeSources')
     if (sInc) {
-      const parsed = safeParse(sInc, null)
-      if (parsed) setIncomeSources(parsed)
+      try {
+        const parsed = JSON.parse(sInc)
+        const now = new Date().getFullYear()
+        setIncomeSources(
+          parsed.map(src => ({
+            id: src.id || crypto.randomUUID(),
+            startYear: src.startYear ?? now,
+            startAge: src.startAge ?? null,
+            endYear: src.endYear ?? null,
+            linkedAssetId: src.linkedAssetId ?? '',
+            active: src.active !== false,
+            taxed: src.taxed ?? true,
+            grossSalary: src.grossSalary ?? 0,
+            contractedOutTier2: src.contractedOutTier2 ?? false,
+            ...src,
+          }))
+        )
+      } catch {
+        // ignore malformed stored data
+      }
     }
     const sSY = storage.get('incomeStartYear')
     if (sSY) setStartYear(+sSY)

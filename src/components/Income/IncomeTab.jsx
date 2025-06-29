@@ -222,6 +222,8 @@ export default function IncomeTab() {
         name: '',
         type: 'Other',
         amount: 0,
+        grossSalary: 0,
+        contractedOutTier2: false,
         frequency: 1,
         growth: 0,
         taxRate: 0,

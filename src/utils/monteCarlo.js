@@ -26,6 +26,7 @@ function randomNormal(mean, stdDev) {
  * @param {number} params.standardDeviation - The standard deviation of the portfolio returns (as a percentage).
  * @param {number} params.numSimulations - The number of simulations to run.
  * @param {number} params.retirementIncome - The desired annual income during retirement.
+ * @param {number} params.projectedPensionValue - The projected value of the pension fund at retirement age.
  * @returns {object} The results of the simulation, including the success rate and percentile data.
  */
 export function runMonteCarloSimulation(params) {
@@ -39,6 +40,7 @@ export function runMonteCarloSimulation(params) {
     standardDeviation,
     numSimulations,
     retirementIncome,
+    projectedPensionValue,
   } = params;
 
   const yearsToRetirement = retirementAge - age;
@@ -50,7 +52,8 @@ export function runMonteCarloSimulation(params) {
 
   for (let i = 0; i < numSimulations; i++) {
     let portfolioValue = initialPortfolioValue;
-    const yearlyData = [{ year: age, value: portfolioValue }];
+    let pensionValue = projectedPensionValue; // Start with projected pension value
+    const yearlyData = [{ year: age, value: portfolioValue + pensionValue }]; // Combined value
     let isSuccessful = true;
 
     for (let j = 0; j < totalYears; j++) {
@@ -62,9 +65,22 @@ export function runMonteCarloSimulation(params) {
       }
 
       portfolioValue *= 1 + annualReturn;
+      pensionValue *= 1 + (expectedReturn / 100); // Pension grows at expectedReturn, tax-free
 
       if (currentYear > retirementAge) {
-        portfolioValue -= retirementIncome;
+        let remainingIncomeNeeded = retirementIncome;
+
+        // First, draw from pension fund
+        if (pensionValue > 0) {
+          const drawFromPension = Math.min(remainingIncomeNeeded, pensionValue);
+          pensionValue -= drawFromPension;
+          remainingIncomeNeeded -= drawFromPension;
+        }
+
+        // If income still needed, draw from portfolio
+        if (remainingIncomeNeeded > 0) {
+          portfolioValue -= remainingIncomeNeeded;
+        }
       }
 
       if (portfolioValue < 0) {
@@ -72,7 +88,7 @@ export function runMonteCarloSimulation(params) {
         isSuccessful = false;
       }
 
-      yearlyData.push({ year: currentYear, value: portfolioValue });
+      yearlyData.push({ year: currentYear, value: portfolioValue + pensionValue }); // Combined value
     }
 
     if (isSuccessful) {
