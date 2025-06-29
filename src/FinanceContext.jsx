@@ -944,8 +944,10 @@ export function FinanceProvider({ children }) {
     storage.set('debtToAssetRatio', dar.toString())
     setHumanCapitalShare(hcs)
     storage.set('humanCapitalShare', hcs.toString())
+  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
 
-    // Update PV of Lifetime Income asset
+  // Update PV of Lifetime Income asset when incomePV changes
+  useEffect(() => {
     setAssetsList(prevAssets => {
       const pvIncomeAsset = prevAssets.find(a => a.id === 'pv-income')
       if (pvIncomeAsset && pvIncomeAsset.amount !== incomePV) {
@@ -955,7 +957,7 @@ export function FinanceProvider({ children }) {
       }
       return prevAssets
     })
-  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
+  }, [incomePV, setAssetsList])
 
   // Project Pension Growth and update assetsList
   useEffect(() => {

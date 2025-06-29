@@ -54,7 +54,7 @@ function AppInner() {
 function AppWithFinance() {
   const { currentPersonaId } = usePersona()
   return (
-    <FinanceProvider key={currentPersonaId}>
+    <FinanceProvider>
       <AppInner />
     </FinanceProvider>
   )
