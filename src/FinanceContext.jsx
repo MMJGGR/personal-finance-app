@@ -502,21 +502,9 @@ export function FinanceProvider({ children }) {
     updateProfile(defaultProfile)
   }, [updateProfile])
 
-  const resetProfile = useCallback(async () => {
-    let data = currentData?.profile
-    if (!data && typeof fetch === 'function') {
-      try {
-        const res = await fetch('/hadiSeed.json')
-        if (res.ok) {
-          const seed = await res.json()
-          data = seed.profile
-        }
-      } catch (err) {
-        console.error('Failed to fetch seed profile', err)
-      }
-    }
-    if (data) {
-      updateProfile(data)
+  const resetProfile = useCallback(() => {
+    if (currentData?.profile) {
+      updateProfile(currentData.profile)
     }
   }, [currentData, updateProfile])
 
@@ -528,82 +516,74 @@ export function FinanceProvider({ children }) {
     }
   }, [profile.nationality, settings.currency])
 
-  // === Load default Hadi persona if no data present ===
+  // === Load default persona data if no saved profile ===
   useEffect(() => {
-    async function loadSeed() {
-      if (storage.get('profile')) return
-      if (typeof fetch !== 'function') return
-      try {
-        const res = await fetch('/hadiSeed.json')
-        if (!res.ok) return
-        const seed = await res.json()
-        if (seed.profile) updateProfile(seed.profile)
-        if (Array.isArray(seed.incomeSources)) setIncomeSources(seed.incomeSources)
-        if (Array.isArray(seed.expensesList)) {
-          const now = new Date().getFullYear()
-          const list = seed.expensesList.map(e => ({
-            paymentsPerYear: typeof e.frequency === 'number'
-              ? e.frequency
-              : frequencyToPayments(e.frequency) || 1,
-            startYear: e.startYear ?? now,
-            endYear: e.endYear ?? null,
-            priority: e.priority ?? 2,
-            include: e.include !== false,
-            ...e,
-          }))
-          setExpensesList(list)
-        }
-        if (Array.isArray(seed.goalsList)) {
-          const now = new Date().getFullYear()
-          const goals = seed.goalsList.map(g => ({
-            startYear: g.startYear ?? g.targetYear ?? now,
-            endYear: g.endYear ?? g.targetYear ?? now,
-            ...g,
-          }))
-          setGoalsList(goals)
-        }
-        if (Array.isArray(seed.assetsList)) {
-          const assets = seed.assetsList.map(a => ({
-            id: a.id || crypto.randomUUID(),
-            name: a.name,
-            amount: a.value,
-            type: a.type || '',
-            expectedReturn: a.return ?? 0,
-            volatility: a.volatility ?? 0,
-            horizonYears: a.horizonYears ?? 0,
-          }))
-          setAssetsList(assets)
-        }
-        if (Array.isArray(seed.liabilitiesList)) {
-          const liabs = seed.liabilitiesList.map(l => ({
-            id: l.id || crypto.randomUUID(),
-            name: l.name,
-            principal: l.principal,
-            interestRate: l.interestRate,
-            termYears: Math.ceil((l.termMonths || 0) / 12),
-            remainingMonths: l.termMonths,
-            paymentsPerYear: 12,
-            payment: l.monthlyPayment,
-            include: l.include !== false,
-          }))
-          setLiabilitiesList(liabs)
-        }
-        if (seed.settings) updateSettings({
-          discretionaryCutThreshold: 0,
-          survivalThresholdMonths: 0,
-          bufferPct: 0,
-          ...seed.settings,
-        })
-        if ('includeMediumPV' in seed) setIncludeMediumPV(seed.includeMediumPV)
-        if ('includeLowPV' in seed) setIncludeLowPV(seed.includeLowPV)
-        if ('includeGoalsPV' in seed) setIncludeGoalsPV(seed.includeGoalsPV)
-        if ('includeLiabilitiesNPV' in seed) setIncludeLiabilitiesNPV(seed.includeLiabilitiesNPV)
-      } catch (err) {
-        console.error('Failed to load Hadi seed', err)
-      }
+    if (storage.get('profile')) return
+    const seed = currentData
+    if (!seed) return
+    if (seed.profile) updateProfile(seed.profile)
+    if (Array.isArray(seed.incomeSources)) setIncomeSources(seed.incomeSources)
+    if (Array.isArray(seed.expensesList)) {
+      const now = new Date().getFullYear()
+      const list = seed.expensesList.map(e => ({
+        paymentsPerYear: typeof e.frequency === 'number'
+          ? e.frequency
+          : frequencyToPayments(e.frequency) || 1,
+        startYear: e.startYear ?? now,
+        endYear: e.endYear ?? null,
+        priority: e.priority ?? 2,
+        include: e.include !== false,
+        ...e,
+      }))
+      setExpensesList(list)
     }
-    loadSeed()
+    if (Array.isArray(seed.goalsList)) {
+      const now = new Date().getFullYear()
+      const goals = seed.goalsList.map(g => ({
+        startYear: g.startYear ?? g.targetYear ?? now,
+        endYear: g.endYear ?? g.targetYear ?? now,
+        ...g,
+      }))
+      setGoalsList(goals)
+    }
+    if (Array.isArray(seed.assetsList)) {
+      const assets = seed.assetsList.map(a => ({
+        id: a.id || crypto.randomUUID(),
+        name: a.name,
+        amount: a.value,
+        type: a.type || '',
+        expectedReturn: a.return ?? 0,
+        volatility: a.volatility ?? 0,
+        horizonYears: a.horizonYears ?? 0,
+      }))
+      setAssetsList(assets)
+    }
+    if (Array.isArray(seed.liabilitiesList)) {
+      const liabs = seed.liabilitiesList.map(l => ({
+        id: l.id || crypto.randomUUID(),
+        name: l.name,
+        principal: l.principal,
+        interestRate: l.interestRate,
+        termYears: Math.ceil((l.termMonths || 0) / 12),
+        remainingMonths: l.termMonths,
+        paymentsPerYear: 12,
+        payment: l.monthlyPayment,
+        include: l.include !== false,
+      }))
+      setLiabilitiesList(liabs)
+    }
+    if (seed.settings) updateSettings({
+      discretionaryCutThreshold: 0,
+      survivalThresholdMonths: 0,
+      bufferPct: 0,
+      ...seed.settings,
+    })
+    if ('includeMediumPV' in seed) setIncludeMediumPV(seed.includeMediumPV)
+    if ('includeLowPV' in seed) setIncludeLowPV(seed.includeLowPV)
+    if ('includeGoalsPV' in seed) setIncludeGoalsPV(seed.includeGoalsPV)
+    if ('includeLiabilitiesNPV' in seed) setIncludeLiabilitiesNPV(seed.includeLiabilitiesNPV)
   }, [
+    currentData,
     updateProfile,
     setIncomeSources,
     setExpensesList,
