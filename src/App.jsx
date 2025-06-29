@@ -15,7 +15,7 @@ const PreferencesTab = React.lazy(() => import('./tabs/PreferencesTab.jsx'))
 const InsuranceTab = React.lazy(() => import('./components/Insurance/InsuranceTab.jsx'))
 const InvestmentsTab = React.lazy(() => import('./components/Investments/InvestmentsTab.jsx'))
 const RetirementTab = React.lazy(() => import('./components/Retirement/RetirementTab.jsx'))
-const StrategyTab = React.lazy(() => import('./tabs/StrategyTab.jsx'))
+const StrategyTab = React.lazy(() => import('./components/Strategy/StrategyTab.jsx'))
 
 const components = {
   Profile: ProfileTab,
