@@ -50,6 +50,7 @@ export default function PreferencesTab() {
       discountRate: 0,
       inflationRate: 5,
       expectedReturn: 8,
+      standardDeviation: 15,
       currency: '',
       locale: 'en-KE',
       apiEndpoint: '',
