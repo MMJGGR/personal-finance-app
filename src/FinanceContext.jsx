@@ -20,6 +20,7 @@ import {
 import { riskScoreMap } from './riskScoreConfig'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
+import { projectPensionGrowth } from './utils/pensionProjection'
 import storage from './utils/storage'
 import { defaultIncomeSources } from './components/Income/defaults.js'
 
