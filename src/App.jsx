@@ -4,6 +4,8 @@ import Spinner from './Spinner.jsx'
 import Header from './components/layout/Header.jsx'
 import Sidebar from './components/layout/Sidebar.jsx'
 import { FinanceProvider } from './FinanceContext.jsx'
+import { ProfileProvider } from './ProfileContext.jsx'
+import { SettingsProvider } from './SettingsContext.jsx'
 import { PersonaProvider, usePersona } from './PersonaContext.jsx'
 import personas from './data/personas.json'
 
@@ -54,9 +56,13 @@ function AppInner() {
 function AppWithFinance() {
   const { currentPersonaId: _currentPersonaId } = usePersona() // Destructure and rename to avoid unused variable warning
   return (
-    <FinanceProvider>
-      <AppInner />
-    </FinanceProvider>
+    <ProfileProvider>
+      <SettingsProvider>
+        <FinanceProvider>
+          <AppInner />
+        </FinanceProvider>
+      </SettingsProvider>
+    </ProfileProvider>
   )
 }
 

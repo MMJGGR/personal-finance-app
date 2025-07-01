@@ -755,7 +755,7 @@ export default function ExpensesGoalsTab() {
               <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
             )}
             {goalsList.map(g => (
-              {goalsList.map(g => (
+            {goalsList.map(g => (
               <div key={g.id} className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1">
                 <div>
                   <label htmlFor={`goal-name-${g.id}`} className="sr-only">Goal name</label>
