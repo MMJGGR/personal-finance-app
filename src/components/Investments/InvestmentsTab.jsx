@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useFinance } from '../../FinanceContext'
 import { formatCurrency } from '../../utils/formatters'
 import AssetRow from './AssetRow'
@@ -8,7 +8,6 @@ import AssetRow from './AssetRow'
   export default function InvestmentsTab() {
   const { assetsList, setAssetsList, settings } = useFinance()
 
-  const [showAssets, setShowAssets] = useState(true)
 
   const handleAssetChange = (id, field, value) => {
     setAssetsList(prev =>

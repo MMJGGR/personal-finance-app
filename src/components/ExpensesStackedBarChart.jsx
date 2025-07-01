@@ -16,55 +16,106 @@ import {
 } from '../utils/financeUtils'
 import { getLoanFlowsByYear } from '../utils/loanHelpers'
 
-export default function ExpensesStackedBarChart({ chartMode = 'nominal', timelineData, showIncome, showExpensesChart, showGoalsChart, showLiabilitiesChart, showInvestmentsChart, showPensionChart }) {
-  const { settings, startYear } = useFinance()
+export default function ExpensesStackedBarChart() {
+  const {
+    expensesList,
+    goalsList,
+    liabilitiesList,
+    includeMediumPV,
+    includeLowPV,
+    includeGoalsPV,
+  } = useFinance()
 
   const BASE_COLORS = {
-    income: '#4CAF50', // Green
-    expenses: '#F44336', // Red
-    goals: '#2196F3', // Blue
-    loans: '#FFC107', // Amber
-    investments: '#9C27B0', // Purple
-    pension: '#00BCD4', // Cyan
+    Fixed: '#1f77b4',
+    Variable: '#ff7f0e',
+    Other: '#2ca02c',
+    Goal: '#9467bd',
+    'Debt Service': '#34d399',
   }
 
-  const chartData = useMemo(() => {
-    if (!timelineData || timelineData.length === 0) return []
+  const PALETTE = [
+    '#e41a1c',
+    '#377eb8',
+    '#4daf4a',
+    '#984ea3',
+    '#ff7f00',
+    '#a65628',
+    '#f781bf',
+    '#999999',
+  ]
 
-    const processedData = timelineData.map(row => {
-      const newRow = { year: row.year }
-      if (showIncome) newRow.income = row.income
-      if (showExpensesChart) newRow.expenses = row.expenses
-      if (showGoalsChart) newRow.goals = row.goals
-      if (showLiabilitiesChart) newRow.loans = row.loans
-      if (showInvestmentsChart) newRow.investments = row.investments
-      if (showPensionChart) newRow.pension = row.pension
+  // Aggregate expenses by year and category
+  const filtered = expensesList.filter(e => {
+    if (e.priority === 2 && !includeMediumPV) return false
+    if (e.priority > 2 && !includeLowPV) return false
+    return true
+  })
 
-      if (chartMode === 'pv') {
-        const rate = settings.discountRate ?? 0
-        const diff = Number(row.year) - startYear + 1
-        const factor = Math.pow(1 + rate / 100, diff)
-        Object.keys(newRow).forEach(k => {
-          if (k !== 'year') {
-            newRow[k] = newRow[k] / factor
-          }
-        })
-      }
-      return newRow
+  const dataByYear = {}
+  filtered.forEach(exp => {
+    const flows = generateRecurringFlows({
+      amount: Number(exp.amount) || 0,
+      paymentsPerYear:
+        typeof exp.paymentsPerYear === 'number'
+          ? exp.paymentsPerYear
+          : typeof exp.frequency === 'number'
+            ? exp.frequency
+            : frequencyToPayments(exp.frequency),
+      growth: Number(exp.growth) || 0,
+      startYear: exp.startYear,
+      endYear: exp.endYear ?? exp.startYear,
     })
-    return processedData
-  }, [timelineData, chartMode, showIncome, showExpensesChart, showGoalsChart, showLiabilitiesChart, showInvestmentsChart, showPensionChart, settings.discountRate, startYear])
 
-  const dataKeys = useMemo(() => {
-    const keys = []
-    if (showIncome) keys.push('income')
-    if (showExpensesChart) keys.push('expenses')
-    if (showGoalsChart) keys.push('goals')
-    if (showLiabilitiesChart) keys.push('loans')
-    if (showInvestmentsChart) keys.push('investments')
-    if (showPensionChart) keys.push('pension')
-    return keys
-  }, [showIncome, showExpensesChart, showGoalsChart, showLiabilitiesChart, showInvestmentsChart, showPensionChart])
+    flows.forEach(({ year, amount }) => {
+      if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
+      dataByYear[year][exp.category] =
+        (dataByYear[year][exp.category] || 0) + amount
+    })
+  })
+
+  if (includeGoalsPV) {
+    goalsList.forEach(g => {
+      const yr = g.targetYear ?? g.endYear ?? g.startYear
+      const year = Number(yr)
+      if (year == null) return
+      if (!dataByYear[year]) dataByYear[year] = { year: String(year) }
+      dataByYear[year].Goal = (dataByYear[year].Goal || 0) + (Number(g.amount) || 0)
+    })
+  }
+
+  const loanFlows = getLoanFlowsByYear(liabilitiesList)
+  Object.entries(loanFlows).forEach(([year, amt]) => {
+    const y = Number(year)
+    if (!dataByYear[y]) dataByYear[y] = { year: String(y) }
+    dataByYear[y]['Debt Service'] = (dataByYear[y]['Debt Service'] || 0) + amt
+  })
+
+  const chartData = Object.values(dataByYear).sort((a, b) => a.year - b.year)
+
+  const categories = useMemo(() => {
+    const set = new Set()
+    filtered.forEach(e => set.add(e.category))
+    if (includeGoalsPV && goalsList.length > 0) set.add('Goal')
+    const baseOrder = ['Fixed', 'Variable', 'Other', 'Goal']
+    const unique = [
+      ...baseOrder.filter(c => set.has(c)),
+      ...Array.from(set).filter(c => !baseOrder.includes(c)),
+    ]
+    return unique
+  }, [filtered, goalsList, includeGoalsPV])
+
+  const colorMap = useMemo(() => {
+    const map = { ...BASE_COLORS }
+    let i = 0
+    categories.forEach(cat => {
+      if (!map[cat]) {
+        map[cat] = PALETTE[i % PALETTE.length]
+        i += 1
+      }
+    })
+    return map
+  }, [categories])
 
   return (
     <div className="w-full h-80 bg-white p-4 rounded-xl shadow-md">
@@ -82,7 +133,6 @@ export default function ExpensesStackedBarChart({ chartMode = 'nominal', timelin
           {Object.keys(loanFlows).length > 0 && (
             <Bar dataKey="Debt Service" stackId="a" fill="#34d399" />
           )}
-          <Bar dataKey="net" fill="#6b7280" />
         </BarChart>
       </ResponsiveContainer>
     </div>

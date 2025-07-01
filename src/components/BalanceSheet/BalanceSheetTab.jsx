@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { useFinance } from '../../FinanceContext'
-import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
+import { submitProfile } from '../../utils/exportHelpers'
 
 import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
 
@@ -35,6 +35,7 @@ export default function BalanceSheetTab() {
     annualIncome,
     startYear,
     years,
+    profile,
     includeLiabilitiesNPV,
     discountRate,
     humanCapitalShare,
@@ -280,11 +281,6 @@ export default function BalanceSheetTab() {
   const toggleLiability = id =>
     setExpandedLiabilities(prev => ({ ...prev, [id]: !prev[id] }))
 
-  const barData = [
-    { name: 'Assets', value: totalAssets },
-    { name: 'Liabilities', value: totalLiabilities },
-    { name: 'Net Worth', value: netWorth }
-  ]
 
   const assetPieData = assetsList.map(a => ({
     name: a.name,

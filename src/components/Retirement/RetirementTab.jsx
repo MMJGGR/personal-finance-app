@@ -54,7 +54,6 @@ export default function RetirementTab() {
       projectedPensionValue,
       inflationRate: settings.inflationRate,
       taxBrackets: settings.taxBrackets,
-      inflationRate: settings.inflationRate, // Pass inflation rate
       taxRateDuringRetirement: settings.taxBrackets // Pass tax brackets
     });
     setSimulationResult(result);

@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import { useFinance } from '../FinanceContext'
 import { formatCurrency } from '../utils/formatters'
 import { suggestLoanStrategies } from '../modules/loan/loanStrategies'
-import { calculateAmortizedPayment } from '../utils/financeUtils'
 
 export default function StrategyTab() {
   const {
@@ -10,9 +9,7 @@ export default function StrategyTab() {
     settings,
     incomeSources,
     expensesList,
-    goalsList,
     liabilitiesList,
-    assetsList,
     riskScore,
     strategy,
     monthlySurplusNominal,

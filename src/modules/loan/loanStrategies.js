@@ -3,17 +3,14 @@
  * Functions for suggesting loan strategies.
  */
 
-import { calculateLoanSchedule, calculateAmortizedPayment } from './loanCalculator';
+import { calculateLoanSchedule } from './loanCalculator';
 
 /**
  * Suggests loan strategies based on current liabilities and financial goals.
  * @param {Array} liabilitiesList - List of current liabilities.
- * @param {number} expectedReturn - Expected return on investments (for comparison).
- * @param {number} currentAge - Current age of the user.
- * @param {number} lifeExpectancy - User's life expectancy.
  * @returns {Array} List of suggested loan strategies.
  */
-export function suggestLoanStrategies(liabilitiesList, expectedReturn, currentAge, lifeExpectancy) {
+export function suggestLoanStrategies(liabilitiesList) {
   const strategies = [];
 
   liabilitiesList.forEach(loan => {
@@ -51,12 +48,6 @@ export function suggestLoanStrategies(liabilitiesList, expectedReturn, currentAg
     // Strategy 2: Refinance (simplified example)
     const newInterestRate = loan.interestRate - 1; // Example: 1% lower interest rate
     if (newInterestRate > 0) {
-      const newPayment = calculateAmortizedPayment(
-        loan.principal,
-        newInterestRate / 100,
-        loan.termYears,
-        loan.paymentsPerYear
-      );
       const newSchedule = calculateLoanSchedule({
         principal: loan.principal,
         annualRate: newInterestRate / 100,

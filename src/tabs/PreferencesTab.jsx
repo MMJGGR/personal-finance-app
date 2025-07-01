@@ -31,7 +31,7 @@ export default function PreferencesTab() {
     setIncludeLiabilitiesNPV,
     profile,
   } = useFinance()
-  const { currentData } = usePersona()
+  const { currentData, currentPersonaId } = usePersona()
   const [form, setForm] = useState(settings)
   const [scenarioName, setScenarioName] = useState('Default')
   const [savedScenarios, setSavedScenarios] = useState(() => {

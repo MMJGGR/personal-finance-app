@@ -16,7 +16,6 @@ import { calculateAmortizedPayment } from '../../utils/financeUtils'
 import { ResponsiveContainer } from 'recharts'
 import ExpensesStackedBarChart from '../ExpensesStackedBarChart.jsx'
 import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
-import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
 import ExpenseRow from '../ExpenseRow.jsx'
@@ -48,12 +47,12 @@ export default function ExpensesGoalsTab() {
     investmentContributions, setInvestmentContributions,
     pensionStreams, setPensionStreams,
     setExpensesPV,
-    setGoalsPV,
     profile,
     settings,
     startYear,
     years,
-    annualIncome,
+    incomeSources,
+    monthlySurplusNominal,
     includeMediumPV,
     includeLowPV,
     includeGoalsPV,
@@ -74,7 +73,7 @@ export default function ExpensesGoalsTab() {
   const [_expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
   const [chartMode, setChartMode] = useState('nominal')
-  const [categories, setCategories] = useState([
+  const [categories] = useState([
     'Housing', 'Transportation', 'Food', 'Utilities', 'Insurance',
     'Healthcare', 'Personal Care', 'Entertainment', 'Education',
     'Debt Payments', 'Savings', 'Investments', 'Miscellaneous'
@@ -309,28 +308,6 @@ export default function ExpensesGoalsTab() {
   }
 
   // Liabilities (Loans)
-  const handleLiabilityChange = (id, field, valueRaw) => {
-    const value = typeof valueRaw === 'string' ? sanitize(valueRaw) : valueRaw
-    const oldValue = liabilitiesList.find(l => l.id === id)?.[field]
-    setLiabilitiesList(prev =>
-      prev.map(l => {
-        if (l.id !== id) return l
-        const updated = { ...l, [field]: value }
-        const computedPayment = calculateAmortizedPayment(
-          Number(updated.principal) || 0,
-          Number(updated.interestRate) || 0,
-          Number(updated.termYears) || 0,
-          Number(updated.paymentsPerYear) || 1
-        )
-        return { ...updated, computedPayment }
-      })
-    )
-    appendAuditLog(storage, {
-      field: `liability.${field}`,
-      oldValue,
-      newValue: value,
-    })
-  }
   const addLiability = () => {
     const base = {
       id: crypto.randomUUID(),
@@ -351,11 +328,6 @@ export default function ExpensesGoalsTab() {
       base.paymentsPerYear
     )
     setLiabilitiesList([...liabilitiesList, { ...base, computedPayment }])
-  }
-  const removeLiability = id => {
-    if (window.confirm('Delete this item?')) {
-      setLiabilitiesList(liabilitiesList.filter(l => l.id !== id))
-    }
   }
 
   const clearLists = () => {
@@ -627,9 +599,6 @@ export default function ExpensesGoalsTab() {
 
       <Card>
         <h3 className="text-lg font-bold text-amber-800">Advisor Insights</h3>
-        {hasDeficit && (
-          <p className="text-red-600">⚠️ Cashflow deficit detected in some years. Consider reducing expenses or deferring goals.</p>
-        )}
         {expenseOptimizations.length > 0 && (
           <div className="mt-4">
             <h4 className="font-semibold text-amber-700">Suggested Expense Optimizations:</h4>
@@ -754,7 +723,6 @@ export default function ExpensesGoalsTab() {
             {goalsList.length === 0 && (
               <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
             )}
-            {goalsList.map(g => (
             {goalsList.map(g => (
               <div key={g.id} className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1">
                 <div>
