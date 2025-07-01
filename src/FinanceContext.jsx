@@ -691,14 +691,11 @@ export function FinanceProvider({ children }) {
       const amt = parseFloat(e.amount) || 0
       return sum + amt * (e.paymentsPerYear / 12)
     }, 0)
-    setMonthlyExpense(prevMonthlyExpense => {
-      if (newMonthlyTotal !== prevMonthlyExpense) {
-        storage.set('monthlyExpense', newMonthlyTotal.toString())
-        return newMonthlyTotal
-      }
-      return prevMonthlyExpense
-    })
-  }, [expensesList])
+    if (newMonthlyTotal !== monthlyExpense) {
+      setMonthlyExpense(newMonthlyTotal)
+      storage.set('monthlyExpense', newMonthlyTotal.toString())
+    }
+  }, [expensesList, monthlyExpense])
 
   useEffect(() => {
     const newMonthlyIncome = incomeSources.reduce((sum, src) => {
@@ -720,23 +717,17 @@ export function FinanceProvider({ children }) {
       return sum + netIncome
     }, 0)
 
-    setMonthlyIncomeNominal(prev => {
-      if (newMonthlyIncome !== prev) {
-        storage.set('monthlyIncomeNominal', newMonthlyIncome.toString())
-        return newMonthlyIncome
-      }
-      return prev
-    })
+    if (newMonthlyIncome !== monthlyIncomeNominal) {
+      setMonthlyIncomeNominal(newMonthlyIncome)
+      storage.set('monthlyIncomeNominal', newMonthlyIncome.toString())
+    }
 
     const newSurplus = newMonthlyIncome - monthlyExpense
-    setMonthlySurplusNominal(prev => {
-      if (newSurplus !== prev) {
-        storage.set('monthlySurplusNominal', newSurplus.toString())
-        return newSurplus
-      }
-      return prev
-    })
-  }, [incomeSources, monthlyExpense, privatePensionContributions, settings.nssfRates, settings.nssfCaps, settings.taxBrackets, settings.pensionContributionReliefPct])
+    if (newSurplus !== monthlySurplusNominal) {
+      setMonthlySurplusNominal(newSurplus)
+      storage.set('monthlySurplusNominal', newSurplus.toString())
+    }
+  }, [incomeSources, monthlyExpense, privatePensionContributions, settings.nssfRates, settings.nssfCaps, settings.taxBrackets, settings.pensionContributionReliefPct, monthlyIncomeNominal, monthlySurplusNominal])
 
   const annualIncome = useMemo(
     () =>
@@ -868,14 +859,11 @@ export function FinanceProvider({ children }) {
   ])
 
   useEffect(() => {
-    setIncomePV(prev => {
-      if (incomePvValue !== prev) {
-        storage.set('incomePV', incomePvValue.toString())
-        return incomePvValue
-      }
-      return prev
-    })
-  }, [incomePvValue])
+    if (incomePvValue !== incomePV) {
+      setIncomePV(incomePvValue)
+      storage.set('incomePV', incomePvValue.toString())
+    }
+  }, [incomePvValue, incomePV])
 
   const expensesPvData = useMemo(() => {
     let high = 0
@@ -923,16 +911,43 @@ export function FinanceProvider({ children }) {
 
   useEffect(() => {
     const { high, medium, low, totalPv, avgMonthly, mHigh, mMedium, mLow } = expensesPvData
-    setPvHigh(prev => { if (high !== prev) { storage.set('pvHigh', high.toString()); return high; } return prev; });
-    setPvMedium(prev => { if (medium !== prev) { storage.set('pvMedium', medium.toString()); return medium; } return prev; });
-    setPvLow(prev => { if (low !== prev) { storage.set('pvLow', low.toString()); return low; } return prev; });
-    setExpensesPV(prev => { if (totalPv !== prev) { storage.set('expensesPV', totalPv.toString()); return totalPv; } return prev; });
-    setPvExpenses(prev => { if (totalPv !== prev) { storage.set('pvExpenses', totalPv.toString()); return totalPv; } return prev; });
-    setMonthlyPVExpense(prev => { if (avgMonthly !== prev) { storage.set('monthlyPVExpense', avgMonthly.toString()); return avgMonthly; } return prev; });
-    setMonthlyPVHigh(prev => { if (mHigh !== prev) { storage.set('monthlyPVHigh', mHigh.toString()); return mHigh; } return prev; });
-    setMonthlyPVMedium(prev => { if (mMedium !== prev) { storage.set('monthlyPVMedium', mMedium.toString()); return mMedium; } return prev; });
-    setMonthlyPVLow(prev => { if (mLow !== prev) { storage.set('monthlyPVLow', mLow.toString()); return mLow; } return prev; });
-  }, [expensesPvData])
+    if (high !== pvHigh) {
+      setPvHigh(high)
+      storage.set('pvHigh', high.toString())
+    }
+    if (medium !== pvMedium) {
+      setPvMedium(medium)
+      storage.set('pvMedium', medium.toString())
+    }
+    if (low !== pvLow) {
+      setPvLow(low)
+      storage.set('pvLow', low.toString())
+    }
+    if (totalPv !== expensesPV) {
+      setExpensesPV(totalPv)
+      storage.set('expensesPV', totalPv.toString())
+    }
+    if (totalPv !== pvExpenses) {
+      setPvExpenses(totalPv)
+      storage.set('pvExpenses', totalPv.toString())
+    }
+    if (avgMonthly !== monthlyPVExpense) {
+      setMonthlyPVExpense(avgMonthly)
+      storage.set('monthlyPVExpense', avgMonthly.toString())
+    }
+    if (mHigh !== monthlyPVHigh) {
+      setMonthlyPVHigh(mHigh)
+      storage.set('monthlyPVHigh', mHigh.toString())
+    }
+    if (mMedium !== monthlyPVMedium) {
+      setMonthlyPVMedium(mMedium)
+      storage.set('monthlyPVMedium', mMedium.toString())
+    }
+    if (mLow !== monthlyPVLow) {
+      setMonthlyPVLow(mLow)
+      storage.set('monthlyPVLow', mLow.toString())
+    }
+  }, [expensesPvData, pvHigh, pvMedium, pvLow, expensesPV, pvExpenses, monthlyPVExpense, monthlyPVHigh, monthlyPVMedium, monthlyPVLow])
 
   useEffect(() => {
     const storedIncludeMediumPV = storage.get('includeMediumPV');
@@ -979,23 +994,31 @@ export function FinanceProvider({ children }) {
     const dar = assetTotal > 0 ? liabilityTotal / assetTotal : 0
     const hcs = assetTotal > 0 ? incomePV / assetTotal : 0
 
-    setNetWorth(prev => { if (nw !== prev) { storage.set('netWorth', nw.toString()); return nw; } return prev; });
-    setDebtToAssetRatio(prev => { if (dar !== prev) { storage.set('debtToAssetRatio', dar.toString()); return dar; } return prev; });
-    setHumanCapitalShare(prev => { if (hcs !== prev) { storage.set('humanCapitalShare', hcs.toString()); return hcs; } return prev; });
-  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate])
+    if (nw !== netWorth) {
+      setNetWorth(nw)
+      storage.set('netWorth', nw.toString())
+    }
+    if (dar !== debtToAssetRatio) {
+      setDebtToAssetRatio(dar)
+      storage.set('debtToAssetRatio', dar.toString())
+    }
+    if (hcs !== humanCapitalShare) {
+      setHumanCapitalShare(hcs)
+      storage.set('humanCapitalShare', hcs.toString())
+    }
+  }, [assetsList, liabilitiesList, goalsList, incomePV, expensesPV, discountRate, netWorth, debtToAssetRatio, humanCapitalShare])
 
   // Update PV of Lifetime Income asset when incomePV changes
   useEffect(() => {
-    setAssetsList(prevAssets => {
-      const pvIncomeAsset = prevAssets.find(a => a.id === 'pv-income')
-      if (pvIncomeAsset && pvIncomeAsset.amount !== incomePV) {
+    const pvIncomeAsset = assetsList.find(a => a.id === 'pv-income')
+    if (pvIncomeAsset && pvIncomeAsset.amount !== incomePV) {
+      setAssetsList(prevAssets => {
         return prevAssets.map(a =>
           a.id === 'pv-income' ? { ...a, amount: incomePV, principal: incomePV } : a
         )
-      }
-      return prevAssets
-    })
-  }, [incomePV, setAssetsList])
+      })
+    }
+  }, [incomePV, assetsList])
 
   // Project Pension Growth and update assetsList
   useEffect(() => {
@@ -1026,31 +1049,33 @@ export function FinanceProvider({ children }) {
       yearsToRetirement
     );
 
-    setAssetsList(prevAssets => {
-      const existingPensionAsset = prevAssets.find(a => a.id === 'projected-pension-value');
-      if (existingPensionAsset) {
-        return prevAssets.map(a =>
-          a.id === 'projected-pension-value' ? { ...a, amount: projectedPensionValue, principal: projectedPensionValue } : a
+    const existingPensionAsset = assetsList.find(a => a.id === 'projected-pension-value');
+    if (existingPensionAsset) {
+      if (existingPensionAsset.amount !== projectedPensionValue) {
+        setAssetsList(prevAssets =>
+          prevAssets.map(a =>
+            a.id === 'projected-pension-value' ? { ...a, amount: projectedPensionValue, principal: projectedPensionValue } : a
+          )
         );
-      } else {
-        return [
-          ...prevAssets,
-          {
-            id: 'projected-pension-value',
-            name: 'Projected Pension Value',
-            amount: projectedPensionValue,
-            type: 'Pension',
-            expectedReturn: settings.expectedReturn,
-            volatility: 0, // Pension growth is often less volatile
-            horizonYears: yearsToRetirement,
-            purchaseYear: currentYear,
-            saleYear: null,
-            principal: projectedPensionValue,
-          },
-        ];
       }
-    });
-  }, [incomeSources, privatePensionContributions, profile.age, settings.retirementAge, settings.expectedReturn, setAssetsList]);
+    } else {
+      setAssetsList(prevAssets => [
+        ...prevAssets,
+        {
+          id: 'projected-pension-value',
+          name: 'Projected Pension Value',
+          amount: projectedPensionValue,
+          type: 'Pension',
+          expectedReturn: settings.expectedReturn,
+          volatility: 0, // Pension growth is often less volatile
+          horizonYears: yearsToRetirement,
+          purchaseYear: currentYear,
+          saleYear: null,
+          principal: projectedPensionValue,
+        },
+      ]);
+    }
+  }, [incomeSources, privatePensionContributions, profile.age, settings.retirementAge, settings.expectedReturn, assetsList]);
 
   // === Auto-load persisted state on mount ===
   useEffect(() => {

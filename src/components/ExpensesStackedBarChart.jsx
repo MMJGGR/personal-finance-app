@@ -82,6 +82,7 @@ export default function ExpensesStackedBarChart({ chartMode = 'nominal', timelin
           {Object.keys(loanFlows).length > 0 && (
             <Bar dataKey="Debt Service" stackId="a" fill="#34d399" />
           )}
+          <Bar dataKey="net" fill="#6b7280" />
         </BarChart>
       </ResponsiveContainer>
     </div>

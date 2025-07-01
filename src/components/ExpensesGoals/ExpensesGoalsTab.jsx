@@ -62,10 +62,10 @@ export default function ExpensesGoalsTab() {
   const { currentData } = usePersona()
   const horizon = Math.max(1, profile.lifeExpectancy - profile.age)
   const defaultStart = currentYear
-  const defaultEnd = currentYear + horizon
+  const defaultEnd = currentYear + horizon - 1
 
   const birthYear = currentYear - (profile.age ?? 0)
-  const retirementYear = birthYear + (currentData.settings?.retirementAge ?? settings.retirementAge ?? 65)
+  const retirementYear = birthYear + (settings.retirementAge ?? 65)
 
   const [showExpenses, setShowExpenses] = useState(true)
   const [showGoals, setShowGoals] = useState(true)
@@ -515,11 +515,31 @@ export default function ExpensesGoalsTab() {
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
   // --- Combined cashflow timeline ---
-  
-
-
-
-  
+  const timelineData = useMemo(() => {
+    return buildCashflowTimeline({
+      incomeSources,
+      expensesList: filteredExpenses,
+      goalsList: filteredGoals,
+      liabilitiesList: liabilityDetails,
+      investmentContributions,
+      pensionStreams,
+      settings,
+      startYear,
+      years,
+      retirementYear,
+    });
+  }, [
+    incomeSources,
+    filteredExpenses,
+    filteredGoals,
+    liabilityDetails,
+    investmentContributions,
+    pensionStreams,
+    settings,
+    startYear,
+    years,
+    retirementYear,
+  ]);
 
   const expenseOptimizations = useMemo(() => {
     return suggestExpenseOptimizations(expensesList, monthlySurplusNominal, settings.discretionaryCutThreshold);
@@ -529,18 +549,6 @@ export default function ExpensesGoalsTab() {
     if (timelineData.length === 0) return 0
     return Math.max(...timelineData.map(r => r.surplus))
   }, [timelineData])
-
-
-
-  const hasDeficit = useMemo(
-    () => timelineData.some(row => row.net < 0),
-    [timelineData]
-  )
-
-  useEffect(() => {
-    if (typeof setGoalsPV === 'function') setGoalsPV(pvGoals)
-    storage.set('goalsPV', pvGoals.toString())
-  }, [pvGoals, setGoalsPV])
 
   useEffect(() => {
     storage.set('loansPV', totalLiabilitiesPV.toString())
@@ -747,6 +755,7 @@ export default function ExpensesGoalsTab() {
               <p className="italic text-slate-500 col-span-full mb-2">No goals added</p>
             )}
             {goalsList.map(g => (
+              {goalsList.map(g => (
               <div key={g.id} className="grid grid-cols-1 sm:grid-cols-8 gap-2 items-center mb-1">
                 <div>
                   <label htmlFor={`goal-name-${g.id}`} className="sr-only">Goal name</label>
