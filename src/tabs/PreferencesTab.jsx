@@ -8,9 +8,6 @@ import sanitize from '../utils/sanitize'
 import { preferencesSchema } from '../utils/validationSchemas'
 import Tooltip from '../components/Tooltip.jsx'
 import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
-import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
-import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
-import TaxBracketEditor from '../components/TaxBracketEditor.jsx'
 
 function safeParse(str, fallback) {
   try {

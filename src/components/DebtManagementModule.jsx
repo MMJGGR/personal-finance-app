@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
-import { formatCurrency } from '../../utils/formatters'
-import { calculateLoanSchedule } from '../../modules/loan/loanCalculator'
-import { suggestLoanStrategies } from '../../modules/loan/loanStrategies'
+import { formatCurrency } from '../utils/formatters.js'
+import { calculateLoanSchedule } from '../modules/loan/loanCalculator.js'
+import { suggestLoanStrategies } from '../modules/loan/loanStrategies.js'
 
 export default function DebtManagementModule({
   liabilitiesList,

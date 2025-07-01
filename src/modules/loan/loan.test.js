@@ -12,5 +12,5 @@ test('loan amortization works', () => {
   }, start)
   expect(schedule.payments.length).toBeGreaterThan(0)
   expect(new Date(schedule.payments[0].date).getFullYear()).toBe(2025)
-  expect(schedule.totalInterest).toBeGreaterThan(100000)
+  expect(schedule.totalInterestPaid).toBeGreaterThan(100000)
 })

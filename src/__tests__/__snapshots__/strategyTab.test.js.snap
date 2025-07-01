@@ -2,17 +2,112 @@
 
 exports[`strategy tab placeholder snapshot 1`] = `
 <div
-  class="bg-white rounded-xl shadow p-6"
+  class="bg-white rounded-xl shadow p-6 space-y-6"
 >
   <h2
     class="text-2xl font-semibold mb-4 text-amber-600"
   >
-    Strategy
+    Financial Strategy & Recommendations
   </h2>
-  <div
-    class="h-48 flex items-center justify-center text-gray-400"
-  >
-    [Financial Strategy Recommendations & Scenarios]
-  </div>
+  <section>
+    <h3
+      class="text-xl font-bold text-amber-800 mb-4"
+    >
+      Your Financial Snapshot
+    </h3>
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 gap-4"
+    >
+      <div>
+        <p>
+          <strong>
+            Current Risk Profile:
+          </strong>
+           
+           Capacity, 
+           Willingness
+        </p>
+        <p>
+          <strong>
+            Calculated Risk Score:
+          </strong>
+           
+          16
+        </p>
+        <p>
+          <strong>
+            Suggested Strategy:
+          </strong>
+           
+          Growth
+        </p>
+      </div>
+      <div>
+        <p>
+          <strong>
+            Total Annual Income:
+          </strong>
+           
+          Ksh 120,000.00
+        </p>
+        <p>
+          <strong>
+            Total Annual Expenses:
+          </strong>
+           
+          1.03 M
+        </p>
+        <p>
+          <strong>
+            Monthly Surplus:
+          </strong>
+           
+          -Ksh 75,500.00
+        </p>
+        <p>
+          <strong>
+            Annual Savings/Surplus:
+          </strong>
+           
+          Ksh 0.00
+        </p>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h3
+      class="text-xl font-bold text-amber-800 mb-4"
+    >
+      General Recommendations
+    </h3>
+    <ul
+      class="list-disc pl-5 space-y-2"
+    >
+      <li>
+        Review your budget regularly to identify areas for potential savings.
+      </li>
+      <li>
+        Consider increasing your emergency fund to cover at least 3-6 months of essential expenses.
+      </li>
+      <li>
+        Explore investment options aligned with your risk profile and financial goals.
+      </li>
+      <li>
+        Your current spending exceeds your income. Prioritize reducing discretionary expenses.
+      </li>
+    </ul>
+  </section>
+  <section>
+    <h3
+      class="text-xl font-bold text-amber-800 mb-4"
+    >
+      What-If Scenario Simulator
+    </h3>
+    <div
+      class="h-48 flex items-center justify-center text-gray-400 border border-dashed rounded-md"
+    >
+      [Interactive charts and controls for simulating different financial scenarios]
+    </div>
+  </section>
 </div>
 `;

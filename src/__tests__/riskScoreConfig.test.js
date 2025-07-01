@@ -3,5 +3,5 @@ import { riskScoreMap } from '../riskScoreConfig'
 
 test('riskScoreMap exposes expected categories', () => {
   const keys = Object.keys(riskScoreMap).sort()
-  expect(keys).toEqual(['goal', 'horizon', 'knowledge', 'response'].sort())
+  expect(keys).toEqual(['goal', 'horizon', 'knowledge', 'response', 'riskCapacity', 'riskWillingness'].sort())
 })

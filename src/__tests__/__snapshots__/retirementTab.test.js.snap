@@ -1,9 +1,75 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`retirement tab placeholder snapshot 1`] = `
-<h2
-  class="text-2xl font-bold text-amber-800"
+<div
+  class="space-y-8"
 >
-  Retirement
-</h2>
+  <h2
+    class="text-2xl font-bold text-amber-800"
+  >
+    Retirement Planner
+  </h2>
+  <div
+    class="p-6 bg-white rounded-lg shadow"
+  >
+    <h3
+      class="text-xl font-bold text-amber-800 mb-4"
+    >
+      Voluntary Private Pension Contributions
+    </h3>
+    <div
+      class="space-y-4"
+    />
+    <button
+      class="mt-4 bg-amber-400 hover:bg-amber-300 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+    >
+      ➕ Add Private Pension Contribution
+    </button>
+  </div>
+  <div
+    class="grid grid-cols-1 gap-6 md:grid-cols-3"
+  >
+    <div
+      class="p-4 bg-white rounded-lg shadow"
+    >
+      <label
+        class="block text-sm font-medium text-gray-700"
+        for="retirement-income"
+      >
+        Desired Annual Retirement Income
+      </label>
+      <input
+        class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+        id="retirement-income"
+        type="number"
+        value="50000"
+      />
+    </div>
+    <div
+      class="p-4 bg-white rounded-lg shadow"
+    >
+      <label
+        class="block text-sm font-medium text-gray-700"
+        for="num-simulations"
+      >
+        Number of Simulations
+      </label>
+      <input
+        class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+        id="num-simulations"
+        type="number"
+        value="1000"
+      />
+    </div>
+    <div
+      class="flex items-end"
+    >
+      <button
+        class="w-full px-4 py-2 font-bold text-white bg-amber-600 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+      >
+        Run Simulation
+      </button>
+    </div>
+  </div>
+</div>
 `;

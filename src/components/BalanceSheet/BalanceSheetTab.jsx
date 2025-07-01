@@ -10,13 +10,12 @@ import { appendAuditLog } from '../../utils/auditLog'
 import sanitize from '../../utils/sanitize'
 import { getLoanFlowsByYear } from '../../utils/loanHelpers'
 import { estimateFutureValue } from '../../utils/financeUtils'
-import suggestLoanStrategies from '../../modules/loan/loanStrategies'
+import { suggestLoanStrategies } from '../../modules/loan/loanStrategies'
 import LTCMA from '../../ltcmaAssumptions'
 import InvestmentStrategies from '../../investmentStrategies'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
 import { usePersona } from '../../PersonaContext.jsx'
 import CashflowTimelineChart from '../ExpensesGoals/CashflowTimelineChart.jsx'
-import { buildCashflowTimeline } from '../../utils/cashflowTimeline'
 
 const COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#eab308', '#fcd34d', '#fef3c7']
 
