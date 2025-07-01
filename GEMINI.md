@@ -1,221 +1,71 @@
-# Phased Refactor & Implementation Guide
+## Action Plan to Stabilize and Harden the Codebase
 
-This document outlines a multi-phase plan to refactor and enhance the core tabs of the Personal Finance App. Each phase groups related work so that AI-powered assistants or junior developers can execute changes efficiently and with clear orchestration across files.
+### 1. **Modularize Context and State Management**
 
----
+* Break `FinanceContext` into focused providers (e.g., `ProfileContext`, `PersistenceContext`, `ChartDataContext`).
+* Expose only necessary slices of state via custom hooks (e.g., `useProfile()`, `usePersistence()`).
+* Ensure each provider has its own responsibility and clear boundaries.
 
-## Phase 1: Foundation & Core Provider Fixes
+### 2. **Guard and Optimize `useEffect` Hooks**
 
-**Objective:** Stabilize the Context layer, fix import errors, and resolve CSP/HMR issues so downstream UI work can proceed without crashes.
+* Add value checks before calling state setters (e.g., `if (newValue !== prevValue) setValue(newValue)`).
+* Narrow dependency arrays to primitives or stable references; use `useMemo` or `useCallback` for computed objects/functions.
+* Consolidate related effects when possible to reduce cross-triggering.
 
-1. **Fix `FinanceContext.jsx`:**
-   - **Add missing JSX return & exports** (after final `useEffect`).
-   - **Audit `useEffect` loops**:  
-     - Add guards (`if (newVal !== oldVal)`) around every `setState` in effects.  
-     - Include both source and target variables in dependency arrays.  
-     - Remove any two-way mirroring (e.g. avoid writing `settings.startYear ↔ startYear` twice).
-2. **Resolve `projectPensionGrowth` ReferenceError:**
-   - In `utils/pensionProjection.js`, confirm whether it’s a **default** or **named** export.  
-   - Adjust import in `FinanceContext.jsx` accordingly.
-3. **Update CSP & HMR Config:**
-   - In `vite.config.js` (or server headers), add `img-src 'self' data:` to CSP.  
-   - Verify `server.hmr` settings and restart Vite to clear “WebSocket connection failed.”
+### 3. **Implement Robust Persistence Flow**
 
----
+* Debounce or batch state-to-`localStorage` writes to avoid thrashing.
+* On app mount, perform a single “hydrate” step and pause sync effects until initial load completes.
+* Encapsulate persistence logic in its own module with clear load/save APIs.
 
-## Phase 2: ProfileTab.jsx — Enterprise-Grade KYC & Risk
+### 4. **Separate Business Logic from Presentation**
 
-**Files:**  
-- `src/components/Profile/ProfileTab.jsx`  
-- `src/utils/auditLog.js`  
-- `src/context/PersonaContext.jsx`
+* Move financial calculations (PV, amortization, risk scoring) into pure utility functions or service classes.
+* Consume these utilities in components or hooks; avoid inline calculations in JSX.
+* Write unit tests for each utility function to guarantee correctness.
 
-### 2.1 Expand & Integrate KYC Fields
-- Un-`FIXME` and wire up all KYC fields (name, email, phone, address, nationality, ID/passport, tax jurisdiction/residence, employmentStatus).  
-- Persist in `FinanceContext` and include in audit log.
+### 5. **Add Memoization for Derived Data**
 
-### 2.2 Advanced Risk Assessment
-- Replace basic questionnaire with a **2-dimensional risk engine** (capacity vs. willingness).  
-- Map answers to CFA-aligned scoring rules; categorize into Conservative/Balanced/Growth.
+* Use `useMemo` to cache heavy transforms (e.g., chart series, lifetime-value arrays).
+* Use `useCallback` for event handlers passed to child components to prevent unnecessary re-renders.
 
-### 2.3 Robust Validation & Security
-- Add per-field validators (regex for email/phone, range checks).  
-- Show inline error messages.  
-- Ensure sensitive data is encrypted on save (if backend) or obfuscated in storage.
+### 6. **Ensure Proper Cleanup of Side Effects**
 
-### 2.4 Audit & Compliance
-- Extend `auditLog` to capture: field name, old/new value, timestamp, user/actor ID.  
-- Store logs in a secure, append-only store (e.g. `auditLogs.json` or backend API).
+* Return cleanup functions in all `useEffect`s that subscribe to events or set up listeners.
+* Unsubscribe from any pub-sub channels or window/global event listeners on unmount.
 
----
+### 7. **Layered Error Handling and Boundaries**
 
-## Phase 3: PreferencesTab.jsx — Scenario-Ready Settings
+* Introduce a global `ErrorBoundary` component around the main app to catch render errors.
+* Wrap async calls (e.g., localStorage, fetch) in `try/catch` blocks and display fallback UI/messages.
 
-**Files:**  
-- `src/tabs/PreferencesTab.jsx`  
-- `src/context/FinanceContext.jsx`  
-- `src/utils/validationSchemas.js`
+### 8. **Streamline State Initialization**
 
-### 3.1 Scenario Inputs & Backups
-- Group core parameters (inflation, return, discount) into named **scenarios** (Base / Upside / Downside).  
-- Add “Save Scenario” & “Load Scenario” controls; persist in localStorage or backend.
+* Centralize default values in a single configuration file or constants module.
+* Hydrate state in a controlled sequence: defaults → seed file → persisted state → migrations.
+* Log or warn when conflicting sources are detected during initialization.
 
-### 3.2 Enhanced Tax & Compliance
-- Replace JSON textarea for tax brackets with a **table editor** component.  
-- Validate bracket definitions against schema; show errors inline.
+### 9. **Refactor Large Components**
 
-### 3.3 Localization & API Security
-- Flesh out `apiEndpoint` field: require HTTPS, validate URL format.  
-- Add auth token input; store securely.
+* Split each tab into smaller subcomponents (e.g., `ExpenseList`, `ExpensePVChart`, `ExpenseControls`).
+* Adopt a container/presentational component pattern to separate stateful logic from markup.
 
-### 3.4 Audit Trail & Help
-- Log every settings change via `auditLog`.  
-- Add inline tooltips/documentation for each field (via a shared `<Tooltip />` component).
+### 10. **Introduce Automated Testing**
+
+* Set up unit tests for utility functions and React hooks using Jest and React Testing Library.
+* Write integration tests for key user flows (e.g., adding an expense, editing settings).
+* Integrate tests into CI to prevent regressions.
+
+### 11. **Adopt Type Safety or Prop Validation**
+
+* Migrate gradually to TypeScript or add `PropTypes` to critical components.
+* Define interfaces/types for context state and component props to catch mismatches early.
+
+### 12. **Improve Accessibility & Responsiveness**
+
+* Audit UI with a tool like axe-core; add missing ARIA labels and keyboard support.
+* Test across breakpoints, ensuring charts and panels resize or collapse gracefully.
 
 ---
 
-## Phase 4: IncomeTab.jsx — Detailed PV & Health Metrics
-
-**Files:**  
-- `src/components/Income/IncomeTab.jsx`  
-- `src/utils/financeUtils.js`  
-- `src/components/Charts/IncomeTimelineChart.jsx`
-
-### 4.1 Income Source Enhancements
-- Add sub-types for salary: Base / Bonus / Variable.  
-- Allow bulk import of income sources (CSV upload).
-
-### 4.2 Accurate Tax Calculations
-- Integrate real-world tax engines or stubbed API calls; replace `calculatePAYE`/`calculateNSSF` with configurable rules per jurisdiction.
-
-### 4.3 Scenario & What-If Mode
-- Add toggles for alternate growth assumptions; regenerate timeline upon scenario selection.  
-- Add “compare scenarios” view.
-
-### 4.4 Expanded Health Metrics
-- Implement additional metrics: Debt Service Ratio, Savings Rate, Emergency Fund Coverage.  
-- Show them in a summary card deck above the chart.
-
----
-
-## Phase 5: ExpensesGoalsTab.jsx — Cashflow & Optimization
-
-**Files:**  
-- `src/tabs/ExpensesGoalsTab.jsx`  
-- `src/utils/cashflowBuilder.js`  
-- `src/components/Charts/ExpensesStackedBarChart.jsx`
-
-### 5.1 Expense & Goal Categorization
-- Introduce category/subcategory taxonomy; allow custom categories.  
-- Bulk edit mode & template library for common expenses/goals.
-
-### 5.2 Advanced PV & Strategy
-- Expose separate PV models for fixed vs. variable expenses.  
-- Add “optimize expenses” engine recommending cuts by priority and impact.
-
-### 5.3 Debt Management Module
-- Build a mini-dashboard for liabilities: amortization schedule, interest saved, refinancing options.  
-- Integrate `suggestLoanStrategies` with detailed projections.
-
-### 5.4 Full Cashflow Timeline
-- Merge Income, Expenses, Goals, Liabilities, Investments, Pension streams into one timeline.  
-- Add dynamic filters (e.g. show only discretionary, only loans).
-
----
-
-## Phase 6: InvestmentsTab.jsx & StrategyTab.jsx — New Modules
-
-**Files:**  
-- `src/tabs/InvestmentsTab.jsx`  
-- `src/tabs/StrategyTab.jsx`  
-- `src/utils/investmentEngine.js`
-
-### 6.1 InvestmentsTab MVP
-- CRUD for various asset classes; link to real-time pricing API (mocked).  
-- Portfolio overview: allocation pie, time-weighted return.
-
-### 6.2 StrategyTab Analytics
-- Pull together data from Profile, Income, Expenses, Investments.  
-- Generate personalized recommendations: savings rate, allocation, debt paydown, insurance.  
-- Render “What-If” scenario simulator with charts.
-
----
-
-## Phase 7: RetirementTab.jsx & BalanceSheetTab.jsx — Advanced Planning
-
-**Files:**  
-- `src/tabs/RetirementTab.jsx`  
-- `src/tabs/BalanceSheetTab.jsx`  
-- `src/utils/monteCarlo.js`
-
-### 7.1 RetirementTab: Monte Carlo & Beyond
-- Enhance Monte Carlo: multiple asset classes, inflation-adjusted withdrawals, tax impact.  
-- Add sensitivity analysis controls.
-
-### 7.2 BalanceSheetTab: Reporting & Alerts
-- Historical net worth chart, heatmap of asset allocation over time.  
-- Alerts for ratio breaches (e.g. debt/assets > 50%).
-
-### 7.3 Integration & Exports
-- CSV/PDF export for reports.  
-- Backend sync endpoints for saving/loading full user plans.
-
----
-
-## Phase 8: InsuranceTab.jsx & Final Polish
-
-**Files:**  
-- `src/tabs/InsuranceTab.jsx`  
-- `src/utils/insuranceCalculator.js`
-
-### 8.1 Comprehensive Insurance Needs
-- Add modules for disability, health, LTC, property/casualty.  
-- Integrate with real carrier APIs for quotes.
-
-### 8.2 User Education & Compliance
-- Inline explanations, glossary popovers.  
-- Regulatory disclosure modal.
-
-### 8.3 Audit & Security Review
-- Ensure all tabs write to a centralized audit log.  
-- Perform vulnerability scan and fix any CSP/CORS issues.
-
----
-
-**End of Phases**  
-By following these phases, the team can incrementally build out enterprise-grade, CFA-compliant features, maintain orchestration across files, and hand off clear, self-contained tasks to AI or developers at each step.
-
-**Important before finalizing each change**
-Please run and verify tests after each change to ensure the code still compiles and functions correctly before committing, and provide a brief summary of what you modified with each commit.
-
-**TO DO**
-
-Here's a summary of remaining updates before error correction:
- IMPORTANT ERROR CORRECTION: I have reviewed FinanceContext.jsx and pensionProjection.js.
-
-  The FinanceProvider component and its exports appear correct. The projectPensionGrowth import/export also seems fine.
-
-
-  However, several useEffect hooks in FinanceContext.jsx update state variables that are also in their dependency arrays without
-  proper guards. This can cause infinite re-render loops, leading to performance issues or UI freezes that prevent tabs from loading.
-
-  Additionally, as noted in GEMINI.md, incorrect CSP or HMR settings could be an issue, but I cannot verify these with my current
-  tools.
-
-
-  The most probable cause for the tabs not loading is the infinite useEffect loops.
-
-  Next:
-
-   1. Security: Encrypt sensitive data in localStorage (authToken, auditLog).
-   2. `useEffect` Guards: Audit FinanceContext.jsx for setState guards in all useEffects.
-   3. Tax Engine/API: Implement a more robust tax engine or stubbed API for IncomeTab.jsx.
-   4. Bulk Operations/Templates: Implement bulk edit/template library for ExpensesGoalsTab.jsx.
-   5. Dynamic Filters: Ensure full functionality of dynamic filters for ExpensesGoalsTab.jsx cashflow timeline.
-   6. Real-time Pricing (Mocked): Implement mocked real-time pricing API for InvestmentsTab.jsx.
-   7. Full Strategy Recommendations: Fully implement personalized recommendations and "What-If Scenario Simulator" for StrategyTab.jsx.
-   8. Retirement Enhancements: Add sensitivity analysis, comprehensive tax impact, and full privatePensionContributions integration for
-      RetirementTab.jsx.
-   9. Balance Sheet Alerts: Implement ratio breach alerts for BalanceSheetTab.jsx.
-   10. Insurance Enhancements: Integrate with mocked carrier APIs, add user education features, and a regulatory disclosure modal for
-       InsuranceTab.jsx.
+*By following this action plan, the codebase will be more maintainable, performant, and robust, enabling safer refactoring and accelerated feature development.*
