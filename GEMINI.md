@@ -1,187 +1,134 @@
+````markdown
+# Task 1: Profile & Risk Engine Implementation
+
+**Objective:** Enable a complete, enterprise-grade KYC flow in `ProfileTab.jsx` with CFA-aligned risk scoring and audit logging. This task covers UI wiring, scoring logic, state persistence, and test coverage.
+
+---
+
+## 1. UI Wiring in `ProfileTab.jsx`
+
+1. **Remove `FIXME` placeholders** for all KYC fields:
+   - Name (`firstName`, `lastName`)
+   - Email (`email`)
+   - Phone (`phone`)
+   - Address (`address`, `city`, `country`)
+   - Tax Residence (`taxCountry`, `taxId`)
+   - Employment Status (`employmentStatus`, `employerName`)
+
+2. **Group fields** under headings: Personal, Contact, Tax & Employment, Risk
+
+3. **Add a live Risk Summary card** beside the form:
+   ```jsx
+   <RiskSummary score={riskScore} category={riskCategory} />
+````
+
+4. **Insert helper text** under each field using `<FormHelperText />`, e.g.:
+
+   ```jsx
+   <FormControl>
+     <FormLabel>Tax ID</FormLabel>
+     <Input name="taxId" value={profile.taxId} onChange={handleChange} />
+     <FormHelperText>We use this to calculate your tax obligations.</FormHelperText>
+   </FormControl>
+   ```
+
+---
+
+## 2. Scoring Logic in `riskScoreMap.js`
+
+1. **Expand `riskScoreMap`** to a 2D structure:
+
+   ```js
+   export const riskScoreMap = {
+     conservative: { min: 0, max: 30 },
+     balanced:    { min: 31, max: 70 },
+     growth:      { min: 71, max: 100 }
+   };
+   ```
+
+2. **Implement `calculateRiskScore(profile)`** in `utils/riskUtils.js`:
+
+   ```js
+   export function calculateRiskScore({ age, income, netWorth, employmentStatus, ... }) {
+     // Normalize inputs, apply weights per CFA guidelines
+     let score = 0;
+     score += ageWeight(age);
+     score += incomeWeight(income);
+     score += netWorthWeight(netWorth);
+     score += employmentStatusWeight(employmentStatus);
+     // ... add other axes
+     return Math.min(Math.max(score, 0), 100);
+   }
+
+   function deriveCategory(score) {
+     if (score <= 30) return 'conservative';
+     if (score <= 70) return 'balanced';
+     return 'growth';
+   }
+   ```
+
+3. **In `ProfileTab.jsx`**, import and call:
+
+   ```jsx
+   const [riskScore, setRiskScore] = useState(0);
+   const [riskCategory, setRiskCategory] = useState('balanced');
+
+   useEffect(() => {
+     const score = calculateRiskScore(profile);
+     setRiskScore(score);
+     setRiskCategory(deriveCategory(score));
+   }, [profile]);
+   ```
+
+---
+
+## 3. Audit Logging in `auditLog.js`
+
+1. **Extend** `auditLog.record(field, oldValue, newValue)` to include timestamp and user ID.
+2. **In `handleChange`** (in `ProfileTab.jsx`), wrap state updates:
+
+   ```js
+   function handleChange(e) {
+     const { name, value } = e.target;
+     auditLog.record(name, profile[name], value);
+     setProfile({ ...profile, [name]: value });
+   }
+   ```
+3. **Persist logs** to `localStorage` via `auditLog.flush()` on unmount or periodically.
+
+---
+
+## 4. Tests in `src/__tests__/ProfileTab.test.jsx`
+
+1. **Render form** and assert all inputs exist:
+
+   ```js
+   render(<ProfileTab />);
+   expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
+   // ... repeat for all fields
+   ```
+2. **Simulate user input** and verify:
+
+   ```js
+   fireEvent.change(screen.getByLabelText(/Age/i), { target: { value: '30' } });
+   await waitFor(() => expect(screen.getByText(/Risk: Balanced/i)).toBeVisible());
+   ```
+3. **Audit log test**:
+
+   ```js
+   const logSpy = jest.spyOn(auditLog, 'record');
+   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'a@b.com' } });
+   expect(logSpy).toHaveBeenCalledWith('email', '', 'a@b.com');
+   ```
+
+---
+
+## 5. Acceptance Criteria
+
+* All KYC fields are visible, labeled, and validated (required fields show errors).
+* `RiskSummary` updates in real-time based on profile changes.
+* Every field change writes an entry to the audit log with correct details.
+* All new logic is covered by unit/RTL tests with ≥ 80% coverage on `ProfileTab.jsx`.
+
 ```
-# Phased Refactor & Implementation Guide (Updated)
-
-This document outlines a multi-phase plan to refactor and enhance the core tabs of the Personal Finance App. Each phase groups related work so that AI-powered assistants or junior developers can execute changes efficiently and with clear orchestration across files.
-
----
-
-## Phase 0 – Quality, Testing & CI
-**Objective:** Establish a robust foundation for code quality, automated testing, and continuous integration before feature development.
-
-1. **CI/CD Pipeline Setup**
-   - Configure GitHub Actions (or equivalent) for:
-     - Linting (ESLint, Prettier)
-     - Unit & integration tests (Jest, React Testing Library)
-     - Code coverage report (threshold ≥ 80%)
-   - Add badge to README.
-2. **Testing Strategy**
-   - Write test plans for each tab’s critical flows.
-   - Implement global error boundary and smoke tests for core user journeys.
-3. **Quality Gates**
-   - Enforce pull-request checks: lint, tests, coverage.
-   - Add vulnerability scanning (npm audit or Snyk).  
-
----
-
-## Phase 1 – Foundation & Core Provider Fixes
-**Objective:** Stabilize Context layer, resolve import errors, CSP/HMR issues so downstream UI work can proceed without crashes.
-
-1. **Fix `FinanceContext.jsx`**
-   - Add missing JSX `return` & exports after final `useEffect`.
-   - Audit `useEffect` loops:
-     - Guard state updates (`if (newVal !== oldVal)`).
-     - Ensure correct dependency arrays (include source & target variables).
-     - Remove redundant two-way mirroring.
-2. **Resolve `projectPensionGrowth` ReferenceError**
-   - Confirm named vs. default export in `utils/pensionProjection.js`.
-   - Align imports in `FinanceContext.jsx`.
-3. **Update CSP & HMR Config**
-   - In `vite.config.js`, add `img-src 'self' data:` to CSP.
-   - Verify `server.hmr` settings; restart Vite to clear WebSocket errors.
-
----
-
-## Phase 2 – ProfileTab.jsx — Enterprise-Grade KYC & Risk
-**Files:** `ProfileTab.jsx`, `auditLog.js`, `PersonaContext.jsx`
-
-1. **Expand & Integrate KYC Fields**
-   - Un-`FIXME` and wire up all fields: name, email, phone, address, nationality, ID/passport, tax residence, employment status.
-   - Persist in `FinanceContext` and extend `auditLog` to capture changes (field, old/new, timestamp, user ID).
-2. **Advanced Risk Engine**
-   - Replace basic questionnaire with 2D risk model (capacity vs. willingness).
-   - Implement CFA-aligned scoring and categorize into Conservative/Balanced/Growth.
-3. **Validation & Security**
-   - Add per-field validators (regex, range checks) & inline error messages.
-   - Obfuscate or encrypt sensitive data on save.
-
----
-
-## Phase 3 – PreferencesTab.jsx — Scenario-Ready Settings
-**Files:** `PreferencesTab.jsx`, `FinanceContext.jsx`, `validationSchemas.js`
-
-1. **Scenario Management**
-   - Group parameters (inflation, return, discount) into named scenarios (Base/Upside/Downside).
-   - Add Save/Load Scenario controls; persist to `localStorage` or backend.
-2. **Tax Bracket Editor**
-   - Replace JSON textarea with table editor component.
-   - Validate against schema with inline errors.
-3. **API & Localization Prep**
-   - Validate `apiEndpoint` (HTTPS only) & auth token input.
-   - Extract UI text for i18n (e.g., with `react-intl`).
-   - Prepare number & currency formatting settings.
-4. **Audit Trail & Help**
-   - Log settings changes in `auditLog`.
-   - Add inline tooltips via shared `<Tooltip />`.
-
----
-
-## Phase 4 – IncomeTab.jsx — Detailed PV & Health Metrics
-**Files:** `IncomeTab.jsx`, `financeUtils.js`, `IncomeTimelineChart.jsx`
-
-1. **Income Source Enhancements**
-   - Support salary sub-types: Base/Bonus/Variable.
-   - Bulk import via CSV upload.
-2. **Tax Calculation Engine**
-   - Integrate stubbed or real API for PAYE/NSSF; make rules configurable by jurisdiction.
-3. **Scenario & What-If Analysis**
-   - UI toggles for alternate growth assumptions; dynamic timeline regeneration.
-   - Compare multiple scenarios side-by-side.
-4. **Health Metrics**
-   - Add Debt-Service-Ratio, Savings Rate, Emergency Fund Coverage in summary cards.
-
----
-
-## Phase 5 – ExpensesGoalsTab.jsx — Cashflow & Optimization
-**Files:** `ExpensesGoalsTab.jsx`, `cashflowBuilder.js`, `ExpensesStackedBarChart.jsx`
-
-1. **Categorization & Templates**
-   - Category/subcategory taxonomy; custom categories.
-   - Bulk edit mode & template library.
-2. **PV Models & Optimization**
-   - Separate PV models for fixed vs. variable expenses.
-   - ‘Optimize Expenses’ engine recommending cuts by impact.
-3. **Debt Management Dashboard**
-   - Liabilities mini-dashboard: amortization schedule, interest saved, refinancing options.
-   - Integrate `suggestLoanStrategies` with projections.
-4. **Unified Cashflow Timeline**
-   - Merge Income, Expenses, Goals, Liabilities, etc., into one timeline.
-   - Dynamic filters (e.g., discretionary only).
-
----
-
-## Phase 6 – InvestmentsTab.jsx & AdviceDashboard
-**Files:** `InvestmentsTab.jsx`, `StrategyTab.jsx`, `investmentEngine.js`
-
-1. **InvestmentsTab MVP**
-   - CRUD for asset classes; mock real-time pricing API.
-   - Portfolio overview: allocation pie, TWR.
-2. **AdviceDashboard Prototype**
-   - Simple rule-based recommendations (savings rate, allocation tweaks).
-   - Export to CSV/JSON.
-
----
-
-## Phase 7 – RetirementTab.jsx & BalanceSheetTab.jsx — Advanced Planning
-**Files:** `RetirementTab.jsx`, `BalanceSheetTab.jsx`, `monteCarlo.js`
-
-1. **RetirementTab: Monte Carlo & Sensitivity**
-   - Multi-asset support, inflation-adjusted withdrawals, tax impact.
-   - Sensitivity analysis controls.
-2. **BalanceSheetTab: Reporting & Alerts**
-   - Net worth history, allocation heatmap.
-   - Ratio alerts (e.g., debt/assets > 50%).
-3. **Exports & Integration**
-   - CSV/PDF reports.
-   - Backend sync endpoints.
-
----
-
-## Phase 8 – InsuranceTab.jsx & Final Polish
-**Files:** `InsuranceTab.jsx`, `insuranceCalculator.js`
-
-1. **Comprehensive Insurance Needs**
-   - Modules for disability, health, LTC, property/casualty.
-   - Integrate carrier-quote APIs.
-2. **User Education & Compliance**
-   - Glossary popovers & inline explanations.
-   - Regulatory disclosure modal.
-3. **Security Review**
-   - Centralized audit log for all tabs.
-   - CSP/CORS vulnerability fixes.
-
----
-
-## Phase 9 – Performance, Accessibility & Internationalization
-**Objective:** Ensure enterprise-grade UX and global readiness.
-
-1. **Performance Audits**
-   - Bundle-size analysis (Vite Rollup stats).
-   - Lighthouse performance score ≥ 90.
-2. **Accessibility Compliance**
-   - WCAG 2.1 AA audits (axe, Lighthouse).
-   - Keyboard navigation & screen-reader testing.
-3. **Internationalization (i18n)**
-   - Implement locale switcher.
-   - Validate currency & date formats across locales.
-
----
-
-## Phase 10 – Mobile & Final Polish
-
-1. **Responsive Design**
-   - Test & fix on mobile breakpoints.
-   - Touch-target adjustments.
-2. **UX Tweaks & Polish**
-   - Final UI animations & transitions.
-   - Tone & copy review for clarity.
-3. **Release & Rollout Plan**
-   - Beta release testing.
-   - Gathering user feedback & bug triage.
-
----
-
-**Important before finalizing each change:**
-- Run and verify tests, linting, and CI checks.  
-- Summarize modified files and key changes in each commit message.
-
 ```
