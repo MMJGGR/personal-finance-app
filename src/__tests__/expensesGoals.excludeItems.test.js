@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { FinanceProvider } from '../FinanceContext'
 import ExpensesGoalsTab from '../components/ExpensesGoals/ExpensesGoalsTab'
 import { calculateAmortizedPayment } from '../utils/financeUtils'
+import storage from '../utils/storage'
 
 jest.mock('recharts', () => {
   const actual = jest.requireActual('recharts')
@@ -33,6 +34,7 @@ afterEach(() => {
 function setup() {
   const now = 2024
   localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
   localStorage.setItem('profile-hadi', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 80 }))
   const expense = {
     id: 'e1',
@@ -77,7 +79,7 @@ function numeric(text) {
   return Number(text.replace(/[^0-9.-]+/g, ''))
 }
 
-test.skip('unchecking an expense removes it from PV totals and chart data', async () => {
+test('unchecking an expense removes it from PV totals and chart data', async () => {
   setup()
   const label = await screen.findByText('PV of Expenses')
   const valueNode = label.nextSibling
@@ -85,10 +87,12 @@ test.skip('unchecking an expense removes it from PV totals and chart data', asyn
   const chk = screen.getAllByRole('checkbox')[0]
   fireEvent.click(chk)
   await waitFor(() => expect(numeric(valueNode.textContent)).toBe(0))
-  expect(localStorage.getItem('expensesPV-hadi')).toBe('0')
+  await waitFor(() =>
+    expect(localStorage.getItem('expensesPV-hadi')).toBe('0')
+  )
 })
 
-test.skip('unchecking a liability removes it from PV totals and chart data', async () => {
+test('unchecking a liability removes it from PV totals and chart data', async () => {
   setup()
   const label = await screen.findByText('PV of Liabilities')
   const valueNode = label.nextSibling
@@ -96,5 +100,7 @@ test.skip('unchecking a liability removes it from PV totals and chart data', asy
   const chk = screen.getByLabelText('Include liability')
   fireEvent.click(chk)
   await waitFor(() => expect(numeric(valueNode.textContent)).toBe(0))
-  expect(localStorage.getItem('loansPV-hadi')).toBe('0')
+  await waitFor(() =>
+    expect(localStorage.getItem('loansPV-hadi')).toBe('0')
+  )
 })
