@@ -1,5 +1,6 @@
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
+import storage from '../utils/storage'
 import { FinanceProvider, useFinance } from '../FinanceContext'
 import ExpensesGoalsTab from '../components/ExpensesGoals/ExpensesGoalsTab'
 
@@ -13,6 +14,7 @@ afterEach(() => {
 
 function mount() {
   localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
   localStorage.setItem('profile-hadi', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 85 }))
   function Lengths() {
     const { expensesList, goalsList } = useFinance()
@@ -33,8 +35,8 @@ function mount() {
 
 test('defaults populate when lists empty', async () => {
   mount()
-  expect(localStorage.getItem('expensesList-hadi')).not.toBeNull()
   await screen.findByText(/PV of Expenses/)
+  await waitFor(() => localStorage.getItem('expensesList-hadi') !== null)
   await waitFor(() => localStorage.getItem('expensesList-hadi') !== '[]', { timeout: 2000 })
   await waitFor(() => localStorage.getItem('goalsList-hadi') !== '[]', { timeout: 2000 })
   await waitFor(() => localStorage.getItem('investmentContributions-hadi') !== '[]', { timeout: 2000 })

@@ -1,6 +1,7 @@
 /* global test, expect, beforeAll, afterEach */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import storage from '../utils/storage'
 import { FinanceProvider, useFinance } from '../FinanceContext'
 import AdequacyAlert from '../AdequacyAlert'
 
@@ -12,17 +13,33 @@ afterEach(() => {
   localStorage.clear()
 })
 
-test('renders nothing when no gaps', () => {
+test('renders nothing when no gaps', async () => {
+  localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
+  localStorage.setItem('settings-hadi', JSON.stringify({ startYear: 2025 }))
+  localStorage.setItem('profile-hadi', JSON.stringify({ age: 30, lifeExpectancy: 31, nationality: 'Kenyan' }))
+  localStorage.setItem('incomeSources-hadi', JSON.stringify([]))
+  localStorage.setItem('expensesList-hadi', JSON.stringify([]))
+  function Wrapper({ children }) {
+    const { setYears } = useFinance()
+    React.useEffect(() => { setYears(1) }, [setYears])
+    return children
+  }
   const { container } = render(
     <FinanceProvider>
-      <AdequacyAlert />
+      <Wrapper>
+        <AdequacyAlert />
+      </Wrapper>
     </FinanceProvider>
   )
-  expect(container.firstChild).toBeNull()
+  await waitFor(() => expect(container.firstChild).toBeNull())
 })
 
 test('shows funding gaps table', async () => {
   localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
+  localStorage.setItem('settings-hadi', JSON.stringify({ startYear: 2025 }))
+  localStorage.setItem('profile-hadi', JSON.stringify({ age: 30, lifeExpectancy: 32, nationality: 'Kenyan' }))
   localStorage.setItem(
     'incomeSources-hadi',
     JSON.stringify([{ name: 'Job', amount: 1000, frequency: 1, growth: 0, taxRate: 0 }])

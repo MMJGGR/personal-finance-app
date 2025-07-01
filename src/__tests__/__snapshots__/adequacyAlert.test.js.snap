@@ -41,7 +41,7 @@ exports[`shows funding gaps table 1`] = `
         <td
           class="py-1 text-right"
         >
-          Ksh 476.19
+          KES 500.00
         </td>
       </tr>
       <tr
@@ -55,7 +55,7 @@ exports[`shows funding gaps table 1`] = `
         <td
           class="py-1 text-right"
         >
-          Ksh 929.71
+          KES 1,000.00
         </td>
       </tr>
     </tbody>

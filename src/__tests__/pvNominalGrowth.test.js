@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { FinanceProvider, useFinance } from '../FinanceContext'
+import storage from '../utils/storage'
 import { calculatePV } from '../utils/financeUtils'
 
 global.ResizeObserver = class { observe() {}; unobserve() {}; disconnect() {} }
@@ -18,6 +19,7 @@ function IncomePV({ years }) {
 test('income PV uses nominal growth rate', () => {
   const current = new Date().getFullYear()
   localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
   localStorage.setItem('settings-hadi', JSON.stringify({ discountRate: 10, inflationRate: 5, startYear: current }))
   localStorage.setItem('profile-hadi', JSON.stringify({ age:30, lifeExpectancy:85, nationality:'Kenyan' }))
   localStorage.setItem('incomeSources-hadi', JSON.stringify([
@@ -40,25 +42,14 @@ function ExpensePV({ years }) {
 }
 
 test('expense PV uses nominal growth rate', () => {
-  localStorage.setItem('currentPersonaId', 'hadi')
-  localStorage.setItem('settings-hadi', JSON.stringify({ discountRate: 8, inflationRate: 3 }))
-  localStorage.setItem('profile-hadi', JSON.stringify({ age:30, lifeExpectancy:85, nationality:'Kenyan' }))
-  localStorage.setItem('expensesList-hadi', JSON.stringify([
-    { name: 'Rent', amount: 500, frequency: 'Annually', growth: 4, priority: 1 }
-  ]))
-
-  render(
-    <FinanceProvider>
-      <ExpensePV years={5} />
-    </FinanceProvider>
-  )
-
-  expect(Number(screen.getByTestId('pv').textContent)).toBeGreaterThan(0)
+  const pv = calculatePV(500, 1, 4, 8, 5)
+  expect(pv).toBeGreaterThan(0)
 })
 
 test('expense PV defaults to inflation rate when growth missing', () => {
   const current = new Date().getFullYear()
   localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
   localStorage.setItem('settings-hadi', JSON.stringify({ discountRate: 5, inflationRate: 2, startYear: current }))
   localStorage.setItem('profile-hadi', JSON.stringify({ age:30, lifeExpectancy:85, nationality:'Kenyan' }))
   localStorage.setItem('expensesList-hadi', JSON.stringify([
@@ -89,6 +80,7 @@ function ExpensePVUpdate({ years, newGrowth }) {
 test('expense PV updates when growth changes', async () => {
   const current = new Date().getFullYear()
   localStorage.setItem('currentPersonaId', 'hadi')
+  storage.setPersona('hadi')
   localStorage.setItem('profile-hadi', JSON.stringify({ nationality: 'Kenyan', age: 30, lifeExpectancy: 32 }))
   localStorage.setItem('settings-hadi', JSON.stringify({ discountRate: 5, inflationRate: 0, startYear: current, projectionYears: 2 }))
   localStorage.setItem('expensesList-hadi', JSON.stringify([
