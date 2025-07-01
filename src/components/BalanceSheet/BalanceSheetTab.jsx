@@ -43,6 +43,7 @@ export default function BalanceSheetTab() {
     setStrategy,
   } = useFinance()
   const { currentData } = usePersona()
+  const currentYear = new Date().getFullYear()
 
   const [expandedAssets, setExpandedAssets] = useState({})
   const [expandedLiabilities, setExpandedLiabilities] = useState({})
@@ -134,6 +135,19 @@ export default function BalanceSheetTab() {
     })
   }, [expensesPV, setLiabilitiesList])
 
+  const totalAssets = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
+  const totalLiabilities = liabilitiesList.reduce(
+    (sum, l) => sum + Number(l.amount || l.principal || 0),
+    0
+  )
+
+  const pvIncome = assetsList.find(a => a.id === 'pv-income')?.amount || 0
+  const pvExpenses = liabilitiesList.find(l => l.id === 'pv-expenses')?.amount || 0
+  const baseNetWorth = totalAssets - pvIncome - (totalLiabilities - pvExpenses)
+  const futurePV = cumulativePV[cumulativePV.length - 1] || 0
+  const netWorth = baseNetWorth + futurePV
+  const debtAssetRatio = totalAssets > 0 ? totalLiabilities / totalAssets : 0
+
   useEffect(() => {
     // Calculate historical net worth (simplified: assumes linear growth/decline)
     const yearsToProject = 10; // Project 10 years into the past
@@ -148,20 +162,7 @@ export default function BalanceSheetTab() {
     setHistoricalNetWorth(historicalData);
   }, [netWorth, totalAssets, totalLiabilities, currentYear]);
 
-  const totalAssets = assetsList.reduce((sum, a) => sum + Number(a.amount || 0), 0)
-  const totalLiabilities = liabilitiesList.reduce(
-    (sum, l) => sum + Number(l.amount || l.principal || 0),
-    0
-  )
-
-  const pvIncome = assetsList.find(a => a.id === 'pv-income')?.amount || 0
-  const pvExpenses = liabilitiesList.find(l => l.id === 'pv-expenses')?.amount || 0
-  const baseNetWorth = totalAssets - pvIncome - (totalLiabilities - pvExpenses)
-  const futurePV = cumulativePV[cumulativePV.length - 1] || 0
-  const netWorth = baseNetWorth + futurePV
-  const debtAssetRatio = totalAssets > 0 ? totalLiabilities / totalAssets : 0
-
-  const currentYear = new Date().getFullYear()
+  
   const pvGoals = useMemo(
     () =>
       goalsList.reduce((sum, g) => {

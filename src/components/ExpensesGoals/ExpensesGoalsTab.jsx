@@ -514,126 +514,23 @@ export default function ExpensesGoalsTab() {
     : 0
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
+  // --- Combined cashflow timeline ---
+  
+
+
+
+  
+
   const expenseOptimizations = useMemo(() => {
     return suggestExpenseOptimizations(expensesList, monthlySurplusNominal, settings.discretionaryCutThreshold);
   }, [expensesList, monthlySurplusNominal, settings.discretionaryCutThreshold]);
-
-
-
-
-  // --- Combined cashflow timeline ---
-  const timelineData = useMemo(() => {
-    const minYear = startYear
-    const maxYear = startYear + years - 1
-
-    const incomeFn = y => {
-      if (!showIncome) return 0
-      const idx = y - startYear
-      return annualIncome[idx] || 0
-    }
-
-    const expenseFn = (y, expenseList) => {
-      if (!showExpensesChart) return 0
-      return expenseList.reduce((sum, exp) => {
-        const start = exp.startYear ?? currentYear
-        const end = exp.endYear ?? (currentYear + lifeYears - 1)
-        if (y < start || y > end) return sum
-        const growth = Number(exp.growth ?? settings.inflationRate) || 0
-        const ppy = exp.paymentsPerYear || frequencyToPayments(exp.frequency) || 1
-        const cash = (exp.amount * ppy) * Math.pow(1 + growth / 100, y - start)
-        return sum + cash
-      }, 0)
-    }
-
-    const goalFn = (y, goalList) => {
-      if (!showGoalsChart) return 0
-      return goalList.reduce((sum, g) => {
-        const target = g.targetYear ?? g.startYear ?? currentYear
-        if (y !== target) return sum
-        return sum + g.amount
-      }, 0)
-    }
-
-    const loanForYear = y => {
-      if (!showLiabilitiesChart || !includeLiabilitiesNPV) return 0
-      return liabilityDetails.reduce((sum, l) => {
-        const match = l.schedule.find(sc => sc.year === y)
-        return match ? sum + match.principalPaid + match.interestPaid : sum
-      }, 0)
-    }
-
-    const investmentFn = (y, investmentList) => {
-      if (!showInvestmentsChart) return 0
-      const assumptions = {
-        retirementAge: retirementYear - 1,
-        deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
-      }
-      return annualAmountForYear(investmentList, y, assumptions)
-    }
-
-    const pensionFn = (y, pensionList) => {
-      if (!showPensionChart) return 0
-      const assumptions = {
-        retirementAge: retirementYear - 1,
-        deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
-      }
-      return annualAmountForYear(pensionList, y, assumptions)
-    }
-
-    const rows = []
-    for (let y = minYear; y <= maxYear; y++) {
-      const income = incomeFn(y)
-      const expenses = expenseFn(y, filteredExpenses)
-      const goals = goalFn(y, filteredGoals)
-      const loans = loanForYear(y)
-      const investments = investmentFn(y, investmentContributions)
-      const pension = pensionFn(y, pensionStreams)
-
-      rows.push({
-        year: y,
-        income,
-        expenses,
-        goals,
-        loans,
-        investments,
-        pension,
-        net: income - expenses - goals - loans - investments - pension,
-      })
-    }
-
-    let running = 0
-    return rows.map(row => {
-      running += row.net
-      return { ...row, surplus: running }
-    })
-  }, [
-    annualIncome,
-    filteredExpenses,
-    filteredGoals,
-    liabilitiesList,
-    investmentContributions,
-    pensionStreams,
-    startYear,
-    years,
-    currentYear,
-    lifeYears,
-    settings.inflationRate,
-    settings.retirementAge,
-    profile.age,
-    profile.lifeExpectancy,
-    includeLiabilitiesNPV,
-    showIncome,
-    showExpensesChart,
-    showGoalsChart,
-    showLiabilitiesChart,
-    showInvestmentsChart,
-    showPensionChart,
-  ])
 
   const maxSurplus = useMemo(() => {
     if (timelineData.length === 0) return 0
     return Math.max(...timelineData.map(r => r.surplus))
   }, [timelineData])
+
+
 
   const hasDeficit = useMemo(
     () => timelineData.some(row => row.net < 0),
