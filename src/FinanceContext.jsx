@@ -39,30 +39,32 @@ function safeParse(str, fallback) {
 }
 
 const defaultProfile = {
-  name: '', // FIXME: unused - pending integration
-  email: '', // FIXME: unused - pending integration
-  phone: '', // FIXME: unused - pending integration
+  name: '',
+  email: '',
+  phone: '',
   age: 30,
-  maritalStatus: '', // FIXME: unused - pending integration
-  numDependents: 0, // FIXME: unused - pending integration
-  residentialAddress: '', // FIXME: unused - pending integration
-  nationality: '', // FIXME: unused - pending integration
-  education: '', // FIXME: unused - pending integration
-  location: '', // FIXME: unused - pending integration
-  citizenship: '', // FIXME: unused - pending integration
-  taxJurisdiction: '', // FIXME: unused - pending integration
-  idNumber: '', // FIXME: unused - pending integration
-  taxResidence: '', // FIXME: unused - pending integration
-  employmentStatus: '', // FIXME: unused - pending integration
+  maritalStatus: '',
+  numDependents: 0,
+  residentialAddress: '',
+  nationality: '',
+  education: '',
+  location: '',
+  citizenship: '',
+  taxJurisdiction: '',
+  idNumber: '',
+  taxResidence: '',
+  employmentStatus: '',
   annualIncome: 0,
   liquidNetWorth: 0,
-  sourceOfFunds: '', // FIXME: unused - pending integration
-  behaviouralProfile: {}, // FIXME: unused - pending integration
-  financialChallenge: '', // FIXME: unused - pending integration
+  sourceOfFunds: '',
+  behaviouralProfile: {},
+  financialChallenge: '',
   investmentKnowledge: '',
   lossResponse: '',
   investmentHorizon: '',
   investmentGoal: '',
+  riskCapacity: '',
+  riskWillingness: '',
   lifeExpectancy: 85,
 }
 
@@ -453,6 +455,8 @@ export function FinanceProvider({ children }) {
       riskWillingnessScore: 0,
       liquidityBucketDays: 0,
       taxBrackets: [],
+      nssfRates: { employee: 0.06, employer: 0.06 },
+      nssfCaps: { employee: 1080, employer: 1080 },
       pensionContributionReliefPct: 0,
     }
     const loaded = s ? { ...defaults, ...safeParse(s, {}) } : defaults
@@ -476,8 +480,9 @@ export function FinanceProvider({ children }) {
     s += map.response[p.lossResponse]          ||0
     s += map.horizon[p.investmentHorizon]      ||0
     s += map.goal[p.investmentGoal]            ||0
-    const capAdj = p.liquidNetWorth > p.annualIncome ? 2 : 1
-    return s + capAdj
+    s += map.riskCapacity[p.riskCapacity]      ||0
+    s += map.riskWillingness[p.riskWillingness] ||0
+    return s
   }
 
   // === Derived strategy ===
@@ -700,11 +705,11 @@ export function FinanceProvider({ children }) {
       let monthlyPAYE = 0
 
       if (src.type === 'Kenyan Salary') {
-        const nssf = calculateNSSF(src.grossSalary)
+        const nssf = calculateNSSF(src.grossSalary, settings.nssfRates, settings.nssfCaps)
         monthlyNSSF = nssf.employeeContribution
         const taxableIncome = src.grossSalary - monthlyNSSF
-        const totalPensionContribution = monthlyNSSF + privatePensionContributions.reduce((s, ppc) => s + ppc.amount / (ppc.frequency / 12), 0)
-        monthlyPAYE = calculatePAYE(taxableIncome, totalPensionContribution)
+        
+        monthlyPAYE = calculatePAYE(taxableIncome, settings.taxBrackets, settings.pensionContributionReliefPct)
         monthlyGross = src.grossSalary
       }
 
@@ -964,6 +969,9 @@ export function FinanceProvider({ children }) {
     settings.retirementAge,
     settings.taxBrackets,
     settings.pensionContributionReliefPct,
+    settings.nssfCaps,
+    settings.nssfRates,
+    settings.taxBrackets,
     recalcIncomePV,
     recalcExpensesPV
   ])

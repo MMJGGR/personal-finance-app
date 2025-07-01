@@ -1,7 +1,7 @@
 import React from 'react'
 import { FREQUENCY_LABELS } from '../constants.js'
 
-export default function ExpenseRow({ id, name, amount, frequency, monthDue = 1, growth, category, startYear, endYear, include = true, onChange, onDelete }) {
+export default function ExpenseRow({ id, name, amount, frequency, monthDue = 1, growth, category, startYear, endYear, include = true, onChange, onDelete, categories = [] }) {
   const makeId = field => `${id}-${field}`
 
   return (
@@ -90,8 +90,9 @@ export default function ExpenseRow({ id, name, amount, frequency, monthDue = 1, 
           value={category}
           onChange={e => onChange(id, 'category', e.target.value)}
         >
-          <option value="Fixed">Fixed</option>
-          <option value="Variable">Variable</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
           <option value="Other">Other</option>
         </select>
       </div>

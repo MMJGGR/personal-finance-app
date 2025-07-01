@@ -8,6 +8,7 @@ import { presentValue } from '../../utils/financeUtils'
 import { buildPlanJSON, buildPlanCSV, submitProfile } from '../../utils/exportHelpers'
 import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
+import { suggestExpenseOptimizations } from '../../utils/expenseOptimization'
 import sanitize from '../../utils/sanitize'
 import { expenseItemSchema, goalItemSchema } from '../../schemas/expenseGoalSchemas.js'
 import { frequencyToPayments } from '../../utils/financeUtils'
@@ -19,6 +20,7 @@ import { annualAmountForYear } from '../../utils/streamHelpers'
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 import AssumptionsModal from '../AssumptionsModal.jsx'
 import ExpenseRow from '../ExpenseRow.jsx'
+import DebtManagementModule from '../DebtManagementModule.jsx'
 import { usePersona } from '../../PersonaContext.jsx'
 import {
   defaultExpenses,
@@ -72,6 +74,17 @@ export default function ExpensesGoalsTab() {
   const [_expenseErrors, setExpenseErrors] = useState({})
   const [goalErrors, setGoalErrors] = useState({})
   const [chartMode, setChartMode] = useState('nominal')
+  const [categories, setCategories] = useState([
+    'Housing', 'Transportation', 'Food', 'Utilities', 'Insurance',
+    'Healthcare', 'Personal Care', 'Entertainment', 'Education',
+    'Debt Payments', 'Savings', 'Investments', 'Miscellaneous'
+  ])
+  const [showIncome, setShowIncome] = useState(true)
+  const [showExpensesChart, setShowExpensesChart] = useState(true)
+  const [showGoalsChart, setShowGoalsChart] = useState(true)
+  const [showLiabilitiesChart, setShowLiabilitiesChart] = useState(true)
+  const [showInvestmentsChart, setShowInvestmentsChart] = useState(true)
+  const [showPensionChart, setShowPensionChart] = useState(true)
 
   const filteredExpenses = useMemo(
     () =>
@@ -403,9 +416,10 @@ export default function ExpensesGoalsTab() {
   const lifeYears = Math.max(1, Math.floor(profile.lifeExpectancy - profile.age))
 
   // --- 2) PV of Expenses over lifeYears ---
-  const pvExpensesLife = useMemo(() => {
+  const pvFixedExpenses = useMemo(() => {
     const horizonEnd = currentYear + lifeYears - 1
     return filteredExpenses.reduce((sum, e) => {
+      if (e.category !== 'Fixed') return sum
       const start = e.startYear ?? currentYear
       const end = e.endYear ?? horizonEnd
       const first = Math.max(start, currentYear)
@@ -423,6 +437,30 @@ export default function ExpensesGoalsTab() {
       return sum + pv
     }, 0)
   }, [filteredExpenses, discountRate, lifeYears, currentYear, settings.inflationRate])
+
+  const pvVariableExpenses = useMemo(() => {
+    const horizonEnd = currentYear + lifeYears - 1
+    return filteredExpenses.reduce((sum, e) => {
+      if (e.category !== 'Variable') return sum
+      const start = e.startYear ?? currentYear
+      const end = e.endYear ?? horizonEnd
+      const first = Math.max(start, currentYear)
+      const last = Math.min(end, horizonEnd)
+      if (last < first) return sum
+      const growth = Number(e.growth ?? settings.inflationRate) || 0
+      let pv = 0
+      const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
+      for (let yr = first; yr <= last; yr++) {
+        const idx = yr - start
+        const cash = (e.amount * ppy) * Math.pow(1 + growth / 100, idx)
+        const disc = yr - currentYear + 1
+        pv += cash / Math.pow(1 + discountRate / 100, disc)
+      }
+      return sum + pv
+    }, 0)
+  }, [filteredExpenses, discountRate, lifeYears, currentYear, settings.inflationRate])
+
+  const pvExpensesLife = useMemo(() => pvFixedExpenses + pvVariableExpenses, [pvFixedExpenses, pvVariableExpenses])
 
   useEffect(() => {
     setExpensesPV(pvExpensesLife)
@@ -476,6 +514,10 @@ export default function ExpensesGoalsTab() {
     : 0
   const totalRequired = pvExpensesLife + pvGoals + totalLiabilitiesPV
 
+  const expenseOptimizations = useMemo(() => {
+    return suggestExpenseOptimizations(expensesList, monthlySurplusNominal, settings.discretionaryCutThreshold);
+  }, [expensesList, monthlySurplusNominal, settings.discretionaryCutThreshold]);
+
 
 
 
@@ -483,64 +525,109 @@ export default function ExpensesGoalsTab() {
   const timelineData = useMemo(() => {
     const minYear = startYear
     const maxYear = startYear + years - 1
+
     const incomeFn = y => {
+      if (!showIncome) return 0
       const idx = y - startYear
       return annualIncome[idx] || 0
     }
+
+    const expenseFn = (y, expenseList) => {
+      if (!showExpensesChart) return 0
+      return expenseList.reduce((sum, exp) => {
+        const start = exp.startYear ?? currentYear
+        const end = exp.endYear ?? (currentYear + lifeYears - 1)
+        if (y < start || y > end) return sum
+        const growth = Number(exp.growth ?? settings.inflationRate) || 0
+        const ppy = exp.paymentsPerYear || frequencyToPayments(exp.frequency) || 1
+        const cash = (exp.amount * ppy) * Math.pow(1 + growth / 100, y - start)
+        return sum + cash
+      }, 0)
+    }
+
+    const goalFn = (y, goalList) => {
+      if (!showGoalsChart) return 0
+      return goalList.reduce((sum, g) => {
+        const target = g.targetYear ?? g.startYear ?? currentYear
+        if (y !== target) return sum
+        return sum + g.amount
+      }, 0)
+    }
+
     const loanForYear = y => {
-      if (!includeLiabilitiesNPV) return 0
+      if (!showLiabilitiesChart || !includeLiabilitiesNPV) return 0
       return liabilityDetails.reduce((sum, l) => {
         const match = l.schedule.find(sc => sc.year === y)
         return match ? sum + match.principalPaid + match.interestPaid : sum
       }, 0)
     }
-    const assumptions = {
-      retirementAge: retirementYear - 1,
-      deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
+
+    const investmentFn = (y, investmentList) => {
+      if (!showInvestmentsChart) return 0
+      const assumptions = {
+        retirementAge: retirementYear - 1,
+        deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
+      }
+      return annualAmountForYear(investmentList, y, assumptions)
     }
-    const rows = buildCashflowTimeline(
-      minYear,
-      maxYear,
-      incomeFn,
-      filteredExpenses,
-      filteredGoals,
-      loanForYear,
-      settings.inflationRate
-    )
+
+    const pensionFn = (y, pensionList) => {
+      if (!showPensionChart) return 0
+      const assumptions = {
+        retirementAge: retirementYear - 1,
+        deathAge: startYear + (profile.lifeExpectancy - profile.age) - 1,
+      }
+      return annualAmountForYear(pensionList, y, assumptions)
+    }
+
+    const rows = []
+    for (let y = minYear; y <= maxYear; y++) {
+      const income = incomeFn(y)
+      const expenses = expenseFn(y, filteredExpenses)
+      const goals = goalFn(y, filteredGoals)
+      const loans = loanForYear(y)
+      const investments = investmentFn(y, investmentContributions)
+      const pension = pensionFn(y, pensionStreams)
+
+      rows.push({
+        year: y,
+        income,
+        expenses,
+        goals,
+        loans,
+        investments,
+        pension,
+        net: income - expenses - goals - loans - investments - pension,
+      })
+    }
+
     let running = 0
     return rows.map(row => {
-      const invest = annualAmountForYear(investmentContributions, row.year, assumptions)
-      const pension = annualAmountForYear(pensionStreams, row.year, assumptions)
-      const income = row.income + pension
-      const net = income - row.expenses - row.goals - row.loans - invest
-      running += net
-      return {
-        ...row,
-        income,
-        investments: invest,
-        pension,
-        debtService: row.loans,
-        net,
-        surplus: running,
-      }
+      running += row.net
+      return { ...row, surplus: running }
     })
   }, [
+    annualIncome,
     filteredExpenses,
     filteredGoals,
-    includeMediumPV,
-    includeLowPV,
-    includeGoalsPV,
-    includeLiabilitiesNPV,
-    liabilityDetails,
-    annualIncome,
-    startYear,
-    years,
+    liabilitiesList,
     investmentContributions,
     pensionStreams,
-    retirementYear,
+    startYear,
+    years,
+    currentYear,
+    lifeYears,
+    settings.inflationRate,
+    settings.retirementAge,
     profile.age,
     profile.lifeExpectancy,
-    settings.inflationRate,
+    includeLiabilitiesNPV,
+    showIncome,
+    showExpensesChart,
+    showGoalsChart,
+    showLiabilitiesChart,
+    showInvestmentsChart,
+    showPensionChart,
   ])
 
   const maxSurplus = useMemo(() => {
@@ -638,6 +725,16 @@ export default function ExpensesGoalsTab() {
         {hasDeficit && (
           <p className="text-red-600">⚠️ Cashflow deficit detected in some years. Consider reducing expenses or deferring goals.</p>
         )}
+        {expenseOptimizations.length > 0 && (
+          <div className="mt-4">
+            <h4 className="font-semibold text-amber-700">Suggested Expense Optimizations:</h4>
+            <ul className="list-disc list-inside text-sm">
+              {expenseOptimizations.map((opt, index) => (
+                <li key={index}>{opt.name}: {formatCurrency(opt.amount, settings.locale, settings.currency)}/month ({opt.reason})</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <p>Peak surplus: {formatCurrency(maxSurplus, settings.locale, settings.currency)}</p>
       </Card>
 
@@ -711,6 +808,7 @@ export default function ExpensesGoalsTab() {
                 include={e.include !== false}
                 onChange={handleExpenseChange}
                 onDelete={removeExpense}
+                categories={categories}
               />
             ))}
       </CardBody>
@@ -876,109 +974,11 @@ export default function ExpensesGoalsTab() {
         </CardHeader>
         {showLiabilities && (
           <CardBody>
-            <div className="grid grid-cols-1 sm:grid-cols-9 gap-2 font-semibold text-gray-700 mb-1">
-              <div>Name</div>
-              <div className="text-right">Principal</div>
-              <div className="text-right">Rate %</div>
-              <div className="text-right">Term</div>
-              <div>Pay/Yr</div>
-              <div className="text-right">Extra</div>
-              <div className="text-right">Pmt</div>
-              <div>Include</div>
-              <div></div>
-            </div>
-            {liabilitiesList.length === 0 && (
-              <p className="italic text-slate-500 col-span-full mb-2">No loans added</p>
-            )}
-            {liabilitiesList.map(l => (
-              <div key={l.id} className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center mb-1">
-                <div>
-                  <label htmlFor={`liab-name-${l.id}`} className="sr-only">Liability name</label>
-                  <input
-                    id={`liab-name-${l.id}`}
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md w-full"
-                    value={l.name || ''}
-                    onChange={ev => handleLiabilityChange(l.id, 'name', ev.target.value)}
-                    aria-label="Liability name"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-principal-${l.id}`} className="sr-only">Principal</label>
-                  <input
-                    id={`liab-principal-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.principal}
-                    onChange={ev => handleLiabilityChange(l.id, 'principal', ev.target.value)}
-                    aria-label="Principal"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-rate-${l.id}`} className="sr-only">Interest rate</label>
-                  <input
-                    id={`liab-rate-${l.id}`}
-                    type="number"
-                    step="0.01"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.interestRate}
-                    onChange={ev => handleLiabilityChange(l.id, 'interestRate', ev.target.value)}
-                    aria-label="Interest rate"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-term-${l.id}`} className="sr-only">Term years</label>
-                  <input
-                    id={`liab-term-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.termYears}
-                    onChange={ev => handleLiabilityChange(l.id, 'termYears', ev.target.value)}
-                    aria-label="Term years"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-payments-${l.id}`} className="sr-only">Payments per year</label>
-                  <input
-                    id={`liab-payments-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.paymentsPerYear}
-                    onChange={ev => handleLiabilityChange(l.id, 'paymentsPerYear', ev.target.value)}
-                    aria-label="Payments per year"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`liab-extra-${l.id}`} className="sr-only">Extra payment</label>
-                  <input
-                    id={`liab-extra-${l.id}`}
-                    type="number"
-                    className="border p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md text-right w-full"
-                    value={l.extraPayment}
-                    onChange={ev => handleLiabilityChange(l.id, 'extraPayment', ev.target.value)}
-                    aria-label="Extra payment"
-                  />
-                </div>
-                <div className="text-right">{l.computedPayment?.toFixed(0)}</div>
-                <div className="flex items-center mt-6 sm:mt-0">
-                  <input
-                    id={`liab-include-${l.id}`}
-                    type="checkbox"
-                    className="mr-1"
-                    checked={l.include !== false}
-                    onChange={ev => handleLiabilityChange(l.id, 'include', ev.target.checked)}
-                    aria-label="Include liability"
-                  />
-                  <label htmlFor={`liab-include-${l.id}`} className="text-sm">Include</label>
-                </div>
-                <button
-                  onClick={() => removeLiability(l.id)}
-                  className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label="Remove liability"
-                >
-                  ✖
-                </button>
-              </div>
-            ))}
+            <DebtManagementModule
+              liabilitiesList={liabilitiesList}
+              settings={settings}
+              profile={profile}
+            />
           </CardBody>
         )}
       </Card>
@@ -1027,6 +1027,64 @@ export default function ExpensesGoalsTab() {
         >
           Discounted
         </button>
+      </div>
+
+      <div className="mb-4 space-x-2 flex flex-wrap items-center">
+        <span className="text-sm text-slate-600 mr-2">Show:</span>
+        <label className="flex items-center mr-4">
+          <input
+            type="checkbox"
+            className="mr-1"
+            checked={showIncome}
+            onChange={e => setShowIncome(e.target.checked)}
+          />
+          Income
+        </label>
+        <label className="flex items-center mr-4">
+          <input
+            type="checkbox"
+            className="mr-1"
+            checked={showExpensesChart}
+            onChange={e => setShowExpensesChart(e.target.checked)}
+          />
+          Expenses
+        </label>
+        <label className="flex items-center mr-4">
+          <input
+            type="checkbox"
+            className="mr-1"
+            checked={showGoalsChart}
+            onChange={e => setShowGoalsChart(e.target.checked)}
+          />
+          Goals
+        </label>
+        <label className="flex items-center mr-4">
+          <input
+            type="checkbox"
+            className="mr-1"
+            checked={showLiabilitiesChart}
+            onChange={e => setShowLiabilitiesChart(e.target.checked)}
+          />
+          Liabilities
+        </label>
+        <label className="flex items-center mr-4">
+          <input
+            type="checkbox"
+            className="mr-1"
+            checked={showInvestmentsChart}
+            onChange={e => setShowInvestmentsChart(e.target.checked)}
+          />
+          Investments
+        </label>
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            className="mr-1"
+            checked={showPensionChart}
+            onChange={e => setShowPensionChart(e.target.checked)}
+          />
+          Pension
+        </label>
       </div>
       <ExpensesStackedBarChart chartMode={chartMode} />
       <AssumptionsModal open={showAssumptions} onClose={() => setShowAssumptions(false)} />

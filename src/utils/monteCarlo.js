@@ -41,6 +41,8 @@ export function runMonteCarloSimulation(params) {
     numSimulations,
     retirementIncome,
     projectedPensionValue,
+    inflationRate = 0, // New parameter for inflation
+    taxRateDuringRetirement = 0, // New parameter for tax rate during retirement
   } = params;
 
   const yearsToRetirement = retirementAge - age;
@@ -68,7 +70,7 @@ export function runMonteCarloSimulation(params) {
       pensionValue *= 1 + (expectedReturn / 100); // Pension grows at expectedReturn, tax-free
 
       if (currentYear > retirementAge) {
-        let remainingIncomeNeeded = retirementIncome;
+        let remainingIncomeNeeded = retirementIncome * Math.pow(1 + inflationRate / 100, j - yearsToRetirement); // Adjust for inflation
 
         // First, draw from pension fund
         if (pensionValue > 0) {
@@ -77,9 +79,12 @@ export function runMonteCarloSimulation(params) {
           remainingIncomeNeeded -= drawFromPension;
         }
 
-        // If income still needed, draw from portfolio
+        // If income still needed, draw from portfolio and apply tax
         if (remainingIncomeNeeded > 0) {
-          portfolioValue -= remainingIncomeNeeded;
+          // Simplified tax calculation: apply tax rate directly to the withdrawal
+          // In a real scenario, this would be more complex, considering tax brackets, deductions, etc.
+          const taxableWithdrawal = remainingIncomeNeeded / (1 - taxRateDuringRetirement / 100);
+          portfolioValue -= taxableWithdrawal;
         }
       }
 

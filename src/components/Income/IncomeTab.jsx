@@ -38,6 +38,9 @@ export default function IncomeTab() {
     setIncomePV,
     startYear,
     years,
+    liabilitiesList,
+    investmentContributions,
+    privatePensionContributions,
   } = useFinance();
   const { currentData } = usePersona();
 
@@ -46,6 +49,7 @@ export default function IncomeTab() {
   const discountRate = settings.discountRate ?? 0;
 
   const [chartMode, setChartMode] = useState('nominal');
+  const [growthAssumption, setGrowthAssumption] = useState('base'); // 'base', 'upside', 'downside'
 
   const assumptions = useMemo(
     () => ({
@@ -84,14 +88,21 @@ export default function IncomeTab() {
 
 
   const timelineData = useMemo(
-    () =>
-      generateIncomeTimeline(
-        incomeSources,
+    () => {
+      let effectiveIncomeSources = incomeSources;
+      if (growthAssumption === 'upside') {
+        effectiveIncomeSources = incomeSources.map(src => ({ ...src, growth: src.growth * 1.2 }));
+      } else if (growthAssumption === 'downside') {
+        effectiveIncomeSources = incomeSources.map(src => ({ ...src, growth: src.growth * 0.8 }));
+      }
+      return generateIncomeTimeline(
+        effectiveIncomeSources,
         { ...assumptions, annualExpenses: monthlyExpense * 12 },
         assetsList,
         years
-      ),
-    [incomeSources, assumptions, assetsList, years, monthlyExpense]
+      );
+    },
+    [incomeSources, assumptions, assetsList, years, monthlyExpense, growthAssumption]
   )
 
   const timelinePV = useMemo(
@@ -130,6 +141,29 @@ export default function IncomeTab() {
     [liquidAssets, monthlyExpense]
   )
 
+  const totalDebtPayments = useMemo(() => {
+    return liabilitiesList.reduce((sum, liab) => {
+      const annualPayment = liab.principal * (liab.interestRate / 100) / (1 - Math.pow(1 + (liab.interestRate / 100), -liab.termYears));
+      return sum + annualPayment;
+    }, 0);
+  }, [liabilitiesList]);
+
+  const debtServiceRatio = useMemo(() => {
+    const totalAnnualIncome = incomeSources.reduce((sum, src) => sum + src.amount * src.frequency, 0);
+    return totalAnnualIncome > 0 ? (totalDebtPayments / totalAnnualIncome) * 100 : 0;
+  }, [totalDebtPayments, incomeSources]);
+
+  const totalSavingsContributions = useMemo(() => {
+    const investment = investmentContributions.reduce((sum, inv) => sum + inv.amount * inv.frequency, 0);
+    const pension = privatePensionContributions.reduce((sum, ppc) => sum + ppc.amount * ppc.frequency, 0);
+    return investment + pension;
+  }, [investmentContributions, privatePensionContributions]);
+
+  const savingsRate = useMemo(() => {
+    const totalAnnualIncome = incomeSources.reduce((sum, src) => sum + src.amount * src.frequency, 0);
+    return totalAnnualIncome > 0 ? (totalSavingsContributions / totalAnnualIncome) * 100 : 0;
+  }, [totalSavingsContributions, incomeSources]);
+
 
 
   const stabilityScore = useMemo(() => {
@@ -140,7 +174,7 @@ export default function IncomeTab() {
     if (total === 0) return 0
     const weighted = incomeSources.reduce((sum, s) => {
       if (s.active === false) return sum
-      const weight = s.type === 'Salary' ? 1 : s.type === 'Freelance' ? 0.6 : 0.3
+              const weight = s.type === 'Salary - Base' ? 1 : s.type === 'Freelance' ? 0.6 : 0.3
       return sum + weight * s.amount * s.frequency
     }, 0)
     return weighted / total
@@ -220,7 +254,7 @@ export default function IncomeTab() {
       {
         id: crypto.randomUUID(),
         name: '',
-        type: 'Other',
+        type: 'Salary - Base',
         amount: 0,
         grossSalary: 0,
         contractedOutTier2: false,
@@ -407,9 +441,20 @@ export default function IncomeTab() {
           </span>
           <span className="ml-2 px-2 rounded bg-green-200 text-green-800">Stability: {(stabilityScore * 100).toFixed(0)}%</span>
         </p>
-        <p className="text-sm mt-2">
-          Liquidity Coverage: <span className={`${liquidityCoverage < 6 ? 'text-red-500' : liquidityCoverage < 12 ? 'text-yellow-500' : 'text-green-600'}`}>{liquidityCoverage.toFixed(1)} months</span>
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div className="bg-blue-50 p-3 rounded-lg shadow-sm">
+            <h4 className="font-semibold text-blue-800">Liquidity Coverage</h4>
+            <p className="text-lg">{liquidityCoverage.toFixed(1)} months</p>
+          </div>
+          <div className="bg-blue-50 p-3 rounded-lg shadow-sm">
+            <h4 className="font-semibold text-blue-800">Debt Service Ratio</h4>
+            <p className="text-lg">{debtServiceRatio.toFixed(1)}%</p>
+          </div>
+          <div className="bg-blue-50 p-3 rounded-lg shadow-sm">
+            <h4 className="font-semibold text-blue-800">Savings Rate</h4>
+            <p className="text-lg">{savingsRate.toFixed(1)}%</p>
+          </div>
+        </div>
       </section>
 
       {discretionaryAdvice.length > 0 && (
@@ -441,6 +486,28 @@ export default function IncomeTab() {
           onClick={() => setChartMode('pv')}
         >
           Discounted
+        </button>
+      </div>
+
+      <div className="mb-4 space-x-2">
+        <span className="text-sm text-slate-600">Growth Assumption:</span>
+        <button
+          className={`px-3 py-1 rounded ${growthAssumption === 'base' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setGrowthAssumption('base')}
+        >
+          Base
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${growthAssumption === 'upside' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setGrowthAssumption('upside')}
+        >
+          Upside (+20% Growth)
+        </button>
+        <button
+          className={`px-3 py-1 rounded ${growthAssumption === 'downside' ? 'bg-amber-400 text-white' : 'bg-white border border-amber-400 text-amber-700'}`}
+          onClick={() => setGrowthAssumption('downside')}
+        >
+          Downside (-20% Growth)
         </button>
       </div>
       <IncomeTimelineChart
