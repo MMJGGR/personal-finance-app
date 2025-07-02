@@ -15,20 +15,30 @@ const sections = [
 
 export default function Sidebar({ activeTab, onSelect }) {
   const { currentPersonaId, setCurrentPersonaId, personas } = usePersona()
+  const singlePersona = personas.length === 1
+  const currentPersona = personas.find(p => p.id === currentPersonaId) || personas[0]
   return (
     <aside className="w-72 bg-white border-r overflow-y-auto">
       <div className="p-6">
-        <label className="block mb-4 text-sm" htmlFor="persona-select">Persona</label>
-        <select
-          id="persona-select"
-          className="mb-4 w-full border rounded px-2 py-1"
-          value={currentPersonaId}
-          onChange={e => setCurrentPersonaId(e.target.value)}
-        >
-          {personas.map(p => (
-            <option key={p.id} value={p.id}>{p.profile.name}</option>
-          ))}
-        </select>
+        {singlePersona ? (
+          <div className="mb-4 text-sm font-medium" aria-label="Persona">
+            {currentPersona.profile.name}
+          </div>
+        ) : (
+          <>
+            <label className="block mb-4 text-sm" htmlFor="persona-select">Persona</label>
+            <select
+              id="persona-select"
+              className="mb-4 w-full border rounded px-2 py-1"
+              value={currentPersonaId}
+              onChange={e => setCurrentPersonaId(e.target.value)}
+            >
+              {personas.map(p => (
+                <option key={p.id} value={p.id}>{p.profile.name}</option>
+              ))}
+            </select>
+          </>
+        )}
         <h2 className="text-lg font-medium text-amber-600 mb-4">Getting Started</h2>
         <nav className="space-y-2" role="tablist">
           {sections.map(tab => (
