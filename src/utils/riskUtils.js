@@ -1,5 +1,11 @@
 import { riskWeights, riskThresholds } from '../config/riskConfig.js';
-import { employmentStatusScores } from '../config/riskScoreConfig.js';
+import {
+  employmentStatusScores,
+  investmentKnowledgeScores,
+  lossResponseScores,
+  investmentHorizonScores,
+  investmentGoalScores,
+} from '../config/riskScoreConfig.js';
 
 function calculateAge(birthDate) {
   if (!birthDate) return 0;
@@ -17,7 +23,7 @@ function extractAge(profile) {
 }
 
 function normalizeAgeValue(age) {
-  return Math.max(0, Math.min((age / 100) * 100, 100));
+  return Math.max(0, Math.min(age, 100));
 }
 
 function normalizeIncome(annualIncome) {
@@ -52,6 +58,22 @@ function normalizeEmployment(status) {
   return employmentStatusScores[status] ?? 50;
 }
 
+function normalizeKnowledge(level) {
+  return investmentKnowledgeScores[level] ?? 50;
+}
+
+function normalizeLossResponse(response) {
+  return lossResponseScores[response] ?? 50;
+}
+
+function normalizeHorizon(horizon) {
+  return investmentHorizonScores[horizon] ?? 50;
+}
+
+function normalizeGoal(goal) {
+  return investmentGoalScores[goal] ?? 50;
+}
+
 
 function normalizeLiquidity(needs) {
   const n = Number(needs) || 0;
@@ -71,6 +93,10 @@ export function calculateRiskScore(profile = {}) {
   const yearsInvesting = Number(profile.yearsInvesting);
   const emergencyFundMonths = Number(profile.emergencyFundMonths);
   const surveyScore = Number(profile.surveyScore);
+  const knowledge = normalizeKnowledge(profile.investmentKnowledge);
+  const loss = normalizeLossResponse(profile.lossResponse);
+  const horizon = normalizeHorizon(profile.investmentHorizon);
+  const goal = normalizeGoal(profile.investmentGoal);
 
   if ([age, annualIncome, netWorth, yearsInvesting, emergencyFundMonths, surveyScore].some(v => Number.isNaN(v))) {
     return 0;
@@ -84,6 +110,10 @@ export function calculateRiskScore(profile = {}) {
     employmentStatus: normalizeEmployment(profile.employmentStatus) * riskWeights.employmentStatus,
     liquidityNeeds: normalizeLiquidity(emergencyFundMonths) * riskWeights.liquidityNeeds,
     riskToleranceSurvey: normalizeSurveyScore(surveyScore) * riskWeights.riskToleranceSurvey,
+    investmentKnowledge: knowledge * riskWeights.investmentKnowledge,
+    lossResponse: loss * riskWeights.lossResponse,
+    investmentHorizon: horizon * riskWeights.investmentHorizon,
+    investmentGoal: goal * riskWeights.investmentGoal,
   };
   const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
   return Math.round(Math.max(0, Math.min(total, 100)));

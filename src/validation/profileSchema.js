@@ -18,5 +18,5 @@ export const profileSchema = z.object({
   liquidNetWorth: z.number().nonnegative().optional().default(0),
   yearsInvesting: z.number().nonnegative().optional().default(0),
   emergencyFundMonths: z.number().nonnegative().optional().default(0),
-  surveyScore: z.number().min(0).max(100).optional().default(0)
+  surveyScore: z.number().min(10).max(50).optional().default(0)
 })

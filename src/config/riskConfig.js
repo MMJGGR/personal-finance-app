@@ -1,11 +1,15 @@
 export const riskWeights = {
-  age: 0.15,
-  annualIncome: 0.20,
-  netWorth: 0.20,
-  investingExperience: 0.15,
-  employmentStatus: 0.10,
-  liquidityNeeds: 0.10,
+  age: 0.10,
+  annualIncome: 0.15,
+  netWorth: 0.15,
+  investingExperience: 0.10,
+  employmentStatus: 0.05,
+  liquidityNeeds: 0.05,
   riskToleranceSurvey: 0.10,
+  investmentKnowledge: 0.10,
+  lossResponse: 0.05,
+  investmentHorizon: 0.10,
+  investmentGoal: 0.05,
 };
 
 export const riskThresholds = {
