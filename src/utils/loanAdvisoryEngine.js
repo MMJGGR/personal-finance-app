@@ -1,5 +1,6 @@
 import { calculateAmortizedPayment } from './financeUtils'
 import { calculateNominalSurvival, calculatePVSurvival } from './survivalMetrics'
+import { calculateRiskScore, deriveCategory } from './riskUtils'
 
 export function computeMonthlySurplus(monthlyIncome = 0, monthlyExpenses = 0) {
   return monthlyIncome - monthlyExpenses
@@ -28,10 +29,8 @@ export function computeDTI(monthlyDebt = 0, monthlyIncome = 0) {
 }
 
 export function computeRiskFromProfile(profile = {}) {
-  const age = profile.age ?? 0
-  if (age < 30) return 'Low'
-  if (age < 50) return 'Medium'
-  return 'High'
+  const score = calculateRiskScore(profile)
+  return deriveCategory(score)
 }
 
 export function generateLoanAdvice(loans = [], profile = {}, income = 0, expenses = 0, discountRate = 0, years = 1) {

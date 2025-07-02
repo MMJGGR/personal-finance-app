@@ -8,6 +8,7 @@ import generateLoanAdvice, {
 } from '../utils/loanAdvisoryEngine'
 import { calculateNominalSurvival, calculatePVSurvival } from '../utils/survivalMetrics'
 import { calculateAmortizedPayment } from '../utils/financeUtils'
+import { calculateRiskScore, deriveCategory } from '../utils/riskUtils'
 
 test('computeMonthlySurplus subtracts expenses', () => {
   expect(computeMonthlySurplus(5000, 3000)).toBe(2000)
@@ -36,10 +37,22 @@ test('computeDTI ratio', () => {
   expect(computeDTI(500, 1000)).toBe(0.5)
 })
 
-test('computeRiskFromProfile based on age', () => {
-  expect(computeRiskFromProfile({ age: 25 })).toBe('Low')
-  expect(computeRiskFromProfile({ age: 35 })).toBe('Medium')
-  expect(computeRiskFromProfile({ age: 60 })).toBe('High')
+test('computeRiskFromProfile uses risk utilities', () => {
+  const profile = {
+    birthDate: '1990-01-01',
+    annualIncome: 500000,
+    netWorth: 300000,
+    yearsInvesting: 5,
+    employmentStatus: 'Employed',
+    emergencyFundMonths: 6,
+    surveyScore: 40,
+    investmentKnowledge: 'Moderate',
+    lossResponse: 'Wait',
+    investmentHorizon: '>7 years',
+    investmentGoal: 'Growth',
+  }
+  const expected = deriveCategory(calculateRiskScore(profile))
+  expect(computeRiskFromProfile(profile)).toBe(expected)
 })
 
 test('generateLoanAdvice assembles metrics', () => {
@@ -48,6 +61,7 @@ test('generateLoanAdvice assembles metrics', () => {
   const advice = generateLoanAdvice(loans, profile, 2000, 1000, 5, 5)
   expect(advice.liabilityDetails).toHaveLength(1)
   expect(advice.dti).toBeGreaterThan(0)
-  expect(advice.risk).toBe('Medium')
+  const expectedRisk = deriveCategory(calculateRiskScore(profile))
+  expect(advice.risk).toBe(expectedRisk)
   expect(advice.survival.nominal).toBeDefined()
 })
