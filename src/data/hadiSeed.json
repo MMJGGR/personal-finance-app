@@ -1,0 +1,36 @@
+{
+  "profile": {
+    "name": "Hadi Alsawad",
+    "email": "hadi.mwangi@example.com",
+    "phone": "+254712345678",
+    "birthDate": "1988-06-15",
+    "age": 35,
+    "lifeExpectancy": 85,
+    "maritalStatus": "Single",
+    "numDependents": 0,
+    "education": "BSc Economics",
+    "residentialAddress": "Nairobi, Kenya",
+    "location": "Nairobi, Kenya",
+    "nationality": "Kenyan",
+    "citizenship": "Kenyan",
+    "idNumber": "34567890",
+    "taxResidence": "Kenya",
+    "taxJurisdiction": "Kenya",
+    "employmentStatus": "Full-Time",
+    "occupation": "Credit Risk Analyst",
+    "annualIncome": 3000000,
+    "liquidNetWorth": 2000000,
+    "sourceOfFunds": "Employment, rental income, long-term ETF investments",
+    "investmentKnowledge": "Moderate",
+    "lossResponse": "Wait",
+    "investmentHorizon": ">7 years",
+    "investmentGoal": "Growth",
+    "behaviouralProfile": {
+      "spendingHabits": "frugal",
+      "biases": [
+        "loss aversion"
+      ],
+      "financialWorries": "retirement funding"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 export function readAuditLog(storage) {
   try {
-    const raw = storage.get('auditLog')
+    const raw = storage.get('profile-audit')
     return raw ? JSON.parse(raw) : []
   } catch {
     return []
@@ -11,15 +11,22 @@ export function appendAuditLog(storage, entry = {}) {
   const log = readAuditLog(storage)
   log.push({ ts: new Date().toISOString(), ...entry })
   try {
-    storage.set('auditLog', JSON.stringify(log))
+    storage.set('profile-audit', JSON.stringify(log))
   } catch (err) {
     console.error('Failed to write audit log', err)
   }
 }
 
 let buffer = []
-export function record(storage, field, oldValue, newValue, userId = 'anon') {
-  buffer.push({ ts: new Date().toISOString(), userId, field, oldValue, newValue })
+export function record(
+  storage,
+  field,
+  oldValue,
+  newValue,
+  userId = 'anon',
+  timestamp = new Date().toISOString()
+) {
+  buffer.push({ ts: timestamp, userId, field, oldValue, newValue })
 }
 
 export function flush(storage) {
@@ -28,7 +35,7 @@ export function flush(storage) {
   const combined = log.concat(buffer)
   buffer = []
   try {
-    storage.set('auditLog', JSON.stringify(combined))
+    storage.set('profile-audit', JSON.stringify(combined))
   } catch (err) {
     console.error('Failed to flush audit log', err)
   }
