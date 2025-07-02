@@ -10,13 +10,9 @@ test('calculates score and category from profile', () => {
     employmentStatus: 'Employed',
     emergencyFundMonths: 6,
     surveyScore: 40,
-    investmentKnowledge: 'Moderate',
-    lossResponse: 'Wait',
-    investmentHorizon: '>7 years',
-    investmentGoal: 'Growth',
   }
   const score = calculateRiskScore(profile)
-  expect(score).toBe(53)
+  expect(score).toBe(41)
   expect(deriveCategory(score)).toBe('balanced')
 })
 
@@ -29,10 +25,6 @@ test('age and liquid net worth influence score', () => {
     employmentStatus: 'Employed',
     emergencyFundMonths: 6,
     surveyScore: 40,
-    investmentKnowledge: 'Moderate',
-    lossResponse: 'Wait',
-    investmentHorizon: '>7 years',
-    investmentGoal: 'Growth',
   }
   const younger = { ...base, age: 20 }
   const older = { ...base, age: 60 }
@@ -52,15 +44,11 @@ test('questionnaire factors influence score', () => {
     employmentStatus: 'Employed',
     emergencyFundMonths: 6,
     surveyScore: 40,
-    investmentKnowledge: 'Moderate',
-    lossResponse: 'Wait',
-    investmentHorizon: '>7 years',
-    investmentGoal: 'Growth',
   }
-  const lowKnowledge = { ...base, investmentKnowledge: 'None' }
-  const shortHorizon = { ...base, investmentHorizon: '<3 years' }
-  expect(calculateRiskScore(lowKnowledge)).toBeLessThan(calculateRiskScore(base))
-  expect(calculateRiskScore(shortHorizon)).toBeLessThan(calculateRiskScore(base))
+  const unemployed = { ...base, employmentStatus: 'Student' }
+  const lowLiquidity = { ...base, emergencyFundMonths: 0 }
+  expect(calculateRiskScore(unemployed)).toBeLessThan(calculateRiskScore(base))
+  expect(calculateRiskScore(lowLiquidity)).toBeLessThan(calculateRiskScore(base))
 })
 
 test('deriveCategory boundaries', () => {

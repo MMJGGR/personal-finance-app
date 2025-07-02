@@ -6,6 +6,7 @@ import sanitize from '../../utils/sanitize'
 import { record, flush } from '../../utils/auditLog'
 import RiskSummary from './RiskSummary.jsx'
 import { calculateRiskScore, deriveCategory } from '../../utils/riskUtils'
+import { profileSchema } from '../../validation/profileSchema.js'
 
 export default function ProfileTab() {
   const {
@@ -18,6 +19,7 @@ export default function ProfileTab() {
   const [form, setForm] = useState(profile)
   const [riskScoreValue, setRiskScoreValue] = useState(0)
   const [riskCategory, setRiskCategory] = useState('balanced')
+  const [errors, setErrors] = useState({})
 
   // Whenever the context’s profile changes, reset the form
   useEffect(() => {
@@ -53,6 +55,15 @@ export default function ProfileTab() {
       }
     }
 
+    const result = profileSchema.safeParse(updated)
+    if (!result.success) {
+      const errs = Object.fromEntries(
+        Object.entries(result.error.flatten().fieldErrors).filter(([, v]) => v && v[0]).map(([k, v]) => [k, v[0]])
+      )
+      setErrors(errs)
+    } else {
+      setErrors({})
+    }
     setForm(updated)
     updateProfile(updated)
   }
@@ -96,7 +107,7 @@ export default function ProfileTab() {
             ['Dependents', 'numDependents', 'number'],
             ['Education', 'education', 'text']
           ].map(([label, field, type, options]) => (
-            <label key={field} className="block">
+            <label key={field} className="block space-y-1">
               <span className="text-sm text-slate-600">{label}</span>
               {type === 'select' ? (
                 <select
@@ -125,6 +136,9 @@ export default function ProfileTab() {
                   title={label}
                 />
               )}
+              {errors[field] && (
+                <span className="text-xs text-red-600">{errors[field]}</span>
+              )}
             </label>
           ))}
           {remainingYears <= 0 && (
@@ -136,7 +150,7 @@ export default function ProfileTab() {
             ['Annual Income (KES)', 'annualIncome'],
             ['Liquid Net Worth (KES)', 'liquidNetWorth']
           ].map(([label, field]) => (
-            <label key={field} className="block">
+            <label key={field} className="block space-y-1">
               <span className="text-sm text-slate-600">{label}</span>
               <input
                 type="number"
@@ -145,6 +159,9 @@ export default function ProfileTab() {
                 className="w-full border rounded-md p-2"
                 title={label}
               />
+              {errors[field] && (
+                <span className="text-xs text-red-600">{errors[field]}</span>
+              )}
             </label>
           ))}
 

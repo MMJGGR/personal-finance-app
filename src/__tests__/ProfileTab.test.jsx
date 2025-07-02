@@ -25,6 +25,16 @@ test('renders all basic profile fields', () => {
   expect(screen.getByTitle('Phone Number')).toBeInTheDocument()
 })
 
+test('pre-populates form from seed data', () => {
+  render(
+    <FinanceProvider>
+      <ProfileTab />
+    </FinanceProvider>
+  )
+  expect(screen.getByTitle('First Name').value).toBe('Hadi')
+  expect(screen.getByTitle('Email Address').value).toMatch(/hadi\.mwangi/)
+})
+
 test('risk summary updates on age change', async () => {
   render(
     <FinanceProvider>
@@ -34,6 +44,19 @@ test('risk summary updates on age change', async () => {
   fireEvent.change(screen.getByTitle('Age'), { target: { value: '40' } })
   await waitFor(() => {
     expect(screen.getByText(/Risk Score:/i)).toBeInTheDocument()
+  })
+})
+
+test('shows validation error for invalid email', async () => {
+  render(
+    <FinanceProvider>
+      <ProfileTab />
+    </FinanceProvider>
+  )
+  const email = screen.getByTitle('Email Address')
+  fireEvent.change(email, { target: { value: 'bad' } })
+  await waitFor(() => {
+    expect(screen.getByText(/invalid email/i)).toBeInTheDocument()
   })
 })
 

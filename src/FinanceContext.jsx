@@ -22,6 +22,7 @@ import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
 import { projectPensionGrowth } from './utils/pensionProjection.js'
 import storage from './utils/storage'
+import hadiSeed from './data/hadiSeed.json'
 import { defaultIncomeSources } from './components/Income/defaults.js'
 
 const DEFAULT_CURRENCY_MAP = {
@@ -455,9 +456,10 @@ export function FinanceProvider({ children }) {
   })
 
   // === Profile & KYC fields (with lifeExpectancy) ===
+  const initialProfile = mapPersonaProfile(hadiSeed.profile)
   const [profile, setProfile] = useState(() => {
     const s = storage.get('profile')
-    return s ? safeParse(s, defaultProfile) : defaultProfile
+    return s ? safeParse(s, initialProfile) : initialProfile
   })
 
   // Utility to create a new asset with defaults
@@ -570,10 +572,10 @@ export function FinanceProvider({ children }) {
     }
   }, [profile.nationality, settings.currency, updateSettings, settings])
 
-  // === Load default persona data if no saved profile ===
+  // === Load default seed data if no saved profile ===
   useEffect(() => {
     if (storage.get('profile')) return
-    const seed = currentData
+    const seed = hadiSeed
     if (!seed) return
     if (seed.profile) updateProfile(mapPersonaProfile(seed.profile))
     if (Array.isArray(seed.incomeSources)) setIncomeSources(seed.incomeSources)
@@ -637,7 +639,6 @@ export function FinanceProvider({ children }) {
     if ('includeGoalsPV' in seed) setIncludeGoalsPV(seed.includeGoalsPV)
     if ('includeLiabilitiesNPV' in seed) setIncludeLiabilitiesNPV(seed.includeLiabilitiesNPV)
   }, [
-    currentData,
     updateProfile,
     setIncomeSources,
     setExpensesList,
