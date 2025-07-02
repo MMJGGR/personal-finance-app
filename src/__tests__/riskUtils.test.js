@@ -1,5 +1,5 @@
 /* global test, expect */
-import { calculateRiskScore, deriveCategory } from '../utils/riskUtils'
+import { calculateRiskScore, deriveCategory, computeSurveyScore } from '../utils/riskUtils'
 
 test('calculates score and category from profile', () => {
   const profile = {
@@ -105,4 +105,11 @@ test('example growth profile', () => {
   const score = calculateRiskScore(growth)
   expect(score).toBeGreaterThanOrEqual(71)
   expect(deriveCategory(score)).toBe('growth')
+})
+
+test('computeSurveyScore applies reverse scoring', () => {
+  const responses = Array(10).fill(5)
+  const score = computeSurveyScore(responses)
+  // two reverse scored questions => (8*5) + (2*(6-5)) = 42
+  expect(score).toBe(42)
 })
