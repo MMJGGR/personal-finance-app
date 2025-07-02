@@ -39,9 +39,17 @@ function safeParse(str, fallback) {
 }
 
 const defaultProfile = {
-  name: '', // FIXME: unused - pending integration
-  email: '', // FIXME: unused - pending integration
-  phone: '', // FIXME: unused - pending integration
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  country: '',
+  taxCountry: '',
+  taxId: '',
+  employmentStatus: '',
+  employerName: '',
   age: 30,
   maritalStatus: '', // FIXME: unused - pending integration
   numDependents: 0, // FIXME: unused - pending integration
@@ -53,7 +61,6 @@ const defaultProfile = {
   taxJurisdiction: '', // FIXME: unused - pending integration
   idNumber: '', // FIXME: unused - pending integration
   taxResidence: '', // FIXME: unused - pending integration
-  employmentStatus: '', // FIXME: unused - pending integration
   annualIncome: 0,
   liquidNetWorth: 0,
   sourceOfFunds: '', // FIXME: unused - pending integration
