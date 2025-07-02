@@ -123,7 +123,7 @@ tabs or reloads.
 
 ## Investment Strategy
 
-The app derives a default strategy from your profile. A `riskScore` is computed using the mapping in `src/riskScoreConfig.js`. Scores up to `6` yield a **Conservative** strategy, scores from `7–12` produce **Balanced** and anything higher defaults to **Growth**. Your selected investment horizon can override this: choosing **<3 years** forces **Conservative** while **>7 years** results in **Growth**.
+The app derives a default strategy from your profile. A `riskScore` is computed using the weights defined in `src/config/riskConfig.js`. Scores range from `0`–`100` and are classified as **Conservative** (`0–30`), **Balanced** (`31–70`) or **Growth** (`71+`). Your selected investment horizon can override this: choosing **<3 years** forces **Conservative** while **>7 years** results in **Growth**.
 
 The chosen strategy is stored in `FinanceContext` and persisted in local storage. You may pick a different option under the **Balance Sheet** tab which overrides the automatic choice and is saved for later visits.
 
