@@ -6,22 +6,9 @@ import {
   investmentHorizonScores,
   investmentGoalScores,
 } from '../config/riskScoreConfig.js';
-import { riskSurveyQuestions } from '../config/riskSurvey.js';
-
-function calculateAge(birthDate) {
-  if (!birthDate) return 0;
-  const dob = new Date(birthDate);
-  const diff = Date.now() - dob.getTime();
-  const ageDt = new Date(diff);
-  return Math.abs(ageDt.getUTCFullYear() - 1970);
-}
-
-function extractAge(profile) {
-  if (typeof profile.age === 'number' && !Number.isNaN(profile.age)) {
-    return profile.age;
-  }
-  return calculateAge(profile.birthDate);
-}
+import { extractAge, extractNetWorth } from './ageUtils.js';
+import { computeSurveyScore } from './surveyUtils.js';
+export { computeSurveyScore } from "./surveyUtils.js";
 
 function normalizeAgeValue(age) {
   return Math.max(0, Math.min(age, 100));
@@ -35,19 +22,6 @@ function normalizeIncome(annualIncome) {
 function normalizeNetWorth(netWorth) {
   const n = Number(netWorth) || 0;
   return Math.max(0, Math.min((n / 5_000_000) * 100, 100));
-}
-
-function extractNetWorth(profile) {
-  if (typeof profile.netWorth === 'number' && !Number.isNaN(profile.netWorth)) {
-    return profile.netWorth;
-  }
-  if (
-    typeof profile.liquidNetWorth === 'number' &&
-    !Number.isNaN(profile.liquidNetWorth)
-  ) {
-    return profile.liquidNetWorth;
-  }
-  return 0;
 }
 
 function normalizeExperience(years) {
@@ -81,18 +55,9 @@ function normalizeLiquidity(needs) {
   return Math.max(0, Math.min((n / 12) * 100, 100));
 }
 
-export function computeSurveyScore(responses = []) {
-  if (!Array.isArray(responses)) return 0;
-  return riskSurveyQuestions.reduce((sum, q, idx) => {
-    const val = Number(responses[idx]) || 0;
-    const score = q.reverse ? 6 - val : val;
-    return sum + score;
-  }, 0);
-}
-
 function normalizeSurveyScore(rawScore) {
   const n = Number(rawScore) || 0;
-  return Math.max(0, Math.min(((n - 10) / 40) * 100, 100));
+  return Math.max(0, Math.min(n, 100));
 }
 
 export function calculateRiskScore(profile = {}) {
@@ -102,13 +67,13 @@ export function calculateRiskScore(profile = {}) {
   const netWorth = Number(extractNetWorth(profile));
   const yearsInvesting = Number(profile.yearsInvesting);
   const emergencyFundMonths = Number(profile.emergencyFundMonths);
-  const surveyScore = Number(profile.surveyScore);
+  const surveyScore = computeSurveyScore(profile.riskSurveyAnswers);
   const knowledge = normalizeKnowledge(profile.investmentKnowledge);
   const loss = normalizeLossResponse(profile.lossResponse);
   const horizon = normalizeHorizon(profile.investmentHorizon);
   const goal = normalizeGoal(profile.investmentGoal);
 
-  if ([age, annualIncome, netWorth, yearsInvesting, emergencyFundMonths, surveyScore].some(v => Number.isNaN(v))) {
+  if ([age, annualIncome, netWorth, yearsInvesting, emergencyFundMonths].some(v => Number.isNaN(v))) {
     return 0;
   }
 

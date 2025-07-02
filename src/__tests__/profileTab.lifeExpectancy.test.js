@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { FinanceProvider } from '../FinanceContext'
-import ProfileTab from '../components/Profile/ProfileTab'
+import Wizard from '../components/Profile/RiskOnboardingWizard'
 
 beforeAll(() => {
   // ensure ResizeObserver not required
@@ -15,7 +15,7 @@ afterEach(() => {
 test('life expectancy below age is adjusted to age + 1', () => {
   render(
     <FinanceProvider>
-      <ProfileTab />
+      <Wizard />
     </FinanceProvider>
   )
 
@@ -31,7 +31,7 @@ test('life expectancy below age is adjusted to age + 1', () => {
 test('increasing age past expectancy adjusts expectancy', () => {
   render(
     <FinanceProvider>
-      <ProfileTab />
+      <Wizard />
     </FinanceProvider>
   )
 

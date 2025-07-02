@@ -59,7 +59,7 @@ test('legacy risk score is migrated', async () => {
       yearsInvesting: 5,
       employmentStatus: 'Employed',
       emergencyFundMonths: 6,
-      surveyScore: 40,
+      riskSurveyAnswers: Array(10).fill(3),
       investmentKnowledge: 'Moderate',
       lossResponse: 'Wait',
       investmentHorizon: '>7 years',
