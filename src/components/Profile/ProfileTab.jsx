@@ -13,7 +13,7 @@ export default function ProfileTab() {
     updateProfile,
     clearProfile,
     resetProfile,
-    riskScore,
+    riskScore: _riskScore,
   } = useFinance()
   const [form, setForm] = useState(profile)
   const [riskScoreValue, setRiskScoreValue] = useState(0)

@@ -72,12 +72,12 @@ Expenses and goals also track `startYear` and `endYear`. Recurring expenses can
 phase in or out while one-time goals typically use the same year for both
 fields.
 
-## Persona Seeds
+## Persona Seed
 
-Sample user profiles are bundled in `src/data/personas.json`. When the app
-starts with no saved data, the first persona from this file is loaded so you can
-explore the features immediately. Use the **Reset to Defaults** button on the
-Profile tab to reload the active persona's data at any time.
+The app ships with a single sample profile for **Hadi Alsawad** under
+`src/data/personas.json`. When the app starts with no saved data, Hadi's persona
+is loaded automatically so you can explore the features. Use the **Reset to
+Defaults** button on the Profile tab to restore this default data at any time.
 
 ## Household & KYC Data
 
