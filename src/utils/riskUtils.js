@@ -1,4 +1,11 @@
 import { riskWeights, riskThresholds } from '../config/riskConfig';
+import {
+  employmentStatusScores,
+  investmentKnowledgeScores,
+  lossResponseScores,
+  investmentHorizonScores,
+  investmentGoalScores,
+} from '../config/riskScoreConfig.js';
 
 function calculateAge(birthDate) {
   if (!birthDate) return 0;
@@ -45,8 +52,23 @@ function normalizeExperience(years) {
 }
 
 function normalizeEmployment(status) {
-  const mapping = { Retired: 0, Student: 20, 'Self-Employed': 50, Employed: 100 };
-  return mapping[status] ?? 50;
+  return employmentStatusScores[status] ?? 50;
+}
+
+function normalizeKnowledge(level) {
+  return investmentKnowledgeScores[level] ?? 50;
+}
+
+function normalizeLossResponse(response) {
+  return lossResponseScores[response] ?? 50;
+}
+
+function normalizeHorizon(horizon) {
+  return investmentHorizonScores[horizon] ?? 50;
+}
+
+function normalizeGoal(goal) {
+  return investmentGoalScores[goal] ?? 50;
 }
 
 function normalizeLiquidity(needs) {
@@ -68,6 +90,10 @@ export function calculateRiskScore(profile = {}) {
     employmentStatus: normalizeEmployment(profile.employmentStatus) * riskWeights.employmentStatus,
     liquidityNeeds: normalizeLiquidity(profile.emergencyFundMonths) * riskWeights.liquidityNeeds,
     riskToleranceSurvey: normalizeSurveyScore(profile.surveyScore) * riskWeights.riskToleranceSurvey,
+    investmentKnowledge: normalizeKnowledge(profile.investmentKnowledge) * riskWeights.investmentKnowledge,
+    lossResponse: normalizeLossResponse(profile.lossResponse) * riskWeights.lossResponse,
+    investmentHorizon: normalizeHorizon(profile.investmentHorizon) * riskWeights.investmentHorizon,
+    investmentGoal: normalizeGoal(profile.investmentGoal) * riskWeights.investmentGoal,
   };
   const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
   return Math.round(Math.max(0, Math.min(total, 100)));
