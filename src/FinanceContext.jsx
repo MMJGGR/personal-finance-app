@@ -17,7 +17,7 @@ import {
   selectDiscountedNet,
   selectCumulativePV
 } from './selectors'
-import { riskScoreMap } from './riskScoreConfig'
+import { calculateRiskScore } from './utils/riskUtils'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
 import { projectPensionGrowth } from './utils/pensionProjection.js'
@@ -71,6 +71,28 @@ const defaultProfile = {
   investmentHorizon: '',
   investmentGoal: '',
   lifeExpectancy: 85,
+}
+
+function mapPersonaProfile(seed = {}) {
+  const out = { ...defaultProfile, ...seed }
+  if (seed.name && !seed.firstName && !seed.lastName) {
+    const parts = String(seed.name).split(' ')
+    out.firstName = parts.shift() || ''
+    out.lastName = parts.join(' ')
+  }
+  if (seed.residentialAddress && !seed.address) {
+    out.address = seed.residentialAddress
+    const segments = seed.residentialAddress.split(',').map(s => s.trim())
+    if (!seed.city && segments.length > 1) out.city = segments[0]
+    if (!seed.country && segments.length > 1) out.country = segments[1]
+  }
+  if (seed.nationality && !seed.country) {
+    out.country = seed.nationality
+  }
+  if (seed.taxResidence && !seed.taxCountry) {
+    out.taxCountry = seed.taxResidence
+  }
+  return out
 }
 
 const FinanceContext = createContext()
@@ -476,16 +498,6 @@ export function FinanceProvider({ children }) {
 
   // === Risk scoring ===
   const [riskScore, setRiskScore] = useState(0)
-  function calculateRiskScore(p) {
-    const map = riskScoreMap
-    let s = 0
-    s += map.knowledge[p.investmentKnowledge]||0
-    s += map.response[p.lossResponse]          ||0
-    s += map.horizon[p.investmentHorizon]      ||0
-    s += map.goal[p.investmentGoal]            ||0
-    const capAdj = p.liquidNetWorth > p.annualIncome ? 2 : 1
-    return s + capAdj
-  }
 
   // === Derived strategy ===
   const [strategy, setStrategy] = useState(() =>
@@ -531,7 +543,7 @@ export function FinanceProvider({ children }) {
 
   const resetProfile = useCallback(() => {
     if (currentData?.profile) {
-      updateProfile(currentData.profile)
+      updateProfile(mapPersonaProfile(currentData.profile))
     }
   }, [currentData, updateProfile])
 
@@ -550,7 +562,7 @@ export function FinanceProvider({ children }) {
     if (storage.get('profile')) return
     const seed = currentData
     if (!seed) return
-    if (seed.profile) updateProfile(seed.profile)
+    if (seed.profile) updateProfile(mapPersonaProfile(seed.profile))
     if (Array.isArray(seed.incomeSources)) setIncomeSources(seed.incomeSources)
     if (Array.isArray(seed.expensesList)) {
       const now = new Date().getFullYear()
