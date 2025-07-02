@@ -127,6 +127,13 @@ The app derives a default strategy from your profile. A `riskScore` is computed 
 
 The chosen strategy is stored in `FinanceContext` and persisted in local storage. You may pick a different option under the **Balance Sheet** tab which overrides the automatic choice and is saved for later visits.
 
+### Risk Score Migration
+
+Earlier releases stored risk scores on a 0–12 scale. On startup the app checks
+`riskScore` in local storage and treats values of 12 or less as legacy. If a
+profile is available the score is recomputed using the new algorithm; otherwise
+the old value is scaled to the 0–100 range and written back.
+
 ## Insurance Calculator
 
 The **Insurance** tab provides an estimate of emergency savings and life cover

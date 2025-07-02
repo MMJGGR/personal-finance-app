@@ -1147,9 +1147,20 @@ export function FinanceProvider({ children }) {
     }
 
     if (rs) {
-      setRiskScore(+rs)
+      const num = +rs
+      if (num <= 12) {
+        const score = loadedProfile
+          ? calculateRiskScore(loadedProfile)
+          : Math.round((num / 12) * 100)
+        setRiskScore(score)
+        storage.set('riskScore', score)
+      } else {
+        setRiskScore(num)
+      }
     } else if (loadedProfile) {
-      setRiskScore(calculateRiskScore(loadedProfile))
+      const score = calculateRiskScore(loadedProfile)
+      setRiskScore(score)
+      storage.set('riskScore', score)
     }
 
     const sSet = storage.get('settings')

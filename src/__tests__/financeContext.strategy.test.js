@@ -15,6 +15,11 @@ function StrategyDisplay() {
   return <div data-testid="strategy">{strategy}</div>
 }
 
+function ScoreDisplay() {
+  const { riskScore } = useFinance()
+  return <div data-testid="score">{riskScore}</div>
+}
+
 test('strategy is derived when risk score loads from storage', async () => {
   localStorage.setItem('currentPersonaId', 'hadi')
   localStorage.setItem('riskScore-hadi', '31')
@@ -40,4 +45,33 @@ test('existing strategy is preserved', async () => {
   )
   const out = await screen.findByTestId('strategy')
   expect(out.textContent).toBe('Growth')
+})
+
+test('legacy risk score is migrated', async () => {
+  localStorage.setItem('currentPersonaId', 'hadi')
+  localStorage.setItem('riskScore-hadi', '8')
+  localStorage.setItem(
+    'profile-hadi',
+    JSON.stringify({
+      birthDate: '1990-01-01',
+      annualIncome: 500000,
+      netWorth: 300000,
+      yearsInvesting: 5,
+      employmentStatus: 'Employed',
+      emergencyFundMonths: 6,
+      surveyScore: 40,
+      investmentKnowledge: 'Moderate',
+      lossResponse: 'Wait',
+      investmentHorizon: '>7 years',
+      investmentGoal: 'Growth',
+    })
+  )
+  render(
+    <FinanceProvider>
+      <ScoreDisplay />
+    </FinanceProvider>
+  )
+  const out = await screen.findByTestId('score')
+  expect(Number(out.textContent)).toBeGreaterThan(12)
+  expect(localStorage.getItem('riskScore-hadi')).toBe(out.textContent)
 })
