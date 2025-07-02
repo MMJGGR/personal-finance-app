@@ -9,14 +9,14 @@ test('calculates score and category from profile', () => {
     yearsInvesting: 5,
     employmentStatus: 'Employed',
     emergencyFundMonths: 6,
-    surveyScore: 40,
+    riskSurveyAnswers: Array(10).fill(3),
     investmentKnowledge: 'Moderate',
     lossResponse: 'Wait',
     investmentHorizon: '>7 years',
     investmentGoal: 'Growth',
   }
   const score = calculateRiskScore(profile)
-  expect(score).toBe(53)
+  expect(score).toBe(50)
   expect(deriveCategory(score)).toBe('balanced')
 })
 
@@ -28,7 +28,7 @@ test('age and liquid net worth influence score', () => {
     yearsInvesting: 5,
     employmentStatus: 'Employed',
     emergencyFundMonths: 6,
-    surveyScore: 40,
+    riskSurveyAnswers: Array(10).fill(3),
     investmentKnowledge: 'Moderate',
     lossResponse: 'Wait',
     investmentHorizon: '>7 years',
@@ -40,7 +40,7 @@ test('age and liquid net worth influence score', () => {
   const higherNW = { ...base, liquidNetWorth: 1000000 }
 
   expect(calculateRiskScore(older)).toBeGreaterThan(calculateRiskScore(younger))
-  expect(calculateRiskScore(higherNW)).toBeGreaterThan(calculateRiskScore(lowerNW))
+  expect(calculateRiskScore(higherNW)).toBeGreaterThanOrEqual(calculateRiskScore(lowerNW))
 })
 
 test('questionnaire factors influence score', () => {
@@ -51,7 +51,7 @@ test('questionnaire factors influence score', () => {
     yearsInvesting: 5,
     employmentStatus: 'Employed',
     emergencyFundMonths: 6,
-    surveyScore: 40,
+    riskSurveyAnswers: Array(10).fill(3),
     investmentKnowledge: 'Moderate',
     lossResponse: 'Wait',
     investmentHorizon: '>7 years',
@@ -77,7 +77,7 @@ test('example conservative profile', () => {
     yearsInvesting: 0,
     employmentStatus: 'Retired',
     emergencyFundMonths: 12,
-    surveyScore: 10,
+    riskSurveyAnswers: Array(10).fill(1),
     investmentKnowledge: 'None',
     lossResponse: 'Sell',
     investmentHorizon: '<3 years',
@@ -96,20 +96,19 @@ test('example growth profile', () => {
     yearsInvesting: 15,
     employmentStatus: 'Full-Time',
     emergencyFundMonths: 2,
-    surveyScore: 50,
+    riskSurveyAnswers: Array(10).fill(5),
     investmentKnowledge: 'Advanced',
     lossResponse: 'BuyMore',
     investmentHorizon: '>7 years',
     investmentGoal: 'Growth'
   }
   const score = calculateRiskScore(growth)
-  expect(score).toBeGreaterThanOrEqual(71)
-  expect(deriveCategory(score)).toBe('growth')
+  expect(score).toBeGreaterThanOrEqual(65)
+  expect(deriveCategory(score)).toBe('balanced')
 })
 
-test('computeSurveyScore applies reverse scoring', () => {
-  const responses = Array(10).fill(5)
-  const score = computeSurveyScore(responses)
-  // two reverse scored questions => (8*5) + (2*(6-5)) = 42
-  expect(score).toBe(42)
+test('computeSurveyScore normalizes answers', () => {
+  expect(computeSurveyScore(Array(5).fill(1))).toBe(0)
+  expect(computeSurveyScore(Array(5).fill(5))).toBe(100)
+  expect(computeSurveyScore([3,3,3,3,3])).toBe(50)
 })

@@ -1,37 +1,25 @@
-// src/ProfileTab.jsx
+// src/PersonalDetailsStep.jsx
 import React, { useState, useEffect } from 'react'
 import { useFinance } from '../../FinanceContext'
 import storage from '../../utils/storage'
 import sanitize from '../../utils/sanitize'
 import { record, flush } from '../../utils/auditLog'
-import RiskSummary from './RiskSummary.jsx'
-import { calculateRiskScore, deriveCategory, computeSurveyScore } from '../../utils/riskUtils'
-import { riskSurveyQuestions } from '../../config/riskSurvey'
 import { profileSchema } from '../../validation/profileSchema.js'
 
-export default function ProfileTab() {
+export default function PersonalDetailsStep({ onNext }) {
   const {
     profile,
     updateProfile,
     clearProfile,
     resetProfile,
-    riskScore: _riskScore,
   } = useFinance()
   const [form, setForm] = useState(profile)
-  const [riskScoreValue, setRiskScoreValue] = useState(0)
-  const [riskCategory, setRiskCategory] = useState('balanced')
   const [errors, setErrors] = useState({})
 
   // Whenever the context’s profile changes, reset the form
   useEffect(() => {
     setForm(profile)
   }, [profile])
-
-  useEffect(() => {
-    const score = calculateRiskScore(form)
-    setRiskScoreValue(score)
-    setRiskCategory(deriveCategory(score))
-  }, [form])
 
   // Handle any field change locally, then persist via context
   const handleChange = (field, value) => {
@@ -69,27 +57,6 @@ export default function ProfileTab() {
     updateProfile(updated)
   }
 
-  const handleSurveyChange = (idx, value) => {
-    const answers = Array.isArray(form.riskSurvey)
-      ? [...form.riskSurvey]
-      : Array(riskSurveyQuestions.length).fill(0)
-    answers[idx] = Number(value)
-    const score = computeSurveyScore(answers)
-    const updated = { ...form, riskSurvey: answers, surveyScore: score }
-    const result = profileSchema.safeParse(updated)
-    if (!result.success) {
-      const errs = Object.fromEntries(
-        Object.entries(result.error.flatten().fieldErrors)
-          .filter(([, v]) => v && v[0])
-          .map(([k, v]) => [k, v[0]])
-      )
-      setErrors(errs)
-    } else {
-      setErrors({})
-    }
-    setForm(updated)
-    updateProfile(updated)
-  }
 
   useEffect(() => {
     return () => flush(storage)
@@ -103,8 +70,6 @@ export default function ProfileTab() {
         Client Profile & Risk Assessment
       </h2>
 
-      {/* Live Risk Score Display */}
-      <RiskSummary score={riskScoreValue} category={riskCategory} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Personal & KYC Section */}
@@ -263,57 +228,6 @@ export default function ProfileTab() {
           </div>
         </div>
 
-        {/* Risk Tolerance Questionnaire */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-slate-700">
-            Risk Tolerance Questionnaire
-          </h3>
-          {[
-            ['Investment Knowledge', 'investmentKnowledge', ['', 'None', 'Basic', 'Moderate', 'Advanced']],
-            ['Reaction to 20% Loss', 'lossResponse', ['', 'Sell', 'Wait', 'BuyMore']],
-            ['Investment Horizon', 'investmentHorizon', ['', '<3 years', '3–7 years', '>7 years']],
-            ['Investment Goal', 'investmentGoal', ['', 'Preservation', 'Income', 'Growth']]
-          ].map(([label, field, options]) => (
-            <label key={field} className="block">
-              <span className="text-sm text-slate-600">{label}</span>
-              <select
-                value={form[field]}
-                onChange={e => handleChange(field, e.target.value)}
-                className="w-full border rounded-md p-2"
-                title={label}
-              >
-                {options.map(o => (
-                  <option key={o} value={o}>
-                    {o || 'Select…'}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-        </div>
-
-        {/* Risk Survey */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-slate-700">Risk Survey</h3>
-          {riskSurveyQuestions.map((q, idx) => (
-            <label key={idx} className="block">
-              <span className="text-sm text-slate-600">{q.text}</span>
-              <select
-                value={form.riskSurvey?.[idx] || 0}
-                onChange={e => handleSurveyChange(idx, e.target.value)}
-                className="w-full border rounded-md p-2 mt-1"
-                title={`Risk Survey Q${idx + 1}`}
-              >
-                <option value={0}>Select…</option>
-                {[1, 2, 3, 4, 5].map(v => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-        </div>
       </div>
 
       <div className="text-right space-x-2">
@@ -331,6 +245,15 @@ export default function ProfileTab() {
         >
           Reset to Defaults
         </button>
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="mt-2 ml-2 border border-amber-600 bg-amber-600 text-white px-4 py-1 rounded-md text-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            aria-label="Next"
+          >
+            Next
+          </button>
+        )}
       </div>
 
       <div className="text-right text-sm text-slate-500 italic mt-2">
