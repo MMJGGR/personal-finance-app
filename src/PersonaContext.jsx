@@ -13,6 +13,9 @@ export function PersonaProvider({ children }) {
     return personasData.find(p => p.id === id) || personasData[0]
   })
 
+  // ensure storage module is scoped to current persona before first render
+  storage.setPersona(currentPersonaId)
+
   useEffect(() => {
     storage.setPersona(currentPersonaId)
   }, [currentPersonaId])

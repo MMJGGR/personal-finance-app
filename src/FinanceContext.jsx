@@ -99,6 +99,8 @@ const FinanceContext = createContext()
 
 export function FinanceProvider({ children }) {
   const { currentData, currentPersonaId } = usePersona()
+  // ensure persona prefix is set before any storage reads
+  storage.setPersona(currentPersonaId)
   useEffect(() => {
     storage.setPersona(currentPersonaId)
   }, [currentPersonaId])
