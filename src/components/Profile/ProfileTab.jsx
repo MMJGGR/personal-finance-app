@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react'
 import { useFinance } from '../../FinanceContext'
 import storage from '../../utils/storage'
 import sanitize from '../../utils/sanitize'
-import { appendAuditLog } from '../../utils/auditLog'
+import { record, flush } from '../../utils/auditLog'
+import RiskSummary from './RiskSummary.jsx'
+import { calculateRiskScore, deriveCategory } from '../../utils/riskUtils'
 
 export default function ProfileTab() {
   const {
@@ -14,21 +16,25 @@ export default function ProfileTab() {
     riskScore,
   } = useFinance()
   const [form, setForm] = useState(profile)
+  const [riskScoreValue, setRiskScoreValue] = useState(0)
+  const [riskCategory, setRiskCategory] = useState('balanced')
 
   // Whenever the context’s profile changes, reset the form
   useEffect(() => {
     setForm(profile)
   }, [profile])
 
+  useEffect(() => {
+    const score = calculateRiskScore(form)
+    setRiskScoreValue(score)
+    setRiskCategory(deriveCategory(score))
+  }, [form])
+
   // Handle any field change locally, then persist via context
   const handleChange = (field, value) => {
     const clean = typeof value === 'string' ? sanitize(value) : value
     const updated = { ...form, [field]: clean }
-    appendAuditLog(storage, {
-      field: `profile.${field}`,
-      oldValue: form[field],
-      newValue: clean,
-    })
+    record(storage, `profile.${field}`, form[field], clean)
 
     if (field === 'lifeExpectancy' && value <= updated.age) {
       updated.lifeExpectancy = updated.age + 1
@@ -40,14 +46,11 @@ export default function ProfileTab() {
     updateProfile(updated)
   }
 
-  const remainingYears = form.lifeExpectancy - form.age
+  useEffect(() => {
+    return () => flush(storage)
+  }, [])
 
-  // Map numeric riskScore to a category label
-  const scoreCategory = (s) => {
-    if (s <= 6) return 'Conservative'
-    if (s <= 12) return 'Balanced'
-    return 'Growth'
-  }
+  const remainingYears = form.lifeExpectancy - form.age
 
   return (
     <div className="space-y-6 p-6">
@@ -56,12 +59,7 @@ export default function ProfileTab() {
       </h2>
 
       {/* Live Risk Score Display */}
-      <div className="bg-amber-100 p-4 rounded-md">
-        <p className="text-lg">
-          Risk Score: <span className="font-semibold">{riskScore}</span> —{' '}
-          <span className="ml-2 font-medium">{scoreCategory(riskScore)}</span>
-        </p>
-      </div>
+      <RiskSummary score={riskScoreValue} category={riskCategory} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Personal & KYC Section */}
@@ -70,14 +68,21 @@ export default function ProfileTab() {
             Personal & KYC Information
           </h3>
           {[
-            ['Full Name', 'name', 'text'], // FIXME: unused - pending integration
-            ['Email Address', 'email', 'email'], // FIXME: unused - pending integration
-            ['Phone Number', 'phone', 'tel'], // FIXME: unused - pending integration
+            ['First Name', 'firstName', 'text'],
+            ['Last Name', 'lastName', 'text'],
+            ['Email Address', 'email', 'email'],
+            ['Phone Number', 'phone', 'tel'],
+            ['Address', 'address', 'text'],
+            ['City', 'city', 'text'],
+            ['Country', 'country', 'text'],
+            ['Tax Country', 'taxCountry', 'text'],
+            ['Tax ID', 'taxId', 'text'],
+            ['Employment Status', 'employmentStatus', 'text'],
+            ['Employer Name', 'employerName', 'text'],
             ['Age', 'age', 'number'],
             ['Life Expectancy', 'lifeExpectancy', 'number'],
-            ['Marital Status', 'maritalStatus', 'select', ['', 'Single', 'Married', 'Divorced', 'Widowed']], // FIXME: unused - pending integration
-            ['Dependents', 'numDependents', 'number'], // FIXME: unused - pending integration
-            ['Education', 'education', 'text'] // FIXME: unused - pending integration
+            ['Dependents', 'numDependents', 'number'],
+            ['Education', 'education', 'text']
           ].map(([label, field, type, options]) => (
             <label key={field} className="block">
               <span className="text-sm text-slate-600">{label}</span>
@@ -114,27 +119,6 @@ export default function ProfileTab() {
             <p className="text-red-600 text-sm">Life expectancy must exceed age.</p>
           )}
 
-          {[
-            ['Residential Address', 'residentialAddress'], // FIXME: unused - pending integration
-            ['Nationality', 'nationality'], // FIXME: unused - pending integration
-            ['Location', 'location'], // FIXME: unused - pending integration
-            ['Citizenship', 'citizenship'], // FIXME: unused - pending integration
-            ['ID / Passport #', 'idNumber'], // FIXME: unused - pending integration
-            ['Tax Residence', 'taxResidence'], // FIXME: unused - pending integration
-            ['Tax Jurisdiction', 'taxJurisdiction'], // FIXME: unused - pending integration
-            ['Employment Status', 'employmentStatus'] // FIXME: unused - pending integration
-          ].map(([label, field]) => (
-            <label key={field} className="block">
-              <span className="text-sm text-slate-600">{label}</span>
-              <input
-                type="text"
-                value={form[field]}
-                onChange={e => handleChange(field, e.target.value)}
-                className="w-full border rounded-md p-2"
-                title={label}
-              />
-            </label>
-          ))}
 
           {[
             ['Annual Income (KES)', 'annualIncome'],
