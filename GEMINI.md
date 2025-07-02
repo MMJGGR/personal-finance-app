@@ -5,20 +5,42 @@
 
 ---
 
-## Status Matrix
-| Aspect                          | Current Status                       | Desired Change                                                                                       | Expected Outcome                                                                              |
-|---------------------------------|--------------------------------------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| Seed Data Integration           | Profile state loads but form empty   | Load `hadiSeed.json` into context and pre-populate form inputs                                      | Form fields display seed values on initial render                                            |
-| KYC Inputs                       | Some fields placeholder (`FIXME`)    | Render all required inputs: personal, contact, address, tax & employment sections                    | User sees and can edit all KYC fields                                                         |
-| Layout & UX                     | Single-column, no summary           | Two-column grid: form on left, live Risk Summary on right                                           | Risk Summary updates reactively; form visually balanced                                       |
-| Scoring Logic                   | Basic placeholder logic              | Implement CFA weights & thresholds from `riskConfig.js`; calculate score (0–100) and category       | Scores and categories reflect CFA standards and are adjustable via config                     |
-| Audit Logging                   | Basic record API                     | Extend to record field, old/new values, userId, timestamp; flush to `localStorage`                  | Full audit trail persisted locally; reviewable in logs                                        |
-| Validation & Error Handling     | Minimal or no validation             | Zod schema in `validation/profileSchema.js`; inline errors; disable Save when invalid               | Form enforces data integrity; user cannot save invalid profiles                               |
-| Tests & Coverage                | Some tests, unknown coverage         | Add RTL and unit tests for form population, scoring, audit calls, validation; target ≥90% coverage | Reliable regression safety; all key logic and UI flows validated                              |
+## Status Overview
 
----
+- **Seed Data Integration**
+  - *Current:* Form fields not pre-populated from Hadi seed.
+  - *Desired:* Load `hadiSeed.json` into context and pre-populate form inputs.
+  - *Expected Outcome:* Form fields display seed values on initial render.
 
-## Implementation Steps
+- **KYC Inputs**
+  - *Current:* `FIXME` placeholders remain; key inputs missing.
+  - *Desired:* Render all required inputs in Personal, Contact, Address, and Tax & Employment sections.
+  - *Expected Outcome:* User sees and can edit all KYC fields.
+
+- **Layout & UX**
+  - *Current:* Single-column layout; no risk summary.
+  - *Desired:* Two-column grid with form on left and live Risk Summary on right.
+  - *Expected Outcome:* Risk Summary updates reactively; form visually balanced.
+
+- **Scoring Logic**
+  - *Current:* Placeholder logic only.
+  - *Desired:* Implement CFA weights & thresholds via `riskConfig.js`; calculate 0–100 score and category.
+  - *Expected Outcome:* Scores and categories reflect CFA standards and are configurable.
+
+- **Audit Logging**
+  - *Current:* Basic record API without metadata.
+  - *Desired:* Record field, old/new values, userId, timestamp; flush to `localStorage`.
+  - *Expected Outcome:* Full audit trail persisted locally; reviewable in logs.
+
+- **Validation & Error Handling**
+  - *Current:* Minimal or no validation.
+  - *Desired:* Enforce Zod schema in `validation/profileSchema.js`; show inline errors; disable Save when invalid.
+  - *Expected Outcome:* Form enforces data integrity; blocks invalid saves.
+
+- **Tests & Coverage**
+  - *Current:* Tests exist but coverage and key flows unverified.
+  - *Desired:* Add RTL and unit tests for form population, scoring, audit calls, validation; target ≥90% coverage.
+  - *Expected Outcome:* Reliable regression safety; key logic and UI flows validated.
 
 ### 1. Seed Data Integration
 - In `FinanceContext.jsx`, import and set `seedData.profile` as initial state.
