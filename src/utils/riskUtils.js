@@ -6,6 +6,7 @@ import {
   investmentHorizonScores,
   investmentGoalScores,
 } from '../config/riskScoreConfig.js';
+import { riskSurveyQuestions } from '../config/riskSurvey.js';
 
 function calculateAge(birthDate) {
   if (!birthDate) return 0;
@@ -78,6 +79,15 @@ function normalizeGoal(goal) {
 function normalizeLiquidity(needs) {
   const n = Number(needs) || 0;
   return Math.max(0, Math.min((n / 12) * 100, 100));
+}
+
+export function computeSurveyScore(responses = []) {
+  if (!Array.isArray(responses)) return 0;
+  return riskSurveyQuestions.reduce((sum, q, idx) => {
+    const val = Number(responses[idx]) || 0;
+    const score = q.reverse ? 6 - val : val;
+    return sum + score;
+  }, 0);
 }
 
 function normalizeSurveyScore(rawScore) {

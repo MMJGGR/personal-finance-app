@@ -70,3 +70,13 @@ test('audit log record called on field change', () => {
   fireEvent.change(screen.getByTitle('Email Address'), { target: { value: 'a@b.com' } })
   expect(spy).toHaveBeenCalled()
 })
+
+test('renders risk survey questions', () => {
+  render(
+    <FinanceProvider>
+      <ProfileTab />
+    </FinanceProvider>
+  )
+  expect(screen.getByText(/Risk Survey/i)).toBeInTheDocument()
+  expect(screen.getByTitle('Risk Survey Q1')).toBeInTheDocument()
+})

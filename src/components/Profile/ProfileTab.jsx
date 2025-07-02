@@ -5,7 +5,8 @@ import storage from '../../utils/storage'
 import sanitize from '../../utils/sanitize'
 import { record, flush } from '../../utils/auditLog'
 import RiskSummary from './RiskSummary.jsx'
-import { calculateRiskScore, deriveCategory } from '../../utils/riskUtils'
+import { calculateRiskScore, deriveCategory, computeSurveyScore } from '../../utils/riskUtils'
+import { riskSurveyQuestions } from '../../config/riskSurvey'
 import { profileSchema } from '../../validation/profileSchema.js'
 
 export default function ProfileTab() {
@@ -59,6 +60,28 @@ export default function ProfileTab() {
     if (!result.success) {
       const errs = Object.fromEntries(
         Object.entries(result.error.flatten().fieldErrors).filter(([, v]) => v && v[0]).map(([k, v]) => [k, v[0]])
+      )
+      setErrors(errs)
+    } else {
+      setErrors({})
+    }
+    setForm(updated)
+    updateProfile(updated)
+  }
+
+  const handleSurveyChange = (idx, value) => {
+    const answers = Array.isArray(form.riskSurvey)
+      ? [...form.riskSurvey]
+      : Array(riskSurveyQuestions.length).fill(0)
+    answers[idx] = Number(value)
+    const score = computeSurveyScore(answers)
+    const updated = { ...form, riskSurvey: answers, surveyScore: score }
+    const result = profileSchema.safeParse(updated)
+    if (!result.success) {
+      const errs = Object.fromEntries(
+        Object.entries(result.error.flatten().fieldErrors)
+          .filter(([, v]) => v && v[0])
+          .map(([k, v]) => [k, v[0]])
       )
       setErrors(errs)
     } else {
@@ -262,6 +285,29 @@ export default function ProfileTab() {
                 {options.map(o => (
                   <option key={o} value={o}>
                     {o || 'Select…'}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+
+        {/* Risk Survey */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-700">Risk Survey</h3>
+          {riskSurveyQuestions.map((q, idx) => (
+            <label key={idx} className="block">
+              <span className="text-sm text-slate-600">{q.text}</span>
+              <select
+                value={form.riskSurvey?.[idx] || 0}
+                onChange={e => handleSurveyChange(idx, e.target.value)}
+                className="w-full border rounded-md p-2 mt-1"
+                title={`Risk Survey Q${idx + 1}`}
+              >
+                <option value={0}>Select…</option>
+                {[1, 2, 3, 4, 5].map(v => (
+                  <option key={v} value={v}>
+                    {v}
                   </option>
                 ))}
               </select>

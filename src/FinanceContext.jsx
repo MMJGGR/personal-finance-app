@@ -74,6 +74,8 @@ const defaultProfile = {
   investmentHorizon: '',
   investmentGoal: '',
   lifeExpectancy: 85,
+  riskSurvey: Array(10).fill(0),
+  surveyScore: 0,
 }
 
 function mapPersonaProfile(seed = {}) {
@@ -103,6 +105,16 @@ function mapPersonaProfile(seed = {}) {
   }
   if (typeof seed.netWorth === 'number' && typeof seed.liquidNetWorth !== 'number') {
     out.liquidNetWorth = seed.netWorth
+  }
+  if (Array.isArray(seed.riskSurvey)) {
+    out.riskSurvey = [...seed.riskSurvey]
+  } else if (typeof seed.surveyScore === 'number') {
+    // approximate evenly distributed responses if only total provided
+    const avg = Math.round(seed.surveyScore / 10)
+    out.riskSurvey = Array(10).fill(avg)
+  }
+  if (typeof seed.surveyScore === 'number') {
+    out.surveyScore = seed.surveyScore
   }
   return out
 }
