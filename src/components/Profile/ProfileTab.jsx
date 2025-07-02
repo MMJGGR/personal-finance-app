@@ -40,6 +40,17 @@ export default function ProfileTab() {
       updated.lifeExpectancy = updated.age + 1
     } else if (field === 'age' && updated.lifeExpectancy <= value) {
       updated.lifeExpectancy = value + 1
+    } else if (field === 'birthDate') {
+      const dob = new Date(value)
+      if (!isNaN(dob)) {
+        const diff = Date.now() - dob.getTime()
+        const ageDt = new Date(diff)
+        const years = Math.abs(ageDt.getUTCFullYear() - 1970)
+        updated.age = years
+        if (updated.lifeExpectancy <= years) {
+          updated.lifeExpectancy = years + 1
+        }
+      }
     }
 
     setForm(updated)
@@ -79,6 +90,7 @@ export default function ProfileTab() {
             ['Tax ID', 'taxId', 'text'],
             ['Employment Status', 'employmentStatus', 'text'],
             ['Employer Name', 'employerName', 'text'],
+            ['Birth Date', 'birthDate', 'date'],
             ['Age', 'age', 'number'],
             ['Life Expectancy', 'lifeExpectancy', 'number'],
             ['Dependents', 'numDependents', 'number'],

@@ -8,8 +8,14 @@ function calculateAge(birthDate) {
   return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
 
-function normalizeAge(birthDate) {
-  const age = calculateAge(birthDate);
+function extractAge(profile) {
+  if (typeof profile.age === 'number' && !Number.isNaN(profile.age)) {
+    return profile.age;
+  }
+  return calculateAge(profile.birthDate);
+}
+
+function normalizeAgeValue(age) {
   return Math.max(0, Math.min((age / 100) * 100, 100));
 }
 
@@ -19,6 +25,19 @@ function normalizeIncome(annualIncome) {
 
 function normalizeNetWorth(netWorth) {
   return Math.max(0, Math.min((netWorth / 5_000_000) * 100, 100));
+}
+
+function extractNetWorth(profile) {
+  if (typeof profile.netWorth === 'number' && !Number.isNaN(profile.netWorth)) {
+    return profile.netWorth;
+  }
+  if (
+    typeof profile.liquidNetWorth === 'number' &&
+    !Number.isNaN(profile.liquidNetWorth)
+  ) {
+    return profile.liquidNetWorth;
+  }
+  return 0;
 }
 
 function normalizeExperience(years) {
@@ -39,10 +58,12 @@ function normalizeSurveyScore(rawScore) {
 }
 
 export function calculateRiskScore(profile = {}) {
+  const age = extractAge(profile);
+  const netWorth = extractNetWorth(profile);
   const scores = {
-    age: normalizeAge(profile.birthDate) * riskWeights.age,
+    age: normalizeAgeValue(age) * riskWeights.age,
     annualIncome: normalizeIncome(profile.annualIncome) * riskWeights.annualIncome,
-    netWorth: normalizeNetWorth(profile.netWorth) * riskWeights.netWorth,
+    netWorth: normalizeNetWorth(netWorth) * riskWeights.netWorth,
     investingExperience: normalizeExperience(profile.yearsInvesting) * riskWeights.investingExperience,
     employmentStatus: normalizeEmployment(profile.employmentStatus) * riskWeights.employmentStatus,
     liquidityNeeds: normalizeLiquidity(profile.emergencyFundMonths) * riskWeights.liquidityNeeds,

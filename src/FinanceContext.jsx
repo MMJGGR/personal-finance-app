@@ -50,6 +50,7 @@ const defaultProfile = {
   taxId: '',
   employmentStatus: '',
   employerName: '',
+  birthDate: '',
   age: 30,
   maritalStatus: '', // FIXME: unused - pending integration
   numDependents: 0, // FIXME: unused - pending integration
@@ -62,6 +63,7 @@ const defaultProfile = {
   idNumber: '', // FIXME: unused - pending integration
   taxResidence: '', // FIXME: unused - pending integration
   annualIncome: 0,
+  netWorth: 0,
   liquidNetWorth: 0,
   sourceOfFunds: '', // FIXME: unused - pending integration
   behaviouralProfile: {}, // FIXME: unused - pending integration
@@ -91,6 +93,15 @@ function mapPersonaProfile(seed = {}) {
   }
   if (seed.taxResidence && !seed.taxCountry) {
     out.taxCountry = seed.taxResidence
+  }
+  if (seed.birthDate && typeof seed.age !== 'number') {
+    const dob = new Date(seed.birthDate)
+    const diff = Date.now() - dob.getTime()
+    const ageDt = new Date(diff)
+    out.age = Math.abs(ageDt.getUTCFullYear() - 1970)
+  }
+  if (typeof seed.netWorth === 'number' && typeof seed.liquidNetWorth !== 'number') {
+    out.liquidNetWorth = seed.netWorth
   }
   return out
 }
