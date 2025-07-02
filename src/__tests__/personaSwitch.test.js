@@ -19,8 +19,10 @@ test('switching personas updates profile and income tabs', async () => {
   // switch to Amina via dropdown
   fireEvent.change(screen.getByLabelText(/Persona/i), { target: { value: 'amina' } })
 
-  // profile tab shows new name
-  await screen.findByText(/Amina Okoth/i)
+  // profile tab shows new first name in form
+  await waitFor(() => {
+    expect(screen.getByDisplayValue(/Amina/)).toBeInTheDocument()
+  })
   await waitFor(() => expect(localStorage.getItem('currentPersonaId')).toBe('amina'))
 
   // open Income tab so FinanceProvider loads income data
