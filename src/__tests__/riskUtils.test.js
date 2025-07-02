@@ -56,3 +56,33 @@ test('deriveCategory boundaries', () => {
   expect(deriveCategory(50)).toBe('balanced')
   expect(deriveCategory(80)).toBe('growth')
 })
+
+test('example conservative profile', () => {
+  const conservative = {
+    age: 70,
+    annualIncome: 100000,
+    liquidNetWorth: 100000,
+    yearsInvesting: 0,
+    employmentStatus: 'Retired',
+    emergencyFundMonths: 12,
+    surveyScore: 10
+  }
+  const score = calculateRiskScore(conservative)
+  expect(score).toBeLessThanOrEqual(30)
+  expect(deriveCategory(score)).toBe('conservative')
+})
+
+test('example growth profile', () => {
+  const growth = {
+    age: 25,
+    annualIncome: 4500000,
+    liquidNetWorth: 5000000,
+    yearsInvesting: 15,
+    employmentStatus: 'Full-Time',
+    emergencyFundMonths: 2,
+    surveyScore: 50
+  }
+  const score = calculateRiskScore(growth)
+  expect(score).toBeGreaterThanOrEqual(71)
+  expect(deriveCategory(score)).toBe('growth')
+})

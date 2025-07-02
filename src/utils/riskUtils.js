@@ -21,11 +21,13 @@ function normalizeAgeValue(age) {
 }
 
 function normalizeIncome(annualIncome) {
-  return Math.max(0, Math.min((annualIncome / 1_000_000) * 100, 100));
+  const n = Number(annualIncome) || 0;
+  return Math.max(0, Math.min((n / 1_000_000) * 100, 100));
 }
 
 function normalizeNetWorth(netWorth) {
-  return Math.max(0, Math.min((netWorth / 5_000_000) * 100, 100));
+  const n = Number(netWorth) || 0;
+  return Math.max(0, Math.min((n / 5_000_000) * 100, 100));
 }
 
 function extractNetWorth(profile) {
@@ -42,7 +44,8 @@ function extractNetWorth(profile) {
 }
 
 function normalizeExperience(years) {
-  return Math.max(0, Math.min((years / 30) * 100, 100));
+  const n = Number(years) || 0;
+  return Math.max(0, Math.min((n / 30) * 100, 100));
 }
 
 function normalizeEmployment(status) {
@@ -51,24 +54,36 @@ function normalizeEmployment(status) {
 
 
 function normalizeLiquidity(needs) {
-  return Math.max(0, Math.min((needs / 12) * 100, 100));
+  const n = Number(needs) || 0;
+  return Math.max(0, Math.min((n / 12) * 100, 100));
 }
 
 function normalizeSurveyScore(rawScore) {
-  return Math.max(0, Math.min(((rawScore - 10) / 40) * 100, 100));
+  const n = Number(rawScore) || 0;
+  return Math.max(0, Math.min(((n - 10) / 40) * 100, 100));
 }
 
 export function calculateRiskScore(profile = {}) {
-  const age = extractAge(profile);
-  const netWorth = extractNetWorth(profile);
+  if (!profile.employmentStatus) return 0;
+  const age = Number(extractAge(profile));
+  const annualIncome = Number(profile.annualIncome);
+  const netWorth = Number(extractNetWorth(profile));
+  const yearsInvesting = Number(profile.yearsInvesting);
+  const emergencyFundMonths = Number(profile.emergencyFundMonths);
+  const surveyScore = Number(profile.surveyScore);
+
+  if ([age, annualIncome, netWorth, yearsInvesting, emergencyFundMonths, surveyScore].some(v => Number.isNaN(v))) {
+    return 0;
+  }
+
   const scores = {
     age: normalizeAgeValue(age) * riskWeights.age,
-    annualIncome: normalizeIncome(profile.annualIncome) * riskWeights.annualIncome,
+    annualIncome: normalizeIncome(annualIncome) * riskWeights.annualIncome,
     netWorth: normalizeNetWorth(netWorth) * riskWeights.netWorth,
-    investingExperience: normalizeExperience(profile.yearsInvesting) * riskWeights.investingExperience,
+    investingExperience: normalizeExperience(yearsInvesting) * riskWeights.investingExperience,
     employmentStatus: normalizeEmployment(profile.employmentStatus) * riskWeights.employmentStatus,
-    liquidityNeeds: normalizeLiquidity(profile.emergencyFundMonths) * riskWeights.liquidityNeeds,
-    riskToleranceSurvey: normalizeSurveyScore(profile.surveyScore) * riskWeights.riskToleranceSurvey,
+    liquidityNeeds: normalizeLiquidity(emergencyFundMonths) * riskWeights.liquidityNeeds,
+    riskToleranceSurvey: normalizeSurveyScore(surveyScore) * riskWeights.riskToleranceSurvey,
   };
   const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
   return Math.round(Math.max(0, Math.min(total, 100)));

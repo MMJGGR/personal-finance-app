@@ -46,6 +46,18 @@
 - In `FinanceContext.jsx`, import and set `seedData.profile` as initial state.
 - On mount (`useEffect`), call `setProfile(initialProfile)` to pre-populate.
 - Ensure no mutations of the JSON seed file; all updates occur in component state.
+- Confirm the path `src/data/hadiSeed.json` and include the import:
+  ```js
+  import hadiSeed from './data/hadiSeed.json'
+  ```
+- In `hadiSeed.json` set defaults for scoring fields so normalizers never see `undefined`:
+  ```json
+  {
+    "yearsInvesting": 0,
+    "emergencyFundMonths": 0,
+    "surveyScore": 0
+  }
+  ```
 
 ### 2. UI Integration in `ProfileTab.jsx`
 - Remove all `FIXME` placeholders; render inputs for:
@@ -116,16 +128,31 @@ function normalizeSurveyScore(rawScore) {
   return Math.max(0, Math.min(((rawScore - 10) / 40) * 100, 100));
 }
 
+// Cast every input to a number and default to 0 so NaN never propagates
+const safeNum = v => Number(v) || 0;
+
 // Main calculation
 export function calculateRiskScore(profile) {
+  // Guard against missing or NaN values
+  if (!profile.employmentStatus) return 0;
+  const age = safeNum(extractAge(profile));
+  const income = safeNum(profile.annualIncome);
+  const worth = safeNum(profile.netWorth);
+  const years = safeNum(profile.yearsInvesting);
+  const efund = safeNum(profile.emergencyFundMonths);
+  const survey = safeNum(profile.surveyScore);
+
+  if ([age, income, worth, years, efund, survey].some(n => Number.isNaN(n))) {
+    return 0;
+  }
   const scores = {
-    age:                 normalizeAge(profile.birthDate) * riskWeights.age,
-    annualIncome:        normalizeIncome(profile.annualIncome) * riskWeights.annualIncome,
-    netWorth:            normalizeNetWorth(profile.netWorth) * riskWeights.netWorth,
-    investingExperience: normalizeExperience(profile.yearsInvesting) * riskWeights.investingExperience,
+    age:                 normalizeAge(age) * riskWeights.age,
+    annualIncome:        normalizeIncome(income) * riskWeights.annualIncome,
+    netWorth:            normalizeNetWorth(worth) * riskWeights.netWorth,
+    investingExperience: normalizeExperience(years) * riskWeights.investingExperience,
     employmentStatus:    normalizeEmployment(profile.employmentStatus) * riskWeights.employmentStatus,
-    liquidityNeeds:      normalizeLiquidity(profile.emergencyFundMonths) * riskWeights.liquidityNeeds,
-    riskToleranceSurvey: normalizeSurveyScore(profile.surveyScore) * riskWeights.riskToleranceSurvey,
+    liquidityNeeds:      normalizeLiquidity(efund) * riskWeights.liquidityNeeds,
+    riskToleranceSurvey: normalizeSurveyScore(survey) * riskWeights.riskToleranceSurvey,
   };
   // Sum weighted scores, ensure 0–100
   const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
@@ -161,6 +188,21 @@ useEffect(() => {
   profile.emergencyFundMonths,
   profile.surveyScore,
 ]);
+
+// JSX layout
+return (
+  <div className="space-y-6 p-6">
+    <h2 className="text-2xl font-bold text-amber-800">
+      Client Profile & Risk Assessment
+    </h2>
+    <RiskSummary score={riskScoreValue} category={riskCategory} />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        {/* form inputs here */}
+      </div>
+    </div>
+  </div>
+);
 ```
 
 ---
@@ -196,6 +238,27 @@ Audit Logging & Persistence
 
   1. Known profiles yield expected scores.
   2. `deriveCategory` returns correct categories at boundaries.
+  3. Include fixtures for quick copy/paste:
+     ```js
+     const conservative = {
+       age: 70,
+       annualIncome: 100000,
+       liquidNetWorth: 100000,
+       yearsInvesting: 0,
+       employmentStatus: 'Retired',
+       emergencyFundMonths: 12,
+       surveyScore: 10
+     }
+     const growth = {
+       age: 25,
+       annualIncome: 4500000,
+       liquidNetWorth: 5000000,
+       yearsInvesting: 15,
+       employmentStatus: 'Full-Time',
+       emergencyFundMonths: 2,
+       surveyScore: 50
+     }
+     ```
 * Ensure overall coverage ≥90% for these modules.
 
 ---
@@ -207,5 +270,8 @@ Audit Logging & Persistence
 * **Auditability:** Every change is logged with full metadata and persisted, enabling compliance reviews.
 * **Reliability:** Comprehensive tests guard against regressions, ensuring enterprise-grade stability.
 
-```
-```
+````
+
+Task 1 – **Done**
+
+````
