@@ -35,6 +35,7 @@ export default function IncomeTab() {
     settings,
     expensesList,
     assetsList,
+    privatePensionContributions,
     setIncomePV,
     startYear,
     years,
@@ -66,11 +67,12 @@ export default function IncomeTab() {
               discountRate,
               years,
               assumptions,
-              findLinkedAsset(s.linkedAssetId, assetsList)
+              findLinkedAsset(s.linkedAssetId, assetsList),
+              privatePensionContributions
             )
           : { gross: 0, net: 0 }
       ),
-    [incomeSources, discountRate, years, assumptions, assetsList, startYear]
+    [incomeSources, discountRate, years, assumptions, assetsList, startYear, privatePensionContributions]
   )
 
   const totalGrossPV = useMemo(
@@ -90,9 +92,10 @@ export default function IncomeTab() {
         { ...assumptions, annualExpenses: monthlyExpense * 12 },
         assetsList,
         years,
-        startYear
+        startYear,
+        privatePensionContributions
       ),
-    [incomeSources, assumptions, assetsList, years, monthlyExpense, startYear]
+    [incomeSources, assumptions, assetsList, years, monthlyExpense, startYear, privatePensionContributions]
   )
 
   const timelinePV = useMemo(
