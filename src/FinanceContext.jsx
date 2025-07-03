@@ -1329,6 +1329,14 @@ export function FinanceProvider({ children }) {
           ...parsed,
         })
       }
+    } else if (currentData?.settings) {
+      setSettings({
+        discretionaryCutThreshold: 0,
+        survivalThresholdMonths: 0,
+        bufferPct: 0,
+        retirementAge: 65,
+        ...currentData.settings,
+      })
     } else {
       const incomeStartYearFromStorage = storage.get('incomeStartYear')
       const defaults = {
@@ -1382,6 +1390,22 @@ export function FinanceProvider({ children }) {
       } catch {
         setIncomeSources([])
       }
+    } else if (currentData?.incomeSources?.length) {
+      const now = new Date().getFullYear()
+      setIncomeSources(
+        currentData.incomeSources.map(src => ({
+          id: crypto.randomUUID(),
+          startYear: src.startYear ?? now,
+          startAge: src.startAge ?? null,
+          endYear: src.endYear ?? null,
+          linkedAssetId: src.linkedAssetId ?? '',
+          active: src.active !== false,
+          taxed: src.taxed ?? true,
+          grossSalary: src.grossSalary ?? 0,
+          contractedOutTier2: src.contractedOutTier2 ?? false,
+          ...src,
+        }))
+      )
     } else {
       setIncomeSources([])
     }
@@ -1416,6 +1440,29 @@ export function FinanceProvider({ children }) {
       } catch {
         setExpensesList([])
       }
+    } else if (currentData?.expensesList?.length) {
+      const now = new Date().getFullYear()
+      const seen = new Set()
+      setExpensesList(
+        currentData.expensesList.map(exp => {
+          const ppy = typeof exp.paymentsPerYear === 'number'
+            ? exp.paymentsPerYear
+            : frequencyToPayments(exp.frequency) || 1
+          let id = exp.id || crypto.randomUUID()
+          while (seen.has(id)) id = crypto.randomUUID()
+          seen.add(id)
+          return {
+            ...exp,
+            id,
+            monthDue: exp.monthDue ?? 1,
+            startYear: exp.startYear ?? now,
+            endYear: exp.endYear ?? null,
+            priority: exp.priority ?? 2,
+            include: exp.include !== false,
+            paymentsPerYear: ppy,
+          }
+        })
+      )
     } else {
       setExpensesList([])
     }
@@ -1434,6 +1481,18 @@ export function FinanceProvider({ children }) {
       } catch {
         setGoalsList([])
       }
+    } else if (currentData?.goalsList?.length) {
+      const now = new Date().getFullYear()
+      setGoalsList(
+        currentData.goalsList.map(g => ({
+          id: crypto.randomUUID(),
+          startYear: g.startYear ?? g.targetYear ?? now,
+          endYear: g.endYear ?? g.targetYear ?? now,
+          type: g.type ?? '',
+          daysCover: g.daysCover ?? 0,
+          ...g,
+        }))
+      )
     } else {
       setGoalsList([])
     }
@@ -1455,6 +1514,17 @@ export function FinanceProvider({ children }) {
       } catch {
         setAssetsList([])
       }
+    } else if (currentData?.assetsList?.length) {
+      setAssetsList(
+        currentData.assetsList.map(a => ({
+          id: crypto.randomUUID(),
+          type: a.type || '',
+          expectedReturn: a.expectedReturn ?? 0,
+          volatility: a.volatility ?? 0,
+          horizonYears: a.horizonYears ?? 0,
+          ...a,
+        }))
+      )
     } else {
       setAssetsList([])
     }
@@ -1467,6 +1537,14 @@ export function FinanceProvider({ children }) {
       } catch {
         setLiabilitiesList([])
       }
+    } else if (currentData?.liabilitiesList?.length) {
+      setLiabilitiesList(
+        currentData.liabilitiesList.map(l => ({
+          id: crypto.randomUUID(),
+          include: l.include !== false,
+          ...l,
+        }))
+      )
     } else {
       setLiabilitiesList([])
     }
