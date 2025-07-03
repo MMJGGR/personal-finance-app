@@ -35,7 +35,9 @@ export default function Sidebar({ activeTab, onSelect }) {
               <li key={p.id} className="flex justify-between items-center">
                 <button
                   onClick={() => setCurrentPersonaId(p.id)}
-                  className={`text-sm ${currentPersonaId === p.id ? 'font-medium' : ''}`}
+                  className={`text-sm px-2 py-1 rounded hover:bg-amber-50 ${
+                    currentPersonaId === p.id ? 'font-medium' : ''
+                  }`}
                 >
                   {p.profile.name}
                 </button>
