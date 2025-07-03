@@ -6,22 +6,23 @@ import { defaultProfile } from './FinanceContext.jsx'
 const PersonaContext = createContext()
 
 function loadStoredPersonas() {
+  const out = []
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith('persona-')) {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key))
+        if (parsed && parsed.id) out.push(parsed)
+      } catch { /* ignore malformed */ }
+    }
+  }
+  if (out.length) return out
   const raw = localStorage.getItem('personas')
   if (raw) {
     try {
       return JSON.parse(raw)
     } catch { /* ignore */ }
   }
-  const legacy = []
-  for (const key of Object.keys(localStorage)) {
-    if (key.startsWith('persona-')) {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(key))
-        if (parsed && parsed.id) legacy.push(parsed)
-      } catch { /* ignore malformed */ }
-    }
-  }
-  return legacy.length ? legacy : personasData
+  return personasData
 }
 
 export function PersonaProvider({ children }) {
@@ -83,6 +84,7 @@ export function PersonaProvider({ children }) {
       settings: data.settings || {} }
     const next = [...personas, persona]
     setPersonas(next)
+    localStorage.setItem(`persona-${id}`, JSON.stringify(persona))
     persistPersona(id, persona)
     setCurrentPersonaId(id)
   }
@@ -90,6 +92,10 @@ export function PersonaProvider({ children }) {
   const updatePersona = (id, updates) => {
     setPersonas(prev => {
       const next = prev.map(p => p.id === id ? { ...p, ...updates } : p)
+      const updatedPersona = next.find(p => p.id === id)
+      if (updatedPersona) {
+        localStorage.setItem(`persona-${id}`, JSON.stringify(updatedPersona))
+      }
       persistPersona(id, updates)
       return next
     })
@@ -98,6 +104,7 @@ export function PersonaProvider({ children }) {
   const removePersona = (id) => {
     const updated = personas.filter(p => p.id !== id)
     if (updated.length === 0) return
+    localStorage.removeItem(`persona-${id}`)
     Object.keys(localStorage).forEach(k => {
       if (k.endsWith(`-${id}`)) localStorage.removeItem(k)
     })
