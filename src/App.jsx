@@ -16,6 +16,7 @@ const InsuranceTab = React.lazy(() => import('./components/Insurance/InsuranceTa
 const InvestmentsTab = React.lazy(() => import('./components/Investments/InvestmentsTab.jsx'))
 const RetirementTab = React.lazy(() => import('./components/Retirement/RetirementTab.jsx'))
 const StrategyTab = React.lazy(() => import('./tabs/StrategyTab.jsx'))
+const TimelineTab = React.lazy(() => import('./tabs/TimelineTab.jsx'))
 
 const components = {
   Profile: RiskOnboardingWizard,
@@ -27,6 +28,7 @@ const components = {
   'Balance Sheet': BalanceSheetTab,
   Strategy: StrategyTab,
   Insurance: InsuranceTab,
+  Timeline: TimelineTab,
 }
 
 function AppInner() {
