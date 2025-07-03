@@ -76,8 +76,10 @@ fields.
 
 The app ships with a single sample profile for **Hadi Alsawad** under
 `src/data/personas.json`. When the app starts with no saved data, Hadi's persona
-is loaded automatically so you can explore the features. Use the **Reset to
-Defaults** button on the Profile tab to restore this default data at any time.
+is loaded automatically so you can explore the features. You can create
+additional personas from the sidebar using **Add Persona** and remove them with
+**Remove Persona**. Use the **Reset to Defaults** button on the Profile tab to
+restore Hadi's data at any time.
 
 ## Household & KYC Data
 

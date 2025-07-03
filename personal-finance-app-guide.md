@@ -1,8 +1,10 @@
 # Persona Data
 
 Earlier versions of the app shipped with multiple sample personas and a dropdown
-for switching between them. The current build includes only the **Hadi** profile
-and the dropdown has been removed.
+for switching between them. The current build still includes **Hadi** by
+default but you can now add your own personas from the sidebar. Use **Add
+Persona** to create a blank profile and **Remove Persona** to delete the current
+one.
 
 1. **Start the App**
    ```bash
