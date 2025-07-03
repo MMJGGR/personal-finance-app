@@ -5,6 +5,7 @@ import storage from '../../utils/storage'
 import sanitize from '../../utils/sanitize'
 import { record, flush } from '../../utils/auditLog'
 import { profileSchema } from '../../validation/profileSchema.js'
+import { addVersion } from '../../utils/versionHistory'
 
 export default function PersonalDetailsStep({ onNext }) {
   const {
@@ -101,6 +102,7 @@ export default function PersonalDetailsStep({ onNext }) {
                 <select
                   value={form[field]}
                   onChange={e => handleChange(field, e.target.value)}
+                  onBlur={() => addVersion(storage, form)}
                   className="w-full border rounded-md p-2"
                   title={label}
                 >
@@ -120,6 +122,7 @@ export default function PersonalDetailsStep({ onNext }) {
                       type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value
                     )
                   }
+                  onBlur={() => addVersion(storage, form)}
                   className="w-full border rounded-md p-2"
                   title={label}
                 />
@@ -144,6 +147,7 @@ export default function PersonalDetailsStep({ onNext }) {
                 type="number"
                 value={form[field]}
                 onChange={e => handleChange(field, parseFloat(e.target.value) || 0)}
+                onBlur={() => addVersion(storage, form)}
                 className="w-full border rounded-md p-2"
                 title={label}
               />
@@ -158,6 +162,7 @@ export default function PersonalDetailsStep({ onNext }) {
             <textarea
               value={form.sourceOfFunds}
               onChange={e => handleChange('sourceOfFunds', e.target.value)}
+              onBlur={() => addVersion(storage, form)}
               className="w-full border rounded-md p-2"
               rows={3}
               title="Source of funds"
@@ -170,6 +175,7 @@ export default function PersonalDetailsStep({ onNext }) {
               type="text"
               value={form.financialChallenge}
               onChange={e => handleChange('financialChallenge', e.target.value)}
+              onBlur={() => addVersion(storage, form)}
               className="w-full border rounded-md p-2"
               title="Primary Financial Challenge"
             />
@@ -188,6 +194,7 @@ export default function PersonalDetailsStep({ onNext }) {
                     spendingHabits: e.target.value
                   })
                 }
+                onBlur={() => addVersion(storage, form)}
                 className="w-full border rounded-md p-2"
                 title="Spending Habits"
               />
@@ -206,6 +213,7 @@ export default function PersonalDetailsStep({ onNext }) {
                       .filter(Boolean)
                   })
                 }
+                onBlur={() => addVersion(storage, form)}
                 className="w-full border rounded-md p-2"
                 title="Biases"
               />
@@ -221,6 +229,7 @@ export default function PersonalDetailsStep({ onNext }) {
                     financialWorries: e.target.value
                   })
                 }
+                onBlur={() => addVersion(storage, form)}
                 className="w-full border rounded-md p-2"
                 title="Financial Worries"
               />

@@ -24,6 +24,7 @@ import { projectPensionGrowth } from './utils/pensionProjection.js'
 import storage from './utils/storage'
 import hadiSeed from './data/hadiSeed.json'
 import { defaultIncomeSources } from './components/Income/defaults.js'
+import { readVersions } from './utils/versionHistory'
 
 const DEFAULT_CURRENCY_MAP = {
   Kenyan: 'KES',
@@ -575,6 +576,19 @@ export function FinanceProvider({ children }) {
       updateProfile(mapPersonaProfile(currentData.profile))
     }
   }, [currentData, updateProfile])
+
+  const revertProfile = useCallback(index => {
+    const versions = readVersions(storage)
+    const snap =
+      versions.length === 0
+        ? null
+        : typeof index === 'number'
+          ? versions[index]
+          : versions[versions.length - 1]
+    if (snap && snap.profile) {
+      updateProfile(snap.profile)
+    }
+  }, [updateProfile])
 
   // Derive default currency when none chosen
   useEffect(() => {
@@ -1383,6 +1397,7 @@ export function FinanceProvider({ children }) {
       profile,       updateProfile,
       clearProfile,
       resetProfile,
+      revertProfile,
       riskScore,
       strategy,     setStrategy,
 
