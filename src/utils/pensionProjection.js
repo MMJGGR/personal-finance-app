@@ -32,7 +32,11 @@ export function projectPensionGrowth(initialPensionValue, annualContributions, e
  * @param {number} params.expectedReturn - Expected annual growth rate.
  * @param {'Annuity'|'Self-Managed'} params.pensionType - Selected pension type.
  * @param {number} [params.annuityRate=0.05] - Annuity payout rate if applicable.
- * @returns {{futureValue:number, monthlyIncome:number}}
+ * @param {number} [params.startYear] - Calendar year contributions begin.
+ * @param {number} [params.retirementAge=65] - Planned retirement age.
+ * @param {number} [params.currentAge=30] - Current age of the contributor.
+ * @param {number} [params.lifeExpectancy=85] - Expected lifespan.
+ * @returns {{futureValue:number, monthlyIncome:number, incomeStream:Array}}
  */
 export function calculatePensionIncome({
   amount,
@@ -41,8 +45,18 @@ export function calculatePensionIncome({
   expectedReturn,
   pensionType,
   annuityRate = 0.05,
+  startYear = new Date().getFullYear(),
+  retirementAge = 65,
+  currentAge = 30,
+  lifeExpectancy = 85,
 }) {
-  const years = Math.max(0, duration);
+  const currentCalendarYear = new Date().getFullYear();
+  const retirementYear = currentCalendarYear + (retirementAge - currentAge);
+  if (startYear > retirementYear) {
+    return { futureValue: 0, monthlyIncome: 0, incomeStream: [], error: 'Start year after retirement' };
+  }
+
+  const years = Math.max(0, Math.min(duration, retirementAge - currentAge));
   const annualContribution = amount * (frequency === 'Monthly' ? 12 : 1);
   const rate = expectedReturn / 100;
   let futureValue = 0;
@@ -57,5 +71,12 @@ export function calculatePensionIncome({
     monthlyIncome = (futureValue * 0.04) / 12; // basic SWR approximation
   }
 
-  return { futureValue, monthlyIncome };
+  const annualIncome = monthlyIncome * 12;
+  const incomeYears = lifeExpectancy - retirementAge + 1;
+  const incomeStream = Array.from({ length: incomeYears }, (_, idx) => ({
+    year: retirementYear + idx,
+    amount: annualIncome,
+  }));
+
+  return { futureValue, monthlyIncome, incomeStream };
 }

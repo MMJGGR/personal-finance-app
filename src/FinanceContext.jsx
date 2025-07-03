@@ -21,7 +21,7 @@ import {
 import { calculateRiskScore, deriveCategory } from './utils/riskUtils'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
-import { projectPensionGrowth } from './utils/pensionProjection.js'
+import { calculatePensionIncome } from './utils/pensionProjection.js'
 import storage from './utils/storage'
 import hadiSeed from './data/hadiSeed.json'
 import { defaultIncomeSources } from './components/Income/defaults.js'
@@ -1245,18 +1245,26 @@ export function FinanceProvider({ children }) {
     // Assuming initial pension value is 0 for simplicity, or could be added as a new input
     const initialPensionValue = 0; 
 
-    const projectedPensionValue = projectPensionGrowth(
-      initialPensionValue,
-      totalAnnualPensionContributions,
-      settings.expectedReturn, // Using expectedReturn for pension growth
-      yearsToRetirement
-    );
+    const { futureValue: projectedPensionValue, monthlyIncome, incomeStream } =
+      calculatePensionIncome({
+        amount: totalAnnualPensionContributions / 12,
+        duration: yearsToRetirement,
+        frequency: 'Monthly',
+        expectedReturn: settings.expectedReturn ?? 0,
+        pensionType: 'Annuity',
+        startYear: currentYear,
+        retirementAge: settings.retirementAge,
+        currentAge: profile.age,
+        lifeExpectancy: profile.lifeExpectancy,
+      });
 
     setAssetsList(prevAssets => {
       const existingPensionAsset = prevAssets.find(a => a.id === 'projected-pension-value');
       if (existingPensionAsset) {
         return prevAssets.map(a =>
-          a.id === 'projected-pension-value' ? { ...a, amount: projectedPensionValue, principal: projectedPensionValue } : a
+          a.id === 'projected-pension-value'
+            ? { ...a, amount: projectedPensionValue, principal: projectedPensionValue, syntheticAsset: true }
+            : a
         );
       } else {
         return [
@@ -1266,17 +1274,53 @@ export function FinanceProvider({ children }) {
             name: 'Projected Pension Value',
             amount: projectedPensionValue,
             type: 'Pension',
-            expectedReturn: settings.expectedReturn,
+            expectedReturn: settings.expectedReturn ?? 0,
             volatility: 0, // Pension growth is often less volatile
             horizonYears: yearsToRetirement,
             purchaseYear: currentYear,
             saleYear: null,
             principal: projectedPensionValue,
+            syntheticAsset: true,
           },
         ];
       }
     });
-  }, [incomeSources, privatePensionContributions, profile.age, settings.retirementAge, settings.expectedReturn, setAssetsList]);
+
+    const retirementYear = currentYear + yearsToRetirement;
+    const incomeEndYear = retirementYear + (profile.lifeExpectancy - settings.retirementAge);
+    const annualAmount = monthlyIncome * 12;
+
+    setIncomeSources(prev => {
+      const existing = prev.find(s => s.id === 'pension-income');
+      const incomeObj = {
+        id: 'pension-income',
+        name: 'Pension Income',
+        type: 'Pension',
+        source: 'projectedPension',
+        amount: annualAmount,
+        frequency: 1,
+        growth: 0,
+        taxRate: 0,
+        active: true,
+        startYear: retirementYear,
+        endYear: incomeEndYear,
+      };
+      if (existing) {
+        const same = JSON.stringify(existing) === JSON.stringify(incomeObj);
+        if (same) return prev;
+        return prev.map(s => (s.id === 'pension-income' ? incomeObj : s));
+      }
+      return [...prev, incomeObj];
+    });
+  }, [
+    incomeSources,
+    privatePensionContributions,
+    profile.age,
+    profile.lifeExpectancy,
+    settings.retirementAge,
+    settings.expectedReturn,
+    setAssetsList,
+  ]);
 
   // === Load persisted state on mount and persona switch ===
   useEffect(() => {
