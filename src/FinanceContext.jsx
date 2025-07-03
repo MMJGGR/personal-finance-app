@@ -544,6 +544,20 @@ export function FinanceProvider({ children }) {
     if (strategy) storage.set('strategy', strategy)
   }, [strategy])
 
+  // Re-evaluate risk when market shocks occur
+  useEffect(() => {
+    const handler = e => {
+      const delta = Number(e.detail?.delta) || 0
+      setRiskScore(prev => {
+        const next = Math.max(0, Math.min(prev + delta, 100))
+        storage.set('riskScore', next)
+        return next
+      })
+    }
+    window.addEventListener('marketShock', handler)
+    return () => window.removeEventListener('marketShock', handler)
+  }, [])
+
   // === Updaters that persist to localStorage ===
   const updateSettings = useCallback(updated => {
     setSettings(prevSettings => {
