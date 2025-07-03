@@ -1,11 +1,19 @@
 import { getStreamEndYear } from '../../utils/incomeProjection'
-import { calculatePV as calcPV, frequencyToPayments } from '../../utils/financeUtils'
+import { calculatePV as calcPV, frequencyToPayments, calculateNSSF } from '../../utils/financeUtils'
+import { calculatePAYE } from '../../utils/taxEngine.js'
 
 export function findLinkedAsset(id, assetsList = []) {
   return assetsList.find(a => a.id === id)
 }
 
-export function calculatePV(stream, discountRate, years, assumptions = {}, linkedAsset) {
+export function calculatePV(
+  stream,
+  discountRate,
+  years,
+  assumptions = {},
+  linkedAsset,
+  privatePensionContributions = []
+) {
   const now = new Date().getFullYear()
   const birthYear = assumptions.birthYear ?? now
   let startYear = stream.startYear
@@ -27,10 +35,35 @@ export function calculatePV(stream, discountRate, years, assumptions = {}, linke
       const offset = y - now
       gross += value / Math.pow(1 + discountRate / 100, offset)
     }
-    return {
-      gross,
-      net: stream.taxed === false ? gross : gross * (1 - (stream.taxRate || 0) / 100)
+    const net = stream.taxed === false ? gross : gross * (1 - (stream.taxRate || 0) / 100)
+    return { gross, net }
+  }
+
+  if (stream.type === 'Kenyan Salary') {
+    let grossPV = 0
+    let netPV = 0
+    const offsetYears = startYear - now
+    for (let yr = startYear; yr <= endYear; yr++) {
+      const idx = yr - startYear
+      const growthFactor = Math.pow(1 + (Number(stream.growth) || 0) / 100, idx)
+      const monthlyGross = (Number(stream.grossSalary) || 0) * growthFactor
+      const { employeeContribution } = calculateNSSF(monthlyGross)
+      const privateMonthly = privatePensionContributions.reduce(
+        (s, p) => s + p.amount / (p.frequency / 12),
+        0
+      )
+      const monthlyPAYE = calculatePAYE(
+        monthlyGross - employeeContribution,
+        employeeContribution + privateMonthly
+      )
+      const monthlyNet = monthlyGross - employeeContribution - monthlyPAYE
+      const annualGross = monthlyGross * 12
+      const annualNet = monthlyNet * 12
+      const factor = Math.pow(1 + discountRate / 100, offsetYears + idx + 1)
+      grossPV += annualGross / factor
+      netPV += annualNet / factor
     }
+    return { gross: grossPV, net: netPV }
   }
 
   const paymentsPerYear =
@@ -49,10 +82,6 @@ export function calculatePV(stream, discountRate, years, assumptions = {}, linke
   )
   const offsetYears = startYear - now
   const gross = pvImmediate / Math.pow(1 + discountRate / 100, offsetYears)
-  return {
-    gross,
-    net: stream.taxed === false ? gross : gross * (1 - (stream.taxRate || 0) / 100)
-  }
+  const net = stream.taxed === false ? gross : gross * (1 - (stream.taxRate || 0) / 100)
+  return { gross, net }
 }
-
-

@@ -1,11 +1,13 @@
 import { getStreamEndYear } from "./incomeProjection";
-import { generateRecurringFlows, frequencyToPayments } from "./financeUtils";
+import { generateRecurringFlows, frequencyToPayments, calculateNSSF } from "./financeUtils";
+import { calculatePAYE } from "./taxEngine";
 export function generateIncomeTimeline(
   sources,
   assumptions,
   assetsList = [],
   years,
-  startYear = new Date().getFullYear()
+  startYear = new Date().getFullYear(),
+  privatePensionContributions = []
 ) {
   const birthYear = assumptions.birthYear ?? new Date().getFullYear();
   const timeline = Array.from({ length: years }, (_, i) => ({
@@ -40,6 +42,28 @@ export function generateIncomeTimeline(
         timeline[idx].gross += value;
         timeline[idx].net += s.taxed === false ? value : value * (1 - (s.taxRate || 0) / 100);
       });
+      return;
+    }
+
+    if (s.type === 'Kenyan Salary') {
+      for (let yr = start; yr <= end; yr++) {
+        const idx = yr - startYear;
+        const growthFactor = Math.pow(1 + (Number(s.growth) || 0) / 100, yr - start);
+        const monthlyGross = (Number(s.grossSalary) || 0) * growthFactor;
+        const { employeeContribution } = calculateNSSF(monthlyGross);
+        const privateMonthly = privatePensionContributions.reduce(
+          (sum, p) => sum + p.amount / (p.frequency / 12),
+          0
+        );
+        const monthlyPAYE = calculatePAYE(
+          monthlyGross - employeeContribution,
+          employeeContribution + privateMonthly
+        );
+        const annualGross = monthlyGross * 12;
+        const annualNet = (monthlyGross - employeeContribution - monthlyPAYE) * 12;
+        timeline[idx].gross += annualGross;
+        timeline[idx].net += annualNet;
+      }
       return;
     }
 
