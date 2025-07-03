@@ -140,7 +140,7 @@ function mapPersonaProfile(seed = {}) {
 const FinanceContext = createContext()
 
 export function FinanceProvider({ children }) {
-  const { currentData, currentPersonaId } = usePersona()
+  const { currentData, currentPersonaId, updatePersona } = usePersona()
   // ensure persona prefix is set before any storage reads
   storage.setPersona(currentPersonaId)
   useEffect(() => {
@@ -655,6 +655,13 @@ export function FinanceProvider({ children }) {
 
   const updateProfile = useCallback(updated => {
     const base = { ...profile, ...updated }
+    if ('firstName' in updated || 'lastName' in updated) {
+      const name = [base.firstName, base.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+      updatePersona(currentPersonaId, { profile: { ...base, name } })
+    }
     const score = typeof base.riskScore === 'number'
       ? base.riskScore
       : calculateRiskScore(base)
@@ -675,7 +682,7 @@ export function FinanceProvider({ children }) {
       const cur = DEFAULT_CURRENCY_MAP[nextProfile.nationality]
       if (cur) updateSettings({ ...settings, currency: cur })
     }
-  }, [profile, settings, updateSettings, setProfile, setRiskScore, setRiskCategory])
+  }, [profile, settings, updateSettings, setProfile, setRiskScore, setRiskCategory, updatePersona, currentPersonaId])
 
   const clearProfile = useCallback(() => {
     updateProfile(defaultProfile)
