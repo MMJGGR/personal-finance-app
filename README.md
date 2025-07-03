@@ -177,6 +177,9 @@ Above the income chart you'll find **Nominal** and **Discounted** buttons used t
 ### Managing Income Sources
 The **Income** tab now includes **Clear** and **Reset Defaults** buttons next to the export options. Use **Clear** to remove all entries and **Reset Defaults** to insert a starter salary stream beginning in the selected start year.
 
+### Saving Data
+Use the **Save** buttons on the **Income**, **Expenses & Goals** and **Balance Sheet** tabs to persist your edits. Pressing **Save** commits the active persona’s lists to local storage so they load automatically on your next visit. The **Preferences** tab has no dedicated button—changes there are saved immediately as you modify each field.
+
 ## Manual Verification
 
 ### Verifying Charts

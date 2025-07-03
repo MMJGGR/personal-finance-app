@@ -23,3 +23,8 @@ stored under unique keys such as `profile-{id}`. Delete a persona using the
 4. **Exporting**
    When exporting JSON or CSV files, Hadi’s name is included in the filename
    (e.g. `income-data-Hadi_Alsawad.json`).
+5. **Saving Changes**
+   Use the **Save** buttons on the **Income**, **Expenses & Goals** and **Balance Sheet**
+   tabs after editing the lists. Pressing **Save** writes the current persona’s
+   data to local storage. Preferences under **Settings** persist automatically as
+   you change each field.
