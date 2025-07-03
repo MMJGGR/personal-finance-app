@@ -10,7 +10,7 @@ import personas from './data/personas.json'
 const IncomeTab = React.lazy(() => import('./components/Income/IncomeTab.jsx'))
 const ExpensesGoalsTab = React.lazy(() => import('./components/ExpensesGoals/ExpensesGoalsTab.jsx'))
 const BalanceSheetTab = React.lazy(() => import('./components/BalanceSheet/BalanceSheetTab.jsx'))
-const RiskOnboardingWizard = React.lazy(() => import('./components/Profile/RiskOnboardingWizard.jsx'))
+const ProfileHub = React.lazy(() => import('./components/ProfileHub.jsx'))
 const PreferencesTab = React.lazy(() => import('./tabs/PreferencesTab.jsx'))
 const InsuranceTab = React.lazy(() => import('./components/Insurance/InsuranceTab.jsx'))
 const InvestmentsTab = React.lazy(() => import('./components/Investments/InvestmentsTab.jsx'))
@@ -19,7 +19,7 @@ const StrategyTab = React.lazy(() => import('./tabs/StrategyTab.jsx'))
 const TimelineTab = React.lazy(() => import('./tabs/TimelineTab.jsx'))
 
 const components = {
-  Profile: RiskOnboardingWizard,
+  Profile: ProfileHub,
   Preferences: PreferencesTab,
   Income: IncomeTab,
   'Expenses & Goals': ExpensesGoalsTab,

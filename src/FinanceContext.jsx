@@ -484,6 +484,10 @@ export function FinanceProvider({ children }) {
     return s ? safeParse(s, initialProfile) : initialProfile
   })
 
+  const [profileComplete, setProfileComplete] = useState(() => {
+    return storage.get('profileComplete') === 'true'
+  })
+
   // Utility to create a new asset with defaults
   const createAsset = () => ({
     id: crypto.randomUUID(),
@@ -1443,6 +1447,7 @@ export function FinanceProvider({ children }) {
       clearProfile,
       resetProfile,
       revertProfile,
+      profileComplete, setProfileComplete,
       riskScore,
       strategy,     setStrategy,
 
