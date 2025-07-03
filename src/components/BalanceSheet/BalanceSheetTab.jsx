@@ -603,7 +603,10 @@ export default function BalanceSheetTab() {
       </div>
 
       <div className="text-md text-slate-700 italic">
-        Net Worth: <span className="text-2xl font-bold text-amber-800">{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
+        Net Worth: <span
+          className="text-2xl font-bold text-amber-800"
+          data-testid="net-worth"
+        >{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
         {debtAssetRatio > 1 && (
           <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtAssetRatio * 100).toFixed(1)}%).</span>
         )}
