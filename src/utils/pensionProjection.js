@@ -20,3 +20,42 @@ export function projectPensionGrowth(initialPensionValue, annualContributions, e
 
   return futureValue;
 }
+
+/**
+ * Calculate expected monthly pension income at retirement.
+ * A simple heuristic is applied until the full engine is implemented.
+ *
+ * @param {Object} params
+ * @param {number} params.amount - Contribution amount per period.
+ * @param {number} params.duration - Number of years contributions are made.
+ * @param {'Monthly'|'Annually'} params.frequency - Contribution frequency.
+ * @param {number} params.expectedReturn - Expected annual growth rate.
+ * @param {'Annuity'|'Self-Managed'} params.pensionType - Selected pension type.
+ * @param {number} [params.annuityRate=0.05] - Annuity payout rate if applicable.
+ * @returns {{futureValue:number, monthlyIncome:number}}
+ */
+export function calculatePensionIncome({
+  amount,
+  duration,
+  frequency,
+  expectedReturn,
+  pensionType,
+  annuityRate = 0.05,
+}) {
+  const years = Math.max(0, duration);
+  const annualContribution = amount * (frequency === 'Monthly' ? 12 : 1);
+  const rate = expectedReturn / 100;
+  let futureValue = 0;
+  for (let i = 0; i < years; i++) {
+    futureValue = (futureValue + annualContribution) * (1 + rate);
+  }
+
+  let monthlyIncome;
+  if (pensionType === 'Annuity') {
+    monthlyIncome = (futureValue * annuityRate) / 12;
+  } else {
+    monthlyIncome = (futureValue * 0.04) / 12; // basic SWR approximation
+  }
+
+  return { futureValue, monthlyIncome };
+}
