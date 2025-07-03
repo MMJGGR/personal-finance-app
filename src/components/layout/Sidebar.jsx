@@ -39,7 +39,7 @@ export default function Sidebar({ activeTab, onSelect }) {
                     currentPersonaId === p.id ? 'font-medium' : ''
                   }`}
                 >
-                  {p.profile.name}
+                  {p.profile.name || [p.profile.firstName, p.profile.lastName].filter(Boolean).join(' ')}
                 </button>
                 {personas.length > 1 && (
                   <button
