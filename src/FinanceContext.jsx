@@ -497,6 +497,10 @@ export function FinanceProvider({ children }) {
     return storage.get('profileComplete') === 'true'
   })
 
+  useEffect(() => {
+    storage.set('profileComplete', profileComplete ? 'true' : 'false')
+  }, [profileComplete])
+
   // Utility to create a new asset with defaults
   const createAsset = () => ({
     id: crypto.randomUUID(),
