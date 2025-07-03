@@ -1273,12 +1273,13 @@ export function FinanceProvider({ children }) {
     });
   }, [incomeSources, privatePensionContributions, profile.age, settings.retirementAge, settings.expectedReturn, setAssetsList]);
 
-  // === Auto-load persisted state on mount ===
+  // === Load persisted state on mount and persona switch ===
   useEffect(() => {
+    storage.setPersona(currentPersonaId)
     const ip = storage.get('incomePV')
-    if (ip) setIncomePV(+ip)
+    setIncomePV(ip ? +ip : 0)
     const ep = storage.get('expensesPV')
-    if (ep) setExpensesPV(+ep)
+    setExpensesPV(ep ? +ep : 0)
 
     const rs = storage.get('riskScore')
 
@@ -1290,6 +1291,9 @@ export function FinanceProvider({ children }) {
         loadedProfile = p
         setProfile(p)
       }
+    } else {
+      loadedProfile = defaultProfile
+      setProfile(defaultProfile)
     }
 
     if (rs) {
@@ -1324,6 +1328,35 @@ export function FinanceProvider({ children }) {
           ...parsed,
         })
       }
+    } else {
+      const incomeStartYearFromStorage = storage.get('incomeStartYear')
+      const defaults = {
+        startYear: incomeStartYearFromStorage
+          ? Number(incomeStartYearFromStorage)
+          : new Date().getFullYear(),
+        projectionYears: profile.lifeExpectancy - profile.age,
+        chartView: 'nominal',
+        discountRate: 0,
+        inflationRate: 5,
+        expectedReturn: 8,
+        currency: '',
+        locale: 'en-KE',
+        apiEndpoint: '',
+        discretionaryCutThreshold: 0,
+        survivalThresholdMonths: 0,
+        bufferPct: 0,
+        retirementAge: 65,
+        riskCapacityScore: 0,
+        riskWillingnessScore: 0,
+        liquidityBucketDays: 0,
+        taxBrackets: [],
+        pensionContributionReliefPct: 0,
+      }
+      if (!defaults.currency) {
+        const nat = profile.nationality
+        defaults.currency = DEFAULT_CURRENCY_MAP[nat] || 'KES'
+      }
+      setSettings(defaults)
     }
 
     const sInc = storage.get('incomeSources')
@@ -1346,8 +1379,10 @@ export function FinanceProvider({ children }) {
           }))
         )
       } catch {
-        // ignore malformed stored data
+        setIncomeSources([])
       }
+    } else {
+      setIncomeSources([])
     }
     const sSY = storage.get('incomeStartYear')
     if (sSY) setSettings(prevSettings => ({ ...prevSettings, startYear: +sSY }));
@@ -1378,8 +1413,10 @@ export function FinanceProvider({ children }) {
           })
         )
       } catch {
-        // ignore malformed stored data
+        setExpensesList([])
       }
+    } else {
+      setExpensesList([])
     }
     const sG = storage.get('goalsList')
     if (sG) {
@@ -1394,8 +1431,10 @@ export function FinanceProvider({ children }) {
           }))
         )
       } catch {
-        // ignore malformed stored data
+        setGoalsList([])
       }
+    } else {
+      setGoalsList([])
     }
 
     const sA = storage.get('assetsList')
@@ -1413,8 +1452,10 @@ export function FinanceProvider({ children }) {
           }))
         )
       } catch {
-        // ignore malformed stored data
+        setAssetsList([])
       }
+    } else {
+      setAssetsList([])
     }
 
     const sL = storage.get('liabilitiesList')
@@ -1423,51 +1464,53 @@ export function FinanceProvider({ children }) {
         const parsed = JSON.parse(sL)
         setLiabilitiesList(parsed.map(l => ({ id: l.id || crypto.randomUUID(), ...l })))
       } catch {
-        // ignore malformed stored data
+        setLiabilitiesList([])
       }
+    } else {
+      setLiabilitiesList([])
     }
 
     const me = storage.get('monthlyExpense')
-    if (me) setMonthlyExpense(+me)
+    setMonthlyExpense(me ? +me : 0)
 
     const pvE = storage.get('pvExpenses')
-    if (pvE) setPvExpenses(+pvE)
+    setPvExpenses(pvE ? +pvE : 0)
     const gpv = storage.get('goalsPV')
-    if (gpv) setGoalsPV(+gpv)
+    setGoalsPV(gpv ? +gpv : 0)
     const mpvE = storage.get('monthlyPVExpense')
-    if (mpvE) setMonthlyPVExpense(+mpvE)
+    setMonthlyPVExpense(mpvE ? +mpvE : 0)
     const ms = storage.get('monthlySurplusNominal')
-    if (ms) setMonthlySurplusNominal(+ms)
+    setMonthlySurplusNominal(ms ? +ms : 0)
     const mi = storage.get('monthlyIncomeNominal')
-    if (mi) setMonthlyIncomeNominal(+mi)
+    setMonthlyIncomeNominal(mi ? +mi : 0)
     const ph = storage.get('pvHigh')
-    if (ph) setPvHigh(+ph)
+    setPvHigh(ph ? +ph : 0)
     const pm = storage.get('pvMedium')
-    if (pm) setPvMedium(+pm)
+    setPvMedium(pm ? +pm : 0)
     const pl = storage.get('pvLow')
-    if (pl) setPvLow(+pl)
+    setPvLow(pl ? +pl : 0)
     const mph = storage.get('monthlyPVHigh')
-    if (mph) setMonthlyPVHigh(+mph)
+    setMonthlyPVHigh(mph ? +mph : 0)
     const mpm = storage.get('monthlyPVMedium')
-    if (mpm) setMonthlyPVMedium(+mpm)
+    setMonthlyPVMedium(mpm ? +mpm : 0)
     const mpl = storage.get('monthlyPVLow')
-    if (mpl) setMonthlyPVLow(+mpl)
+    setMonthlyPVLow(mpl ? +mpl : 0)
     const nw = storage.get('netWorth')
-    if (nw) setNetWorth(+nw)
+    setNetWorth(nw ? +nw : 0)
     const dar = storage.get('debtToAssetRatio')
-    if (dar) setDebtToAssetRatio(+dar)
+    setDebtToAssetRatio(dar ? +dar : 0)
     const hcs = storage.get('humanCapitalShare')
-    if (hcs) setHumanCapitalShare(+hcs)
+    setHumanCapitalShare(hcs ? +hcs : 0)
 
     const incMed = storage.get('includeMediumPV')
-    if (incMed) setIncludeMediumPV(safeParse(incMed, true))
+    setIncludeMediumPV(incMed ? safeParse(incMed, true) : true)
     const incLow = storage.get('includeLowPV')
-    if (incLow) setIncludeLowPV(safeParse(incLow, true))
+    setIncludeLowPV(incLow ? safeParse(incLow, true) : true)
     const incGoals = storage.get('includeGoalsPV')
-    if (incGoals) setIncludeGoalsPV(safeParse(incGoals, false))
+    setIncludeGoalsPV(incGoals ? safeParse(incGoals, false) : false)
     const incLiab = storage.get('includeLiabilitiesNPV')
-    if (incLiab) setIncludeLiabilitiesNPV(safeParse(incLiab, false))
-  }, [])
+    setIncludeLiabilitiesNPV(incLiab ? safeParse(incLiab, false) : false)
+  }, [currentPersonaId])
 
   return (
     <FinanceContext.Provider value={{
