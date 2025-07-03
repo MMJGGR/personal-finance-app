@@ -63,6 +63,7 @@ export default function PreferencesTab() {
       liquidityBucketDays: 0,
       taxBrackets: [],
       pensionContributionReliefPct: 0,
+      pensionType: 'Annuity',
     }
     const persona = currentData?.settings || {}
     const merged = { ...base, ...persona }

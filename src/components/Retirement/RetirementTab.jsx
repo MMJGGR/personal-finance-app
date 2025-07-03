@@ -241,7 +241,10 @@ export default function RetirementTab() {
             id="pension-type"
             value={pensionInputs.pensionType}
             onBlur={() => setTouched(t => ({ ...t, pensionType: true }))}
-            onChange={e => setPensionInputs({ ...pensionInputs, pensionType: e.target.value })}
+            onChange={e => {
+              setPensionInputs({ ...pensionInputs, pensionType: e.target.value })
+              updateSettings({ ...settings, pensionType: e.target.value })
+            }}
             className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
           >
             <option value="Annuity">Annuity</option>

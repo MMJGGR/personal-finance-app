@@ -565,6 +565,7 @@ export function FinanceProvider({ children }) {
       liquidityBucketDays: 0,
       taxBrackets: [],
       pensionContributionReliefPct: 0,
+      pensionType: 'Annuity',
     }
     const loaded = s ? { ...defaults, ...safeParse(s, {}) } : defaults
     if (!loaded.currency) {
@@ -1232,6 +1233,19 @@ export function FinanceProvider({ children }) {
 
   // Project Pension Growth and update assetsList
   useEffect(() => {
+    if (settings.pensionType && settings.pensionType !== 'Annuity') {
+      setAssetsList(prev =>
+        prev.some(a => a.id === 'projected-pension-value')
+          ? prev.filter(a => a.id !== 'projected-pension-value')
+          : prev
+      )
+      setIncomeSources(prev =>
+        prev.some(s => s.id === 'pension-income')
+          ? prev.filter(s => s.id !== 'pension-income')
+          : prev
+      )
+      return
+    }
     const currentYear = new Date().getFullYear();
     const yearsToRetirement = (settings.retirementAge ?? 65) - (profile.age ?? 0);
 
@@ -1249,28 +1263,39 @@ export function FinanceProvider({ children }) {
 
     const totalAnnualPensionContributions = totalAnnualNSSFContributions + totalAnnualPrivatePensionContributions;
 
-    // Assuming initial pension value is 0 for simplicity, or could be added as a new input
-    const initialPensionValue = 0; 
-
-    const { futureValue: projectedPensionValue, monthlyIncome, incomeStream } =
-      calculatePensionIncome({
+    const { monthlyIncome, incomeStream } = calculatePensionIncome({
         amount: totalAnnualPensionContributions / 12,
         duration: yearsToRetirement,
         frequency: 'Monthly',
         expectedReturn: settings.realReturn ?? settings.expectedReturn ?? 0,
-        pensionType: 'Annuity',
+        pensionType: settings.pensionType || 'Annuity',
         startYear: currentYear,
         retirementAge: settings.retirementAge,
         currentAge: profile.age,
         lifeExpectancy: settings.lifeExpectancyOverride ?? profile.lifeExpectancy,
       });
 
+
+
+    const retirementYear = currentYear + yearsToRetirement;
+    const incomeEndYear = retirementYear + (profile.lifeExpectancy - settings.retirementAge);
+    const annualAmount = monthlyIncome * 12;
+    const incomeYears = profile.lifeExpectancy - settings.retirementAge + 1;
+    const pvAtRet = calculatePV(
+      annualAmount,
+      1,
+      0,
+      settings.discountRate ?? 0,
+      incomeYears
+    );
+    const pensionPV = pvAtRet / Math.pow(1 + (settings.discountRate ?? 0) / 100, yearsToRetirement);
+
     setAssetsList(prevAssets => {
       const existingPensionAsset = prevAssets.find(a => a.id === 'projected-pension-value');
       if (existingPensionAsset) {
         return prevAssets.map(a =>
           a.id === 'projected-pension-value'
-            ? { ...a, amount: projectedPensionValue, principal: projectedPensionValue, syntheticAsset: true }
+            ? { ...a, amount: pensionPV, principal: pensionPV, syntheticAsset: true }
             : a
         );
       } else {
@@ -1279,23 +1304,19 @@ export function FinanceProvider({ children }) {
           {
             id: 'projected-pension-value',
             name: 'Projected Pension Value',
-            amount: projectedPensionValue,
+            amount: pensionPV,
             type: 'Pension',
             expectedReturn: settings.expectedReturn ?? 0,
-            volatility: 0, // Pension growth is often less volatile
+            volatility: 0,
             horizonYears: yearsToRetirement,
             purchaseYear: currentYear,
             saleYear: null,
-            principal: projectedPensionValue,
+            principal: pensionPV,
             syntheticAsset: true,
           },
         ];
       }
     });
-
-    const retirementYear = currentYear + yearsToRetirement;
-    const incomeEndYear = retirementYear + (profile.lifeExpectancy - settings.retirementAge);
-    const annualAmount = monthlyIncome * 12;
 
     setIncomeSources(prev => {
       const existing = prev.find(s => s.id === 'pension-income');
@@ -1338,7 +1359,26 @@ export function FinanceProvider({ children }) {
     const { flag, gap } = computeFundingAdequacy(annualProjected, target);
     setFundingFlag(flag);
     setFundingGap(gap);
-  }, [incomeSources, settings.replacementRate, profile.annualIncome]);
+    if (settings.pensionType === 'Annuity') {
+      const coverage = target > 0 ? annualProjected / target : 0;
+      const capacity = Math.round(Math.min(100, Math.max(0, coverage * 100)));
+      if (capacity !== settings.riskCapacityScore) {
+        updateSettings({ ...settings, riskCapacityScore: capacity });
+      }
+      if (coverage >= 0.5 && strategy !== 'Conservative') {
+        setStrategy('Conservative');
+      }
+    }
+  }, [
+    incomeSources,
+    settings.replacementRate,
+    profile.annualIncome,
+    settings.pensionType,
+    settings.riskCapacityScore,
+    strategy,
+    updateSettings,
+    setStrategy,
+  ]);
 
   // === Load persisted state on mount and persona switch ===
   useEffect(() => {
@@ -1401,6 +1441,7 @@ export function FinanceProvider({ children }) {
         survivalThresholdMonths: 0,
         bufferPct: 0,
         retirementAge: 65,
+        pensionType: 'Annuity',
         ...currentData.settings,
       })
     } else {
@@ -1429,6 +1470,7 @@ export function FinanceProvider({ children }) {
         liquidityBucketDays: 0,
         taxBrackets: [],
         pensionContributionReliefPct: 0,
+        pensionType: 'Annuity',
       }
       if (!defaults.currency) {
         const nat = profile.nationality
