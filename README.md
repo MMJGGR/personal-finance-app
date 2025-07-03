@@ -179,6 +179,7 @@ The **Income** tab now includes **Clear** and **Reset Defaults** buttons next to
 
 ### Saving Data
 Use the **Save** buttons on the **Income**, **Expenses & Goals** and **Balance Sheet** tabs to persist your edits. Pressing **Save** commits the active persona’s lists to local storage so they load automatically on your next visit. The **Preferences** tab has no dedicated button—changes there are saved immediately as you modify each field.
+You can also capture the entire persona at any point using the **Persona Snapshots** panel under the **Timeline** tab. Use **Save Snapshot** to record the current profile, income, expenses and other details. Press **Clear** to remove all stored snapshots.
 
 ## Manual Verification
 

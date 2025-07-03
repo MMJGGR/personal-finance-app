@@ -715,6 +715,21 @@ export function FinanceProvider({ children }) {
     }
   }, [updateProfile])
 
+  const revertPersona = useCallback(snap => {
+    if (!snap) return
+    if (snap.profile) updateProfile(snap.profile)
+    if (Array.isArray(snap.incomeSources)) setIncomeSources(snap.incomeSources)
+    if (Array.isArray(snap.expensesList)) setExpensesList(snap.expensesList)
+    if (Array.isArray(snap.goalsList)) setGoalsList(snap.goalsList)
+    if (Array.isArray(snap.assetsList)) setAssetsList(snap.assetsList)
+    if (Array.isArray(snap.liabilitiesList)) setLiabilitiesList(snap.liabilitiesList)
+    if (snap.settings) updateSettings(snap.settings)
+    if (typeof snap.includeMediumPV === 'boolean') setIncludeMediumPV(snap.includeMediumPV)
+    if (typeof snap.includeLowPV === 'boolean') setIncludeLowPV(snap.includeLowPV)
+    if (typeof snap.includeGoalsPV === 'boolean') setIncludeGoalsPV(snap.includeGoalsPV)
+    if (typeof snap.includeLiabilitiesNPV === 'boolean') setIncludeLiabilitiesNPV(snap.includeLiabilitiesNPV)
+  }, [updateProfile, setIncomeSources, setExpensesList, setGoalsList, setAssetsList, setLiabilitiesList, updateSettings, setIncludeMediumPV, setIncludeLowPV, setIncludeGoalsPV, setIncludeLiabilitiesNPV])
+
   // Derive default currency when none chosen
   useEffect(() => {
     if (!settings.currency) {
@@ -1767,6 +1782,7 @@ export function FinanceProvider({ children }) {
       clearProfile,
       resetProfile,
       revertProfile,
+      revertPersona,
       profileComplete, setProfileComplete,
       riskScore,
       riskCategory,
