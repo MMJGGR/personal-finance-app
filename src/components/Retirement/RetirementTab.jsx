@@ -15,6 +15,7 @@ import { calculateNSSF } from '../../utils/nssfCalculator';
 import { formatCurrency } from '../../utils/formatters';
 import { calculatePensionIncome } from '../../utils/pensionProjection.js';
 import { pensionFormSchema } from '../../schemas/inputs.schema.js';
+import AdequacyAlert from '../../AdequacyAlert.jsx';
 
 export default function RetirementTab() {
   const {
@@ -23,6 +24,9 @@ export default function RetirementTab() {
     investmentContributions,
     settings,
     incomeSources,
+    updateSettings,
+    fundingFlag,
+    fundingGap,
   } = useFinance();
 
   const [retirementIncome, setRetirementIncome] = useState(50000);
@@ -247,6 +251,53 @@ export default function RetirementTab() {
             Expected Monthly Income at Retirement:{' '}
             {formatCurrency(pensionSummary.monthlyIncome, settings.locale, settings.currency)}
           </div>
+
+          <label htmlFor="life-exp" className="block mt-4 text-sm font-medium text-gray-700">
+            Life Expectancy
+          </label>
+          <input
+            id="life-exp"
+            type="number"
+            value={settings.lifeExpectancyOverride}
+            onChange={e => updateSettings({ ...settings, lifeExpectancyOverride: Number(e.target.value) })}
+            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+          />
+
+          <label htmlFor="replacement-rate" className="block mt-4 text-sm font-medium text-gray-700">
+            Target Replacement Rate (%)
+          </label>
+          <input
+            id="replacement-rate"
+            type="number"
+            value={settings.replacementRate}
+            onChange={e => updateSettings({ ...settings, replacementRate: Number(e.target.value) })}
+            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+          />
+
+          <label htmlFor="real-return" className="block mt-4 text-sm font-medium text-gray-700">
+            Real Return Assumption (%)
+          </label>
+          <input
+            id="real-return"
+            type="number"
+            value={settings.realReturn}
+            onChange={e => updateSettings({ ...settings, realReturn: Number(e.target.value) })}
+            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+          />
+
+          {fundingFlag && (
+            <div className="mt-4 text-sm">
+              <AdequacyAlert
+                message={
+                  fundingFlag === 'shortfall'
+                    ? `Projected income short by ${formatCurrency(Math.abs(fundingGap), settings.locale, settings.currency)}`
+                    : fundingFlag === 'overfunded'
+                      ? `Projected income exceeds target by ${formatCurrency(fundingGap, settings.locale, settings.currency)}`
+                      : 'Retirement funding on track'
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
 

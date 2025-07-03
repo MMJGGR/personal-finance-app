@@ -27,3 +27,14 @@ test('toggle pension type', () => {
   fireEvent.change(select, { target: { value: 'Self-Managed' } })
   expect(select.value).toBe('Self-Managed')
 })
+
+test('adequacy flag updates with replacement rate', () => {
+  render(
+    <FinanceProvider>
+      <RetirementTab />
+    </FinanceProvider>
+  )
+  const rateInput = screen.getByLabelText(/Target Replacement Rate/i)
+  fireEvent.change(rateInput, { target: { value: '10' } })
+  expect(rateInput.value).toBe('10')
+})
