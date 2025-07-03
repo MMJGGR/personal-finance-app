@@ -238,18 +238,3 @@ export function calculateNSSF(grossSalary) {
   const employerContribution = employeeContribution; // Often matched by employer
   return { employeeContribution, employerContribution };
 }
-
-/**
- * Placeholder for PAYE (Pay As You Earn) calculation.
- * @param {number} taxableIncome - The taxable income.
- * @param {number} totalPensionContribution - Total pension contributions.
- * @returns {number} The calculated PAYE.
- */
-export function calculatePAYE(taxableIncome) {
-  // Simplified placeholder logic
-  let paye = 0;
-  if (taxableIncome > 24000) {
-    paye = (taxableIncome - 24000) * 0.3; // Example: 30% for income above 24000
-  }
-  return paye;
-}

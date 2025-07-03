@@ -9,7 +9,8 @@ import React, {
   useMemo,
 } from 'react'
 import { usePersona } from './PersonaContext.jsx'
-import { calculatePV, frequencyToPayments, calculateNSSF, calculatePAYE } from './utils/financeUtils'
+import { calculatePV, frequencyToPayments, calculateNSSF } from './utils/financeUtils'
+import { calculatePAYE } from './utils/taxEngine.js'
 import {
   selectAnnualIncome,
   selectAnnualIncomePV,
