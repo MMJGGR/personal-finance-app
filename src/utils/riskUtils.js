@@ -67,7 +67,10 @@ export function calculateRiskScore(profile = {}) {
   const netWorth = Number(extractNetWorth(profile));
   const yearsInvesting = Number(profile.yearsInvesting);
   const emergencyFundMonths = Number(profile.emergencyFundMonths);
-  const surveyScore = computeSurveyScore(profile.riskSurveyAnswers);
+  const surveyAnswers = Array.isArray(profile.riskSurveyAnswers)
+    ? profile.riskSurveyAnswers.filter(v => v !== undefined)
+    : [];
+  const surveyScore = computeSurveyScore(surveyAnswers);
   const knowledge = normalizeKnowledge(profile.investmentKnowledge);
   const loss = normalizeLossResponse(profile.lossResponse);
   const horizon = normalizeHorizon(profile.investmentHorizon);

@@ -112,3 +112,21 @@ test('computeSurveyScore normalizes answers', () => {
   expect(computeSurveyScore(Array(5).fill(5))).toBe(100)
   expect(computeSurveyScore([3,3,3,3,3])).toBe(50)
 })
+
+test('ignore undefined survey answers', () => {
+  const base = {
+    age: 30,
+    annualIncome: 500000,
+    liquidNetWorth: 300000,
+    yearsInvesting: 5,
+    employmentStatus: 'Employed',
+    emergencyFundMonths: 6,
+    investmentKnowledge: 'Moderate',
+    lossResponse: 'Wait',
+    investmentHorizon: '>7 years',
+    investmentGoal: 'Growth',
+  }
+  const partial = { ...base, riskSurveyAnswers: [5, undefined, 5] }
+  const complete = { ...base, riskSurveyAnswers: [5, 5] }
+  expect(calculateRiskScore(partial)).toBe(calculateRiskScore(complete))
+})
