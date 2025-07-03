@@ -1,176 +1,137 @@
-// FILE: ProfileModulePlan.md
+## 🧭 Retirement Tab: Enterprise-Grade Enhancements (CFA-Aligned)
 
-## 🎯 Objective
+### 🔍 Current Observations
+- Contains Voluntary Private Pension Contributions input (amount, timing, frequency).
+- Missing field labels (e.g. "Start in" year or "Duration").
+- Contributions don’t link to visible retirement assets.
+- Lacks integration with drawdown strategies or tax treatment.
+- UI cluttered; lacks user education or dynamic feedback.
 
-Rebuild the Profile & Risk Module from the ground up as the central orchestration engine for every financial and personal data point in the app. It must:
-
-- Ingest, version and expose personal details, financial streams, life events and behavioral insights.
-- Drive all other features (Income, Expenses, Goals, Balance Sheet, Planning) through a single source of truth.
-- Adapt dynamically to any individual’s circumstances at different life stages, without hard‑coding for one persona.
-- Support progressive profiling, allowing data to be added, updated or rolled back without losing history.
-- Align with CFA phases (Accumulation → Transition → Distribution) and enterprise‑grade best practices.
-
----
-
-## 🔄 Dynamic, Multi‑Persona Architecture
-
-Rather than customizing for a single user, the module must be flexible enough to:
-
-- Accept an unlimited variety of personas, each defined by demographic data, financial streams, life events and risk preferences.
-- Load, update and version snapshots of a persona’s profile so that past and present states remain accessible.
-- Drive personalized insights and recommendations based on any combination of fields.
-
-### Key Capabilities
-
-- **Schema‑driven fields**: Define a JSON schema for each category of data (personal, financial, behavioral, events). Use validation to enforce types and ranges.
-- **Version control**: Automatically create a new profile snapshot whenever any field is added or updated. Maintain an audit trail.
-- **Event timeline**: Allow users or advisors to insert major life events (marriage, job change, health shock, inheritance) with dates and optional metadata.
-- **Data orchestration**: Expose an API for other modules to subscribe to profile changes and recalculate PVs, cash‑flow projections and risk scores in real time.
+### ✅ Refactor Goals
+- Align fully with CFA retirement planning principles.
+- Support accumulation + decumulation (drawdown) modeling.
+- Surface projected pension income on the balance sheet and timeline.
+- Clarify financial assumptions (e.g. annuity rates, life expectancy).
+- Deliver a clean UI flow with advisory hooks.
+- Solve retirement income risks common in real-life scenarios.
 
 ---
 
-## 📚 Profile Components (Prose + Point Form)
+### 📋 Developer Implementation Tasks (Exhaustive)
 
-**1. Personal Information**
-- Fields: full name, birth date, gender, marital status, dependents count and ages, education level, residential status.
-- Use cases: age for lifecycle mapping; marital status and dependents for expense modeling; education and literacy as proxies for financial sophistication.
+#### Task Group 1: UI/UX Overhaul
+**Files to modify:** `RetirementTab.jsx`, `pensionProjection.js`, `inputs.schema.js`
+- [ ] Add labeled fields:
+  - `Contribution Amount (KES)`
+  - `Start in (Years)` or `Start Year`
+  - `Contribution Duration (Years)`
+  - `Frequency (Monthly/Annually)`
+- [ ] Group inputs in two boxes: "Accumulation Phase" and "Drawdown Phase"
+- [ ] Add switch/toggle: `Pension Type = Annuity / Self-Managed`
+- [ ] Add tooltips for every field linked to glossary or assumptions
+- [ ] Include a summary box: `Expected Monthly Income at Retirement`
+- [ ] Validate all inputs on blur, block navigation unless all required fields filled
 
-**2. Financial Streams**
-- Income: salary, bonuses, business revenue, rental, dividends, pension, irregular windfalls.
-- Assets & Liabilities: deposit accounts, investments, real estate, mortgages, credit lines, loans, credit cards.
-- Integration: feed each stream into PV calculators, emergency fund calculators, debt amortization schedules and allocation engines.
+**Success Criteria:**
+- All labels are visible and unambiguous
+- Selecting toggle modifies projection behavior
+- Tooltips explain each concept
+- No layout overlap on screen widths ≥ 768px
 
-**3. Behavioral & Risk Profile**
-- Multi‑step questionnaire aligned with CFA guidelines: tolerance, capacity, objectives.
-- Store raw answers and compute normalized scores on the fly.
-- Tie responses to event triggers and dynamic nudges (e.g., revisit risk profile after a major shock).
-
-**4. Life Events Timeline**
-- Users can add or select predefined events: marriage, children, home purchase, divorce, career change, illness, retirement.
-- Each event can carry quantitative impacts: income change, expense shift, tax bracket adjustments.
-- Timeline drives scenario analysis and “what‑if” projections.
-
-**5. Progressive Versioning & Audit**
-- Every profile update (manual or system‑driven) creates a new version.
-- Users or QA can roll back to any previous snapshot if errors are found.
-- Exportable change log with timestamps, user IDs and field deltas.
-
-**6. Wealth Lifecycle Visualization**
-- A dedicated screen (or tab) displays a lifetime graph: net worth over age, income vs expenses vs savings rate.
-- Overlay phases: Accumulation (rising net worth), Transition (plateau), Distribution (drawdown).
-- Interactive: hover for details, zoom on specific decades.
+**Test:**
+- Enter values for all fields
+- Switch between annuity and drawdown: result preview must update
+- Attempt submit with missing fields: must be blocked
 
 ---
 
-## 🛠 Implementation Checklist
+#### Task Group 2: Pension Projection Engine
+**Files:** `pensionProjection.js`, `FinanceContext.jsx`, `incomeProjection.js`
+- [ ] Implement accumulation logic: use compound interest to compute total pension value
+- [ ] If `pensionType === "Annuity"`, apply annuity formula:
+  - MonthlyIncome = PV × AnnuityRate / 12
+- [ ] If `pensionType === "Self-Managed"`, apply SWR logic (e.g. 4% rule)
+- [ ] Output income stream: `projectedPensionIncome[] = [{ year, amount }]`
+- [ ] Save pension accumulation as `syntheticAsset` in context
 
-1. **Scaffold Core Module**
-   - Define JSON schemas for each profile category.
-   - Build Context/Store to hold current profile object + version history.
-   - Implement validation and default values.
+**Success Criteria:**
+- Pension value at retirement shown in summary
+- Monthly income calculated correctly under both methods
+- Income appears in `IncomeTab` if `includeInPlan = true`
 
-2. **Personal Data Forms**
-   - Create form components for each field group.
-   - Wire updates to versioned store.
-   - Add inline validation and autosave on blur.
-
-3. **Financial Streams Integration**
-   - Build inputs for each stream type with date ranges and amounts.
-   - Hook into PV and projection utilities.
-   - Ensure real‑time recalculations in linked modules.
-
-4. **Risk & Behavioral Engine**
-   - Develop wizard UI for questionnaire.
-   - Compute normalized scores; store both answers and scores.
-   - Expose event triggers based on answers (e.g., low capacity → suggest debt reduction).
-
-5. **Event Timeline**
-   - Implement a dynamic timeline UI with drag/drop events.
-   - Link each event to quantitative effects on cash flows.
-
-6. **Versioning & Audit Trail**
-   - Auto‑version on every store change.
-   - Build audit viewer component.
-   - Add ability to revert to prior version.
-
-7. **Visualization**
-   - Create the Wealth Lifecycle graph using a chart library.
-   - Integrate interactive timeline controls.
-
-8. **Testing & QA**
-   - Unit tests for schema validation, versioning, score computation.
-   - Integration tests for data flow across Profile → Income/Expenses/Goals.
-   - UI acceptance: form navigation, autosave, timeline interactions, graph rendering.
+**Test:**
+- Unit test: Validate annuity vs. drawdown results for identical inputs
+- Edge test: Start year after retirement should fail with advisory message
 
 ---
 
-## 🧪 QA Test Plan
+#### Task Group 3: CFA Model Alignment
+**Files:** `RetirementTab.jsx`, `FinanceContext.jsx`, `AdvisoryEngine.js`
+- [ ] Add optional override fields:
+  - Life Expectancy (default 85)
+  - Target Replacement Rate (%)
+  - Real Return Assumption (%)
+- [ ] Compute funding adequacy:
+  - Compare projected retirement income to replacement rate target
+  - Flag shortfall or overfunding
 
-- Validate schema enforcement (missing fields, type mismatches).
-- Confirm version history accuracy and revert functionality.
-- Test cash flow recalculations after manual profile edits and events.
-- Verify risk score updates and behavioral triggers under multiple scenarios.
-- Ensure wealth graph updates accurately as profile data changes.
-- Cross‑module tests: Income tab reflects salary edits; Expenses tab picks up new dependents; Goals tab recalculates education cost.
+**Success Criteria:**
+- Inputs populate with user-defined or default values
+- Advisory flag shows if shortfall >10% of target income
 
-## ⏳ Phased Implementation & Check‑Ins
+**Test:**
+- Enter different retirement ages and targets → advisory flags update
+- Unit test for funding gap logic
 
-### Phase 1: Foundation & Core Data Store (2 weeks)
-- **Week 1:**
-  - Scaffold JSON schemas and context/store architecture.
-  - Implement version history mechanism (events storage).
-  - Check‑in: Review schema definitions and store setup; conduct schema validation demo.
-- **Week 2:**
-  - Build personal data form components; wire auto‑version on blur.
-  - Conduct validation: missing/invalid field scenarios.
-  - Check‑in: Demo personal info form flow; QA review of autosave and version snapshots.
+---
 
-### Phase 2: Financial Streams & PV Integration (3 weeks)
-- **Week 3:**
-  - Create inputs for income streams with date ranges; integrate PV utilities.
-  - Unit tests: PV calculations for salary, bonus, rental.
-  - Check‑in: PV utility test results and code review.
-- **Week 4:**
-  - Develop assets/liabilities registry; link to balance sheet and net‑worth computation.
-  - Integration test: balance sheet sync with registry updates.
-  - Check‑in: Live demo of balance sheet updates; integration test pass status.
-- **Week 5:**
-  - Hook financial streams to cash‑flow projections and emergency buffer.
-  - Cross‑module test: Income → Expenses tabs reflect cash‑flow changes.
-  - Check‑in: Screenshot QA of projections and cash‑flow reconciliation.
+#### Task Group 4: Cross-Tab Orchestration
+**Files:** `IncomeTab.jsx`, `BalanceSheetTab.jsx`, `StrategyTab.jsx`, `FinanceContext.jsx`
+- [ ] Add computed pension stream to `incomeStreams[]` with source `"projectedPension"`
+- [ ] Add synthetic asset: `type: "Pension"`, `presentValue: computedPV`
+- [ ] Ensure risk capacity + strategy updates use pension certainty (if annuity is selected)
 
-### Phase 3: Risk & Behavioral Engine (2 weeks)
-- **Week 6:**
-  - Implement multi‑step risk questionnaire wizard UI and store raw answers.
-  - Unit tests: survey normalization logic edge cases.
-  - Check‑in: Show questionnaire flow and scoring demo; test coverage report.
-- **Week 7:**
-  - Tie risk outputs to advisory triggers and UI alerts.
-  - Integration test: event-driven re‑evaluation of risk after profile or market shocks.
-  - Check‑in: QA session simulating shock scenarios and trigger alerts.
+**Success Criteria:**
+- Income tab shows "Pension" row after projection
+- Balance sheet adds pension as asset (if toggle is on)
+- Strategy shifts toward conservative if annuity covers ≥50% of retirement needs
 
-### Phase 4: Timeline Events & Vis Tools (3 weeks)
-- **Week 8:**
-  - Build life‑events timeline component with drag‑and‑drop and metadata.
-  - Unit tests: event creation, editing, and impact calculations.
-  - Check‑in: Workflow demo of adding events and verifying data store.
-- **Week 9:**
-  - Develop wealth lifecycle graph; integrate timeline interactions.
-  - Automated UI tests: graph rendering under multiple data sets.
-  - Check‑in: Visual QA and performance benchmarking.
-- **Week 10:**
-  - Snapshot carousel: implement historical snapshot viewer and rollback UI.
-  - QA test: revert to prior snapshot and verify state consistency.
-  - Check‑in: Snapshot demo and QA sign‑off on rollback.
+**Test:**
+- Activate annuity toggle → pension appears in income + balance sheet
+- Disable → it disappears
+- Strategy changes observed with toggle switch
 
-### Phase 5: Final Integration & Release Prep (2 weeks)
-- **Week 11:**
-  - Full end‑to‑end testing: onboarding flow through all modules.
-  - Penetration test: data compliance (POPIA/GDPR).
-  - Check‑in: E2E test report and security compliance review.
-- **Week 12:**
-  - Bug fixes, performance optimizations, documentation finalization.
-  - Developer walkthrough and handoff session.
-  - Check‑in: Handoff demo; sign‑off from product and engineering leads.
+---
 
-*Each phase concludes with a formal check‑in presentation, demo, and test report to ensure alignment and quality before proceeding.*
+#### Task Group 5: QA + Scenario Testing
+- [ ] Scenario 1: Mid-career user (age 40), 25-year contribution, retirement at 65
+- [ ] Scenario 2: FIRE user (age 30), 10-year plan, retirement at 45
+- [ ] Scenario 3: Overfunded user (contribution + net worth exceed need)
+- [ ] Scenario 4: User changes from drawdown to annuity mid-session
+
+**Success Criteria:**
+- All computed results persist across tabs and session reload
+- Timeline displays accurate year-to-year pension impact
+- UI never crashes on toggle or input changes
+
+---
+
+These tasks ensure the Retirement Tab transitions from basic input form to a full advisory engine with simulations, projections, strategy, and risk alignment — solving real human problems with actionable insights.
+
+### 🎯 Retirement Income Risks Solved by This App
+
+- **Longevity Risk**: Let users set life expectancy and simulate portfolio duration.
+- **Sequence Risk**: Use timeline and Monte Carlo simulations to show worst-case paths.
+- **Withdrawal Strategy Confusion**: Show both annuity and drawdown models with dynamic toggles.
+- **Contribution–Outcome Disconnect**: Show users exactly how their current savings map to future income.
+- **Underfunding Risk**: Highlight projected shortfalls early and suggest increase in contributions or delayed retirement.
+- **Overconservatism**: Identify when user is overfunded and could afford to retire earlier or spend more.
+- **Tax Efficiency**: Introduce toggles for tax-deferred vs taxable contributions and display net income streams.
+
+### 📌 Additional Notes
+- Ensure user can "opt in" to projecting pension or self-managing retirement capital.
+- Add snapshot and timeline hooks to track pension capital growth + income transitions.
+- Consider adding tax treatment toggle (tax-deferred vs. taxable account).
+- Consider visualizing user's current position within their retirement arc (accumulation vs. decumulation).
+
+These changes ensure the Retirement Tab becomes an advisor-grade module supporting both accumulation and decumulation phases, aligned with real-world advisory use cases, CFA frameworks, and modern retirement planning behavior.
