@@ -17,7 +17,7 @@ import {
   selectDiscountedNet,
   selectCumulativePV
 } from './selectors'
-import { calculateRiskScore } from './utils/riskUtils'
+import { calculateRiskScore, deriveCategory } from './utils/riskUtils'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
 import { projectPensionGrowth } from './utils/pensionProjection.js'
@@ -83,6 +83,7 @@ const defaultProfile = {
   lifeExpectancy: 85,
   riskSurveyAnswers: Array(10).fill(0),
   riskScore: 0,
+  riskCategory: '',
 }
 
 function mapPersonaProfile(seed = {}) {
@@ -124,6 +125,11 @@ function mapPersonaProfile(seed = {}) {
   }
   if (typeof seed.riskScore === 'number') {
     out.riskScore = seed.riskScore
+  }
+  if (typeof seed.riskCategory === 'string') {
+    out.riskCategory = seed.riskCategory
+  } else if (typeof out.riskScore === 'number') {
+    out.riskCategory = deriveCategory(out.riskScore)
   }
   return out
 }
@@ -557,6 +563,11 @@ export function FinanceProvider({ children }) {
 
   // === Risk scoring ===
   const [riskScore, setRiskScore] = useState(0)
+  const [riskCategory, setRiskCategory] = useState(() => deriveCategory(0))
+
+  useEffect(() => {
+    setRiskCategory(deriveCategory(riskScore))
+  }, [riskScore])
 
   // === Derived strategy ===
   const [strategy, setStrategy] = useState(() =>
@@ -580,6 +591,7 @@ export function FinanceProvider({ children }) {
       setRiskScore(prev => {
         const next = Math.max(0, Math.min(prev + delta, 100))
         storage.set('riskScore', next)
+        setRiskCategory(deriveCategory(next))
         return next
       })
     }
@@ -599,16 +611,21 @@ export function FinanceProvider({ children }) {
   }, [])
 
   const updateProfile = useCallback(updated => {
-    setProfile(updated)
-    storage.set('profile', JSON.stringify(updated))
-    const score = calculateRiskScore(updated)
+    const score = typeof updated.riskScore === 'number'
+      ? updated.riskScore
+      : calculateRiskScore(updated)
+    const category = deriveCategory(score)
+    const nextProfile = { ...updated, riskScore: score, riskCategory: category }
+    setProfile(nextProfile)
+    storage.set('profile', JSON.stringify(nextProfile))
     setRiskScore(score)
+    setRiskCategory(category)
     storage.set('riskScore', score)
     if (!settings.currency) {
       const cur = DEFAULT_CURRENCY_MAP[updated.nationality]
       if (cur) updateSettings({ ...settings, currency: cur })
     }
-  }, [settings, updateSettings, setProfile, setRiskScore])
+  }, [settings, updateSettings, setProfile, setRiskScore, setRiskCategory])
 
   const clearProfile = useCallback(() => {
     updateProfile(defaultProfile)
@@ -1225,13 +1242,16 @@ export function FinanceProvider({ children }) {
           ? calculateRiskScore(loadedProfile)
           : Math.round((num / 12) * 100)
         setRiskScore(score)
+        setRiskCategory(deriveCategory(score))
         storage.set('riskScore', score)
       } else {
         setRiskScore(num)
+        setRiskCategory(deriveCategory(num))
       }
     } else if (loadedProfile) {
       const score = calculateRiskScore(loadedProfile)
       setRiskScore(score)
+      setRiskCategory(deriveCategory(score))
       storage.set('riskScore', score)
     }
 
@@ -1449,6 +1469,7 @@ export function FinanceProvider({ children }) {
       revertProfile,
       profileComplete, setProfileComplete,
       riskScore,
+      riskCategory,
       strategy,     setStrategy,
 
       // Settings

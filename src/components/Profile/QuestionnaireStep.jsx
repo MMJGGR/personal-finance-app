@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../FinanceContext';
 import { riskSurveyQuestions } from '../../config/riskSurvey';
-import { calculateRiskScore } from '../../utils/riskUtils';
+import { calculateRiskScore, deriveCategory } from '../../utils/riskUtils';
 
 export default function QuestionnaireStep({ onComplete, onBack }) {
   const { profile, updateProfile } = useFinance();
@@ -27,7 +27,8 @@ export default function QuestionnaireStep({ onComplete, onBack }) {
         riskSurveyAnswers: answers,
       };
       const score = calculateRiskScore(updated);
-      updateProfile({ ...updated, riskScore: score });
+      const riskCategory = deriveCategory(score);
+      updateProfile({ ...updated, riskScore: score, riskCategory });
       if (onComplete) onComplete();
     }
   };
