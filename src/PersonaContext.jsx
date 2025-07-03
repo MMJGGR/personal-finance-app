@@ -64,6 +64,9 @@ export function PersonaProvider({ children }) {
     if (data.goalsList) storage.set('goalsList', JSON.stringify(data.goalsList))
     if (data.assetsList) storage.set('assetsList', JSON.stringify(data.assetsList))
     if (data.liabilitiesList) storage.set('liabilitiesList', JSON.stringify(data.liabilitiesList))
+    if (data.investmentContributions) storage.set('investmentContributions', JSON.stringify(data.investmentContributions))
+    if (data.pensionStreams) storage.set('pensionStreams', JSON.stringify(data.pensionStreams))
+    if (data.privatePensionContributions) storage.set('privatePensionContributions', JSON.stringify(data.privatePensionContributions))
     if (data.settings) storage.set('settings', JSON.stringify(data.settings))
     if ('includeMediumPV' in data) storage.set('includeMediumPV', JSON.stringify(data.includeMediumPV))
     if ('includeLowPV' in data) storage.set('includeLowPV', JSON.stringify(data.includeLowPV))
@@ -75,13 +78,19 @@ export function PersonaProvider({ children }) {
 
   const addPersona = (data = {}) => {
     const id = `p-${Date.now()}`
-    const persona = { id, profile: { ...defaultProfile, ...(data.profile || {}) },
+    const persona = {
+      id,
+      profile: { ...defaultProfile, ...(data.profile || {}) },
       incomeSources: data.incomeSources || [],
       expensesList: data.expensesList || [],
       goalsList: data.goalsList || [],
       assetsList: data.assetsList || [],
       liabilitiesList: data.liabilitiesList || [],
-      settings: data.settings || {} }
+      investmentContributions: data.investmentContributions || [],
+      pensionStreams: data.pensionStreams || [],
+      privatePensionContributions: data.privatePensionContributions || [],
+      settings: data.settings || {}
+    }
     persona.profile.name = [
       persona.profile.firstName,
       persona.profile.lastName

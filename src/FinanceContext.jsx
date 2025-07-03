@@ -886,6 +886,12 @@ export function FinanceProvider({ children }) {
       storage.set('pensionStreams', JSON.stringify(pensionStreams));
     }
   }, [pensionStreams]);
+  useEffect(() => {
+    const stored = storage.get('privatePensionContributions');
+    if (JSON.stringify(privatePensionContributions) !== stored) {
+      storage.set('privatePensionContributions', JSON.stringify(privatePensionContributions));
+    }
+  }, [privatePensionContributions]);
 
   useEffect(() => {
     const newMonthlyTotal = expensesList.reduce((sum, e) => {
@@ -1278,7 +1284,7 @@ export function FinanceProvider({ children }) {
 
     const totalAnnualPensionContributions = totalAnnualNSSFContributions + totalAnnualPrivatePensionContributions;
 
-    const { monthlyIncome, incomeStream } = calculatePensionIncome({
+    const { monthlyIncome } = calculatePensionIncome({
         amount: totalAnnualPensionContributions / 12,
         duration: yearsToRetirement,
         frequency: 'Monthly',

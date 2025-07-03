@@ -31,7 +31,6 @@ export default function BalanceSheetTab() {
   const {
     incomePV,
     expensesPV,
-    cumulativePV,
     assetsList,
     setAssetsList,
     createAsset,
@@ -149,8 +148,6 @@ export default function BalanceSheetTab() {
     0
   )
 
-  const pvIncome = assetsList.find(a => a.id === 'pv-income')?.amount || 0
-  const pvExpenses = liabilitiesList.find(l => l.id === 'pv-expenses')?.amount || 0
 
   const currentYear = new Date().getFullYear()
   const pvGoals = useMemo(
