@@ -24,10 +24,21 @@ export function calculateLoanSchedule(input, startDate = Date.now()) {
     let principalPaid = basePay - interest + extra
     if (principalPaid > balance) principalPaid = balance
     const payment = interest + principalPaid
-    balance -= principalPaid
+
+    const roundedPayment = Math.round(payment)
+    const roundedPrincipal = Math.round(principalPaid)
+
+    balance -= roundedPrincipal
     totalInterest += interest
+
     const date = new Date(start + 864e5 * periodDays * i).toISOString()
-    payments.push({ date, payment, principalPaid, interestPaid: interest, balance })
+    payments.push({
+      date,
+      payment: roundedPayment,
+      principalPaid: roundedPrincipal,
+      interestPaid: interest,
+      balance,
+    })
   }
   const pvLiability = presentValue(payments.map(p => p.payment), rate)
   return { payments, totalInterest, pvLiability }
