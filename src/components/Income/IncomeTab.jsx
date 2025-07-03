@@ -39,7 +39,7 @@ export default function IncomeTab() {
     startYear,
     years,
   } = useFinance();
-  const { currentData } = usePersona();
+  const { currentData, currentPersonaId, updatePersona } = usePersona();
 
 
   const currentYear = new Date().getFullYear();
@@ -241,9 +241,9 @@ export default function IncomeTab() {
     setIncomeSources(incomeSources.filter((_, i) => i !== idx));
   };
 
-  const clearIncomeSources = () => {
-    setIncomeSources([])
-  }
+const clearIncomeSources = () => {
+  setIncomeSources([])
+}
 
   const resetDefaults = () => {
     if (currentData?.incomeSources?.length) {
@@ -269,6 +269,10 @@ export default function IncomeTab() {
     } else {
       setIncomeSources(defaultIncomeSources(startYear))
     }
+  }
+
+  const saveIncomeSources = () => {
+    updatePersona(currentPersonaId, { incomeSources })
   }
 
   const updateIncome = onFieldChange;
@@ -460,6 +464,13 @@ export default function IncomeTab() {
           aria-label="Clear income sources"
         >
           Clear
+        </button>
+        <button
+          onClick={saveIncomeSources}
+          className="mt-2 border border-amber-600 bg-amber-600 text-white px-4 py-1 rounded-md text-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Save income sources"
+        >
+          Save
         </button>
         <button
           onClick={resetDefaults}
