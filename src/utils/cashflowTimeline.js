@@ -1,10 +1,15 @@
 import { getStreamEndYear } from "./incomeProjection";
 import { generateRecurringFlows, frequencyToPayments } from "./financeUtils";
-export function generateIncomeTimeline(sources, assumptions, assetsList = [], years) {
-  const currentYear = new Date().getFullYear();
-  const birthYear = assumptions.birthYear ?? currentYear;
+export function generateIncomeTimeline(
+  sources,
+  assumptions,
+  assetsList = [],
+  years,
+  startYear = new Date().getFullYear()
+) {
+  const birthYear = assumptions.birthYear ?? new Date().getFullYear();
   const timeline = Array.from({ length: years }, (_, i) => ({
-    year: currentYear + i,
+    year: startYear + i,
     gross: 0,
     net: 0,
     expenses: assumptions.annualExpenses || 0,
@@ -17,10 +22,10 @@ export function generateIncomeTimeline(sources, assumptions, assetsList = [], ye
     if (start == null && s.startAge != null) {
       start = birthYear + s.startAge;
     }
-    start = Math.max(currentYear, start ?? currentYear);
+    start = Math.max(startYear, start ?? startYear);
     const end = Math.min(
       getStreamEndYear(s, assumptions, linkedAsset),
-      currentYear + years - 1
+      startYear + years - 1
     );
     if (end < start) return;
 
@@ -28,10 +33,10 @@ export function generateIncomeTimeline(sources, assumptions, assetsList = [], ye
       s.vestSchedule.forEach(v => {
         if (!v) return;
         const y = v.year ?? start;
-        if (y < currentYear || y > currentYear + years - 1) return;
+        if (y < startYear || y > startYear + years - 1) return;
         const shares = (s.totalGrant || 0) * ((v.pct || 0) / 100);
         const value = shares * (s.fairValuePerShare || 0);
-        const idx = y - currentYear;
+        const idx = y - startYear;
         timeline[idx].gross += value;
         timeline[idx].net += s.taxed === false ? value : value * (1 - (s.taxRate || 0) / 100);
       });
@@ -52,7 +57,7 @@ export function generateIncomeTimeline(sources, assumptions, assetsList = [], ye
     });
 
     flows.forEach(f => {
-      const idx = f.year - currentYear;
+      const idx = f.year - startYear;
       timeline[idx].gross += f.amount;
       timeline[idx].net += s.taxed === false ? f.amount : f.amount * (1 - (s.taxRate || 0) / 100);
     });
