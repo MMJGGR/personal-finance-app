@@ -84,6 +84,9 @@ const defaultProfile = {
   riskSurveyAnswers: Array(10).fill(0),
   riskScore: 0,
   riskCategory: '',
+  profileVersion: 1,
+  profileTimestamp: '',
+  profileComplete: false,
 }
 
 function mapPersonaProfile(seed = {}) {
@@ -569,6 +572,13 @@ export function FinanceProvider({ children }) {
     setRiskCategory(deriveCategory(riskScore))
   }, [riskScore])
 
+  // Notify other tabs when profile data changes
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('contextChange', { detail: { profile } })
+    )
+  }, [profile])
+
   // === Derived strategy ===
   const [strategy, setStrategy] = useState(() =>
     storage.get('strategy') || ''
@@ -611,21 +621,28 @@ export function FinanceProvider({ children }) {
   }, [])
 
   const updateProfile = useCallback(updated => {
-    const score = typeof updated.riskScore === 'number'
-      ? updated.riskScore
-      : calculateRiskScore(updated)
+    const base = { ...profile, ...updated }
+    const score = typeof base.riskScore === 'number'
+      ? base.riskScore
+      : calculateRiskScore(base)
     const category = deriveCategory(score)
-    const nextProfile = { ...updated, riskScore: score, riskCategory: category }
+    const nextProfile = {
+      ...base,
+      riskScore: score,
+      riskCategory: category,
+      profileVersion: (profile.profileVersion || 0) + 1,
+      profileTimestamp: new Date().toISOString(),
+    }
     setProfile(nextProfile)
     storage.set('profile', JSON.stringify(nextProfile))
     setRiskScore(score)
     setRiskCategory(category)
     storage.set('riskScore', score)
     if (!settings.currency) {
-      const cur = DEFAULT_CURRENCY_MAP[updated.nationality]
+      const cur = DEFAULT_CURRENCY_MAP[nextProfile.nationality]
       if (cur) updateSettings({ ...settings, currency: cur })
     }
-  }, [settings, updateSettings, setProfile, setRiskScore, setRiskCategory])
+  }, [profile, settings, updateSettings, setProfile, setRiskScore, setRiskCategory])
 
   const clearProfile = useCallback(() => {
     updateProfile(defaultProfile)
