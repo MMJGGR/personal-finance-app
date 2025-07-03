@@ -1,4 +1,5 @@
 import { buildCSV, quoteCSV } from './csvUtils'
+import { stripPII } from './compliance.js'
 
 export function buildIncomeJSON(
   profile,
@@ -83,10 +84,11 @@ export async function submitProfile(payload = {}, settings = {}) {
   if (!settings.apiEndpoint) return
   if (typeof fetch !== 'function') return
   try {
+    const sanitized = { ...payload, profile: stripPII(payload.profile) }
     await fetch(settings.apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(sanitized)
     })
   } catch (err) {
     console.error('Failed to submit profile', err)
