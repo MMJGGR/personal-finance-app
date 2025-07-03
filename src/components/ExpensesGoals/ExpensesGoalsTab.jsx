@@ -57,7 +57,7 @@ export default function ExpensesGoalsTab() {
     includeGoalsPV,
     includeLiabilitiesNPV
   } = useFinance()
-  const { currentData } = usePersona()
+  const { currentData, currentPersonaId, updatePersona } = usePersona()
   const horizon = Math.max(1, profile.lifeExpectancy - profile.age)
   const defaultStart = currentYear
   const defaultEnd = currentYear + horizon
@@ -399,6 +399,14 @@ export default function ExpensesGoalsTab() {
     }
   }
 
+  const handleSave = () => {
+    updatePersona(currentPersonaId, {
+      expensesList,
+      goalsList,
+      liabilitiesList,
+    })
+  }
+
   // --- 1) Remaining lifetime horizon ---
   const lifeYears = Math.max(1, Math.floor(profile.lifeExpectancy - profile.age))
 
@@ -661,6 +669,13 @@ export default function ExpensesGoalsTab() {
           aria-label="Clear lists"
         >
           Clear
+        </button>
+        <button
+          onClick={handleSave}
+          className="mt-2 border border-amber-600 bg-amber-600 text-white px-4 py-1 rounded-md text-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Save lists"
+        >
+          Save
         </button>
         <button
           onClick={resetDefaults}
