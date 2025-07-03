@@ -159,6 +159,13 @@ import { buildIncomeJSON, buildPlanJSON, submitProfile } from './src/utils/expor
 
 Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
+### Data Compliance
+
+The submission helper strips personally identifiable information before
+POSTing data. Fields such as email, phone number and address are removed
+so the payload only contains non-sensitive profile attributes. Unit tests
+cover this behavior in `compliance.test.js`.
+
 ## Income Views
 
 Above the income chart you'll find **Nominal** and **Discounted** buttons used to toggle between raw projections and present value figures. The expenses chart in **Expenses & Goals** and the surplus (cashflow) chart on the **Balance Sheet** tab offer the same controls. Adjust the assumptions using the **Discount Rate (%)** and **Projection Years** fields under **Settings**.
