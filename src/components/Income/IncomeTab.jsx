@@ -21,6 +21,7 @@ import IncomeTimelineChart from './IncomeTimelineChart'
 import { defaultIncomeSources } from './defaults.js'
 
 import { formatCurrency } from '../../utils/formatters'
+import { yearToAge } from '../../utils/ageUtils'
 import storage from '../../utils/storage'
 import { appendAuditLog } from '../../utils/auditLog'
 import sanitize from '../../utils/sanitize'
@@ -194,6 +195,9 @@ export default function IncomeTab() {
         if (val != null && other != null) {
           if (field === 'startYear' && val > other) val = other
           if (field === 'endYear' && other > val) val = other
+        }
+        if (field === 'startYear') {
+          return { ...src, startYear: val, startAge: yearToAge(val, profile) }
         }
         return { ...src, [field]: val }
       }

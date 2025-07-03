@@ -20,3 +20,11 @@ export function extractNetWorth(profile = {}) {
   const liabs = Number(profile.totalLiabilities) || 0;
   return assets - liabs;
 }
+
+export function yearToAge(year, profile = {}) {
+  if (typeof year !== 'number' || Number.isNaN(year)) return null;
+  const profAge = extractAge(profile);
+  if (typeof profAge !== 'number' || Number.isNaN(profAge)) return null;
+  const birthYear = new Date().getFullYear() - profAge;
+  return year - birthYear;
+}
