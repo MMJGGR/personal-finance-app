@@ -198,7 +198,7 @@ export default function ExpensesGoalsTab() {
         const parsed = expenseItemSchema.safeParse(updated)
         if (parsed.success) {
           setExpenseErrors(err => ({ ...err, [id]: {} }))
-          return parsed.data
+          return { ...exp, ...parsed.data }
         } else {
           setExpenseErrors(err => ({
             ...err,
@@ -254,7 +254,7 @@ export default function ExpensesGoalsTab() {
         const parsed = goalItemSchema.safeParse(updated)
         if (parsed.success) {
           setGoalErrors(err => ({ ...err, [id]: {} }))
-          return parsed.data
+          return { ...goal, ...parsed.data }
         } else {
           setGoalErrors(err => ({
             ...err,
