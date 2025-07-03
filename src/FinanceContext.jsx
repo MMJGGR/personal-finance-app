@@ -46,7 +46,7 @@ function safeParse(str, fallback) {
   }
 }
 
-const defaultProfile = {
+export const defaultProfile = {
   firstName: '',
   lastName: '',
   email: '',
