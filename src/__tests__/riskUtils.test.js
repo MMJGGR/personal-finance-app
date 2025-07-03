@@ -130,3 +130,21 @@ test('ignore undefined survey answers', () => {
   const complete = { ...base, riskSurveyAnswers: [5, 5] }
   expect(calculateRiskScore(partial)).toBe(calculateRiskScore(complete))
 })
+
+test('handles malformed numeric fields', () => {
+  const messy = {
+    age: 'thirty',
+    annualIncome: '100,000',
+    netWorth: '200,000',
+    yearsInvesting: 'two',
+    employmentStatus: 'Employed',
+    emergencyFundMonths: 'six',
+    riskSurveyAnswers: Array(10).fill(3),
+    investmentKnowledge: 'Moderate',
+    lossResponse: 'Wait',
+    investmentHorizon: '>7 years',
+    investmentGoal: 'Growth',
+  }
+  const score = calculateRiskScore(messy)
+  expect(score).toBeGreaterThan(0)
+})

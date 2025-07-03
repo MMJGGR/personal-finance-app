@@ -14,18 +14,23 @@ function normalizeAgeValue(age) {
   return Math.max(0, Math.min(age, 100));
 }
 
+function parseNumber(val) {
+  const n = Number(String(val).replace(/,/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
 function normalizeIncome(annualIncome) {
-  const n = Number(annualIncome) || 0;
+  const n = parseNumber(annualIncome);
   return Math.max(0, Math.min((n / 1_000_000) * 100, 100));
 }
 
 function normalizeNetWorth(netWorth) {
-  const n = Number(netWorth) || 0;
+  const n = parseNumber(netWorth);
   return Math.max(0, Math.min((n / 5_000_000) * 100, 100));
 }
 
 function normalizeExperience(years) {
-  const n = Number(years) || 0;
+  const n = parseNumber(years);
   return Math.max(0, Math.min((n / 30) * 100, 100));
 }
 
@@ -51,7 +56,7 @@ function normalizeGoal(goal) {
 
 
 function normalizeLiquidity(needs) {
-  const n = Number(needs) || 0;
+  const n = parseNumber(needs);
   return Math.max(0, Math.min((n / 12) * 100, 100));
 }
 
@@ -62,11 +67,11 @@ function normalizeSurveyScore(rawScore) {
 
 export function calculateRiskScore(profile = {}) {
   if (!profile.employmentStatus) return 0;
-  const age = Number(extractAge(profile));
-  const annualIncome = Number(profile.annualIncome);
-  const netWorth = Number(extractNetWorth(profile));
-  const yearsInvesting = Number(profile.yearsInvesting);
-  const emergencyFundMonths = Number(profile.emergencyFundMonths);
+  const age = parseNumber(extractAge(profile));
+  const annualIncome = parseNumber(profile.annualIncome);
+  const netWorth = parseNumber(extractNetWorth(profile));
+  const yearsInvesting = parseNumber(profile.yearsInvesting);
+  const emergencyFundMonths = parseNumber(profile.emergencyFundMonths);
   const surveyAnswers = Array.isArray(profile.riskSurveyAnswers)
     ? profile.riskSurveyAnswers.filter(v => v !== undefined)
     : [];
@@ -75,10 +80,6 @@ export function calculateRiskScore(profile = {}) {
   const loss = normalizeLossResponse(profile.lossResponse);
   const horizon = normalizeHorizon(profile.investmentHorizon);
   const goal = normalizeGoal(profile.investmentGoal);
-
-  if ([age, annualIncome, netWorth, yearsInvesting, emergencyFundMonths].some(v => Number.isNaN(v))) {
-    return 0;
-  }
 
   const scores = {
     age: normalizeAgeValue(age) * riskWeights.age,
