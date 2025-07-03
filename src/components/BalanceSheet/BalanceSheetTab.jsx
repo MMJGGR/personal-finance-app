@@ -46,6 +46,8 @@ export default function BalanceSheetTab() {
     includeLiabilitiesNPV,
     discountRate,
     humanCapitalShare,
+    netWorth,
+    debtToAssetRatio,
     settings,
     strategy,
     setStrategy,
@@ -149,10 +151,6 @@ export default function BalanceSheetTab() {
 
   const pvIncome = assetsList.find(a => a.id === 'pv-income')?.amount || 0
   const pvExpenses = liabilitiesList.find(l => l.id === 'pv-expenses')?.amount || 0
-  const baseNetWorth = totalAssets - pvIncome - (totalLiabilities - pvExpenses)
-  const futurePV = cumulativePV[cumulativePV.length - 1] || 0
-  const netWorth = baseNetWorth + futurePV
-  const debtAssetRatio = totalAssets > 0 ? totalLiabilities / totalAssets : 0
 
   const currentYear = new Date().getFullYear()
   const pvGoals = useMemo(
@@ -355,7 +353,7 @@ export default function BalanceSheetTab() {
     { label: 'Goals PV', value: pvGoals },
     { label: 'Liabilities PV', value: pvLiabilities },
     { label: 'Future Value', value: assetFutureValue },
-    { label: 'Debt/Asset Ratio', value: debtAssetRatio },
+    { label: 'Debt/Asset Ratio', value: debtToAssetRatio },
     { label: 'Human Cap Share', value: humanCapitalShare },
     { label: 'Portfolio Return', value: assetReturn },
     { label: 'Portfolio Vol', value: assetVol },
@@ -611,8 +609,8 @@ export default function BalanceSheetTab() {
           className="text-2xl font-bold text-amber-800"
           data-testid="net-worth"
         >{formatCurrency(netWorth, settings.locale, settings.currency)}</span>
-        {debtAssetRatio > 1 && (
-          <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtAssetRatio * 100).toFixed(1)}%).</span>
+        {debtToAssetRatio > 1 && (
+          <span className="block text-red-600 text-sm">Warning: Debt exceeds assets ({(debtToAssetRatio * 100).toFixed(1)}%).</span>
         )}
       </div>
 
