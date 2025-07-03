@@ -53,6 +53,18 @@
 - [ ] If `pensionType === "Self-Managed"`, apply SWR logic (e.g. 4% rule)
 - [ ] Output income stream: `projectedPensionIncome[] = [{ year, amount }]`
 - [ ] Save pension accumulation as `syntheticAsset` in context
+- [ ] Create and push a new income source object:
+  ```js
+  {
+    id: 'pension-income',
+    label: 'Pension Income',
+    source: 'projectedPension',
+    startYear: retirementAge,
+    endYear: lifeExpectancy,
+    annualAmount: computedAnnualPension
+  }
+  ```
+- [ ] Add this income source to `incomeStreams[]` in `FinanceContext`
 
 **Success Criteria:**
 - Pension value at retirement shown in summary
@@ -62,6 +74,7 @@
 **Test:**
 - Unit test: Validate annuity vs. drawdown results for identical inputs
 - Edge test: Start year after retirement should fail with advisory message
+- Test visibility: income stream appears and disappears with toggle
 
 ---
 
