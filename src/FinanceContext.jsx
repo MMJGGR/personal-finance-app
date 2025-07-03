@@ -22,6 +22,7 @@ import { calculateRiskScore, deriveCategory } from './utils/riskUtils'
 import { deriveStrategy } from './utils/strategyUtils'
 import { getStreamEndYear } from './utils/incomeProjection'
 import { calculatePensionIncome } from './utils/pensionProjection.js'
+import { computeFundingAdequacy } from './utils/AdvisoryEngine'
 import storage from './utils/storage'
 import hadiSeed from './data/hadiSeed.json'
 import { defaultIncomeSources } from './components/Income/defaults.js'
@@ -556,6 +557,9 @@ export function FinanceProvider({ children }) {
       survivalThresholdMonths: 0,
       bufferPct: 0,
       retirementAge: 65,
+      lifeExpectancyOverride: 85,
+      replacementRate: 70,
+      realReturn: 3,
       riskCapacityScore: 0,
       riskWillingnessScore: 0,
       liquidityBucketDays: 0,
@@ -617,6 +621,9 @@ export function FinanceProvider({ children }) {
   const [strategy, setStrategy] = useState(() =>
     storage.get('strategy') || ''
   )
+
+  const [fundingFlag, setFundingFlag] = useState(null)
+  const [fundingGap, setFundingGap] = useState(0)
 
   useEffect(() => {
     if (!storage.get('strategy')) {
@@ -1250,12 +1257,12 @@ export function FinanceProvider({ children }) {
         amount: totalAnnualPensionContributions / 12,
         duration: yearsToRetirement,
         frequency: 'Monthly',
-        expectedReturn: settings.expectedReturn ?? 0,
+        expectedReturn: settings.realReturn ?? settings.expectedReturn ?? 0,
         pensionType: 'Annuity',
         startYear: currentYear,
         retirementAge: settings.retirementAge,
         currentAge: profile.age,
-        lifeExpectancy: profile.lifeExpectancy,
+        lifeExpectancy: settings.lifeExpectancyOverride ?? profile.lifeExpectancy,
       });
 
     setAssetsList(prevAssets => {
@@ -1319,8 +1326,19 @@ export function FinanceProvider({ children }) {
     profile.lifeExpectancy,
     settings.retirementAge,
     settings.expectedReturn,
+    settings.realReturn,
+    settings.lifeExpectancyOverride,
     setAssetsList,
   ]);
+
+  useEffect(() => {
+    const pension = incomeSources.find(s => s.id === 'pension-income');
+    const annualProjected = pension ? pension.amount : 0;
+    const target = (settings.replacementRate ?? 70) / 100 * (profile.annualIncome || 0);
+    const { flag, gap } = computeFundingAdequacy(annualProjected, target);
+    setFundingFlag(flag);
+    setFundingGap(gap);
+  }, [incomeSources, settings.replacementRate, profile.annualIncome]);
 
   // === Load persisted state on mount and persona switch ===
   useEffect(() => {
@@ -1403,6 +1421,9 @@ export function FinanceProvider({ children }) {
         survivalThresholdMonths: 0,
         bufferPct: 0,
         retirementAge: 65,
+        lifeExpectancyOverride: 85,
+        replacementRate: 70,
+        realReturn: 3,
         riskCapacityScore: 0,
         riskWillingnessScore: 0,
         liquidityBucketDays: 0,
@@ -1695,6 +1716,9 @@ export function FinanceProvider({ children }) {
       // Liabilities
       liabilitiesList, setLiabilitiesList,
       createLiability,
+
+      fundingFlag,
+      fundingGap,
 
       // Profile & lifeExpectancy
       profile,       updateProfile,

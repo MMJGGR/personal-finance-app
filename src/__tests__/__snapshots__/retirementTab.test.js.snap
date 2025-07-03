@@ -144,6 +144,61 @@ exports[`retirement tab placeholder snapshot 1`] = `
          
         Ksh 0.00
       </div>
+      <label
+        class="block mt-4 text-sm font-medium text-gray-700"
+        for="life-exp"
+      >
+        Life Expectancy
+      </label>
+      <input
+        class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+        id="life-exp"
+        type="number"
+        value="85"
+      />
+      <label
+        class="block mt-4 text-sm font-medium text-gray-700"
+        for="replacement-rate"
+      >
+        Target Replacement Rate (%)
+      </label>
+      <input
+        class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+        id="replacement-rate"
+        type="number"
+        value="70"
+      />
+      <label
+        class="block mt-4 text-sm font-medium text-gray-700"
+        for="real-return"
+      >
+        Real Return Assumption (%)
+      </label>
+      <input
+        class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+        id="real-return"
+        type="number"
+        value="3"
+      />
+      <div
+        class="mt-4 text-sm"
+      >
+        <div
+          class="bg-red-50 border border-red-300 p-4 rounded-lg"
+          id="adequacy-alert"
+        >
+          <h3
+            class="text-red-700 font-semibold mb-2"
+          >
+            Adequacy Alert
+          </h3>
+          <p
+            class="text-sm"
+          >
+            Projected income short by 2.1 M
+          </p>
+        </div>
+      </div>
     </div>
   </div>
   <div
