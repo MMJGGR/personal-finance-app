@@ -20,7 +20,7 @@ export default function CashflowTimelineChart({ data = [], locale, currency }) {
         <YAxis tickFormatter={format} />
         <Tooltip formatter={format} />
         <Legend />
-        <Area type="monotone" dataKey="surplus" stroke="#22c55e" fill="#bbf7d0" name="Surplus" />
+        <Area type="monotone" dataKey="net" stroke="#22c55e" fill="#bbf7d0" name="Surplus" />
         <Line type="monotone" dataKey="net" stroke="#f59e0b" name="Net" />
       </AreaChart>
     </ResponsiveContainer>
