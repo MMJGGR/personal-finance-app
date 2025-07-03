@@ -208,6 +208,10 @@ Net Worth = Assets - Liabilities + Income PV - Expenses PV - Goals PV
 ```
 With the example figures above the spreadsheet result should match **KES 1,580,000**.
 
+## Known Issues
+
+- Fixed a bug where duplicate IDs in stored expenses could cause edits to affect more than one row. Each expense now receives a unique identifier when loaded from storage.
+
 ## License
 
 This project is proprietary. All rights are reserved and it is not covered by an open-source license. Redistribution is prohibited without written permission.
