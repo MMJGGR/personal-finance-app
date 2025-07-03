@@ -826,14 +826,19 @@ export function FinanceProvider({ children }) {
       storage.set('incomeSources', JSON.stringify(incomeSources));
     }
   }, [incomeSources]);
-  
-  
+
   useEffect(() => {
     const storedGoalsList = storage.get('goalsList');
     if (JSON.stringify(goalsList) !== storedGoalsList) {
       storage.set('goalsList', JSON.stringify(goalsList));
     }
   }, [goalsList]);
+  useEffect(() => {
+    const stored = storage.get('expensesList');
+    if (JSON.stringify(expensesList) !== stored) {
+      storage.set('expensesList', JSON.stringify(expensesList));
+    }
+  }, [expensesList]);
   useEffect(() => {
     const storedAssetsList = storage.get('assetsList');
     if (JSON.stringify(assetsList) !== storedAssetsList) {
