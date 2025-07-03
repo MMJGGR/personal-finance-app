@@ -656,19 +656,17 @@ export function FinanceProvider({ children }) {
 
   const updateProfile = useCallback(updated => {
     const base = { ...profile, ...updated }
-    if ('firstName' in updated || 'lastName' in updated) {
-      const name = [base.firstName, base.lastName]
-        .filter(Boolean)
-        .join(' ')
-        .trim()
-      updatePersona(currentPersonaId, { profile: { ...base, name } })
-    }
-    const score = typeof base.riskScore === 'number'
-      ? base.riskScore
-      : calculateRiskScore(base)
+    const name = [base.firstName, base.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim()
+    const complete = { ...base, name }
+    const score = typeof complete.riskScore === 'number'
+      ? complete.riskScore
+      : calculateRiskScore(complete)
     const category = deriveCategory(score)
     const nextProfile = {
-      ...base,
+      ...complete,
       riskScore: score,
       riskCategory: category,
       profileVersion: (profile.profileVersion || 0) + 1,
@@ -676,6 +674,7 @@ export function FinanceProvider({ children }) {
     }
     setProfile(nextProfile)
     storage.set('profile', JSON.stringify(nextProfile))
+    updatePersona(currentPersonaId, { profile: nextProfile })
     setRiskScore(score)
     setRiskCategory(category)
     storage.set('riskScore', score)
