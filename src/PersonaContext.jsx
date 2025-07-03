@@ -82,6 +82,10 @@ export function PersonaProvider({ children }) {
       assetsList: data.assetsList || [],
       liabilitiesList: data.liabilitiesList || [],
       settings: data.settings || {} }
+    persona.profile.name = [
+      persona.profile.firstName,
+      persona.profile.lastName
+    ].filter(Boolean).join(' ')
     const next = [...personas, persona]
     setPersonas(next)
     localStorage.setItem(`persona-${id}`, JSON.stringify(persona))
