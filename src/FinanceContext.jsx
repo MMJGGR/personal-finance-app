@@ -294,20 +294,25 @@ export function FinanceProvider({ children }) {
     if (!s) return []
     try {
       const parsed = JSON.parse(s)
+      const seen = new Set()
       const migrated = parsed.map(exp => {
         let paymentsPerYear = exp.paymentsPerYear
         if (typeof paymentsPerYear !== 'number') {
           paymentsPerYear = frequencyToPayments(exp.frequency) || 1
         }
+        const base = { ...exp }
+        let id = base.id || crypto.randomUUID()
+        while (seen.has(id)) id = crypto.randomUUID()
+        seen.add(id)
         return {
-          id: exp.id || crypto.randomUUID(),
-          startYear: exp.startYear ?? now,
-          endYear: exp.endYear ?? null,
-          include: exp.include !== false,
-          monthDue: exp.monthDue ?? 1,
-          ...exp,
+          ...base,
+          id,
+          startYear: base.startYear ?? now,
+          endYear: base.endYear ?? null,
+          include: base.include !== false,
+          monthDue: base.monthDue ?? 1,
           paymentsPerYear,
-          priority: exp.priority ?? 2,
+          priority: base.priority ?? 2,
         }
       })
       storage.set('expensesList', JSON.stringify(migrated))
@@ -1345,16 +1350,22 @@ export function FinanceProvider({ children }) {
       try {
         const parsed = JSON.parse(sExp)
         const now = new Date().getFullYear()
+        const seen = new Set()
         setExpensesList(
           parsed.map(exp => {
             const ppy = typeof exp.paymentsPerYear === 'number'
               ? exp.paymentsPerYear
               : frequencyToPayments(exp.frequency) || 1
+            const base = { ...exp }
+            let id = base.id || crypto.randomUUID()
+            while (seen.has(id)) id = crypto.randomUUID()
+            seen.add(id)
             return {
-              startYear: exp.startYear ?? now,
-              endYear: exp.endYear ?? null,
-              priority: exp.priority ?? 2,
-              ...exp,
+              ...base,
+              id,
+              startYear: base.startYear ?? now,
+              endYear: base.endYear ?? null,
+              priority: base.priority ?? 2,
               paymentsPerYear: ppy,
             }
           })
