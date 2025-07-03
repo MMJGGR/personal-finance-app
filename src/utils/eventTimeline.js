@@ -39,5 +39,7 @@ export function removeEvent(storage, id) {
 export function clearEvents(storage) {
   try {
     storage.remove('timeline');
-  } catch {}
+  } catch (err) {
+    console.error('Failed to clear timeline', err);
+  }
 }

@@ -20,5 +20,7 @@ export function addVersion(storage, profile) {
 export function clearVersions(storage) {
   try {
     storage.remove('profile-versions');
-  } catch {}
+  } catch (err) {
+    console.error('Failed to clear version history', err);
+  }
 }
