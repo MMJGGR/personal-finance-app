@@ -70,7 +70,7 @@ export default function IncomeTab() {
             )
           : { gross: 0, net: 0 }
       ),
-    [incomeSources, discountRate, years, assumptions, assetsList]
+    [incomeSources, discountRate, years, assumptions, assetsList, startYear]
   )
 
   const totalGrossPV = useMemo(
@@ -89,9 +89,10 @@ export default function IncomeTab() {
         incomeSources,
         { ...assumptions, annualExpenses: monthlyExpense * 12 },
         assetsList,
-        years
+        years,
+        startYear
       ),
-    [incomeSources, assumptions, assetsList, years, monthlyExpense]
+    [incomeSources, assumptions, assetsList, years, monthlyExpense, startYear]
   )
 
   const timelinePV = useMemo(

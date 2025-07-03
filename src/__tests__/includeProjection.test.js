@@ -13,7 +13,13 @@ test('inactive income excluded from PV totals and timeline', () => {
     .reduce((sum, p) => sum + p.gross, 0)
   expect(total).toBeCloseTo(pvActive.gross)
 
-  const timeline = generateIncomeTimeline([active, inactive], assumptions, [], 5)
-  const expected = generateIncomeTimeline([active], assumptions, [], 5)
+  const timeline = generateIncomeTimeline(
+    [active, inactive],
+    assumptions,
+    [],
+    5,
+    current
+  )
+  const expected = generateIncomeTimeline([active], assumptions, [], 5, current)
   expect(timeline).toEqual(expected)
 })

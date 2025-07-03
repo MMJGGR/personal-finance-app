@@ -76,7 +76,7 @@ test('generateIncomeTimeline matches previous implementation', () => {
   const sources = [
     { amount: 100, frequency: 'Monthly', growth: 0, taxRate: 10, startYear: current, active: true }
   ]
-  const newRes = generateIncomeTimeline(sources, assumptions, [], 3)
+  const newRes = generateIncomeTimeline(sources, assumptions, [], 3, current)
   const oldRes = oldGenerateIncomeTimeline(sources, assumptions, [], 3)
   expect(newRes).toEqual(oldRes)
 })
