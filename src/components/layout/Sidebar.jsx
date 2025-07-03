@@ -1,5 +1,5 @@
 import React from 'react'
-import { usePersona } from '../../PersonaContext'
+import { usePersona } from '../../PersonaContext.jsx'
 
 const sections = [
   'Profile',
