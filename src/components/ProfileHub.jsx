@@ -1,6 +1,6 @@
 import React from 'react'
 import { useFinance } from '../FinanceContext'
-import ProfileWizard from './Profile/RiskOnboardingWizard.jsx'
+import ProfileWizard from './ProfileWizard.jsx'
 import ProfileSummary from './Profile/SummaryStep.jsx'
 import SnapshotCarousel from './SnapshotCarousel.jsx'
 

@@ -18,6 +18,11 @@ test('end-to-end onboarding through income tab', async () => {
   await screen.findByText(/Client Profile/i)
   fireEvent.click(screen.getByText('Next'))
 
+  // Income, Assets, and Goals steps
+  fireEvent.click(screen.getByText('Next'))
+  fireEvent.click(screen.getByText('Next'))
+  fireEvent.click(screen.getByText('Next'))
+
   for (let i = 0; i < riskSurveyQuestions.length; i++) {
     fireEvent.change(screen.getByRole('combobox'), { target: { value: '3' } })
     fireEvent.click(
