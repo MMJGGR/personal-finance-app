@@ -25,6 +25,12 @@ import storage from './utils/storage'
 import hadiSeed from './data/hadiSeed.json'
 import { defaultIncomeSources } from './components/Income/defaults.js'
 import { readVersions } from './utils/versionHistory'
+import {
+  readEvents,
+  addEvent as storeAddEvent,
+  updateEvent as storeUpdateEvent,
+  removeEvent as storeRemoveEvent,
+} from './utils/eventTimeline'
 
 const DEFAULT_CURRENCY_MAP = {
   Kenyan: 'KES',
@@ -130,6 +136,7 @@ export function FinanceProvider({ children }) {
   storage.setPersona(currentPersonaId)
   useEffect(() => {
     storage.setPersona(currentPersonaId)
+    setEvents(readEvents(storage))
   }, [currentPersonaId])
   // === Core financial state ===
   const [discountRate, setDiscountRate]     = useState(0)
@@ -489,6 +496,24 @@ export function FinanceProvider({ children }) {
     saleYear: null,
     principal: 0,
   })
+
+  // === Life events timeline ===
+  const [events, setEvents] = useState(() => readEvents(storage))
+
+  const addEvent = useCallback(event => {
+    const list = storeAddEvent(storage, event)
+    setEvents(list)
+  }, [])
+
+  const updateEventEntry = useCallback((id, updates) => {
+    const list = storeUpdateEvent(storage, id, updates)
+    setEvents(list)
+  }, [])
+
+  const removeEvent = useCallback(id => {
+    const list = storeRemoveEvent(storage, id)
+    setEvents(list)
+  }, [])
 
   // === Settings state ===
   const [settings, setSettings] = useState(() => {
@@ -1402,6 +1427,12 @@ export function FinanceProvider({ children }) {
       privatePensionContributions, setPrivatePensionContributions,
       assetsList,    setAssetsList,
       createAsset,
+
+      // Timeline events
+      events,
+      addEvent,
+      updateEvent: updateEventEntry,
+      removeEvent,
 
       // Liabilities
       liabilitiesList, setLiabilitiesList,

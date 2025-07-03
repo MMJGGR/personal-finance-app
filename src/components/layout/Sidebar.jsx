@@ -11,6 +11,7 @@ const sections = [
   'Balance Sheet',
   'Strategy',
   'Insurance',
+  'Timeline',
 ]
 
 export default function Sidebar({ activeTab, onSelect }) {
