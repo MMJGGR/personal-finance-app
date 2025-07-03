@@ -50,7 +50,7 @@ export default function BalanceSheetTab() {
     strategy,
     setStrategy,
   } = useFinance()
-  const { currentData } = usePersona()
+  const { currentData, currentPersonaId, updatePersona } = usePersona()
 
   const [expandedAssets, setExpandedAssets] = useState({})
   const [expandedLiabilities, setExpandedLiabilities] = useState({})
@@ -211,6 +211,10 @@ export default function BalanceSheetTab() {
       }))
       setLiabilitiesList(list)
     }
+  }
+
+  const handleSave = () => {
+    updatePersona(currentPersonaId, { assetsList, liabilitiesList })
   }
 
   const validateAsset = (asset, idx, list) => {
@@ -723,7 +727,14 @@ export default function BalanceSheetTab() {
           locale={settings.locale}
           currency={settings.currency}
         />
-        <div className="text-right mt-2">
+        <div className="text-right space-x-2 mt-2">
+          <button
+            onClick={handleSave}
+            className="border border-amber-600 bg-amber-600 text-white px-4 py-1 rounded-md text-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            aria-label="Save balance lists"
+          >
+            Save
+          </button>
           <button
             onClick={resetDefaults}
             className="border border-amber-600 px-4 py-1 rounded-md text-sm hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
