@@ -205,6 +205,7 @@ export function generateRecurringFlows(stream = {}) {
     amount = 0,
     frequency,
     paymentsPerYear,
+    monthDue = 1,
     growth = 0,
     startYear = new Date().getFullYear(),
     endYear = startYear,
@@ -218,7 +219,10 @@ export function generateRecurringFlows(stream = {}) {
   for (let year = startYear; year <= endYear; year++) {
     const idx = year - startYear
     const cash = amount * ppy * Math.pow(1 + growth / 100, idx)
-    flows.push({ year, amount: cash })
+    const offset = ppy === 12
+      ? idx + 1
+      : idx + (monthDue - 1) / 12
+    flows.push({ year, amount: cash, offset })
   }
   return flows
 }

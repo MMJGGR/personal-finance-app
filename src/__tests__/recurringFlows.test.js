@@ -23,9 +23,36 @@ test('generateRecurringFlows creates annual amounts with growth', () => {
     endYear: end
   })
   const expected = [
-    { year: 2020, amount: 1200 },
-    { year: 2021, amount: 1200 * 1.05 },
-    { year: 2022, amount: 1200 * Math.pow(1.05, 2) }
+    { year: 2020, amount: 1200, offset: 1 },
+    { year: 2021, amount: 1200 * 1.05, offset: 2 },
+    { year: 2022, amount: 1200 * Math.pow(1.05, 2), offset: 3 }
   ]
   expect(flows).toEqual(expected)
+})
+
+test('generateRecurringFlows applies monthDue to offset', () => {
+  const year = 2024
+  const flows = generateRecurringFlows({
+    amount: 1000,
+    frequency: 'Annually',
+    monthDue: 7,
+    startYear: year,
+    endYear: year
+  })
+  expect(flows[0].offset).toBeCloseTo(0.5)
+})
+
+test('monthDue offset affects present value', () => {
+  const year = 2024
+  const rate = 10
+  const flows = generateRecurringFlows({
+    amount: 1000,
+    frequency: 'Annually',
+    monthDue: 7,
+    startYear: year,
+    endYear: year
+  })
+  const pv = flows.reduce((s, f) => s + f.amount / Math.pow(1 + rate / 100, f.offset), 0)
+  const expected = 1000 / Math.pow(1 + rate / 100, 0.5)
+  expect(pv).toBeCloseTo(expected)
 })
