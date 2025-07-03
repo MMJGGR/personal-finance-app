@@ -54,9 +54,9 @@ function AppInner() {
 }
 
 function AppWithFinance() {
-  const { currentPersonaId: _currentPersonaId } = usePersona() // Destructure and rename to avoid unused variable warning
+  const { currentPersonaId } = usePersona()
   return (
-    <FinanceProvider>
+    <FinanceProvider key={currentPersonaId}>
       <AppInner />
     </FinanceProvider>
   )
