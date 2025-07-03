@@ -414,11 +414,22 @@ export default function ExpensesGoalsTab() {
       const growth = Number(e.growth ?? settings.inflationRate) || 0
       let pv = 0
       const ppy = e.paymentsPerYear || frequencyToPayments(e.frequency) || 1
+      const monthDue = e.monthDue ?? 1
       for (let yr = first; yr <= last; yr++) {
         const idx = yr - start
-        const cash = (e.amount * ppy) * Math.pow(1 + growth / 100, idx)
-        const disc = yr - currentYear + 1
-        pv += cash / Math.pow(1 + discountRate / 100, disc)
+        const growthFactor = Math.pow(1 + growth / 100, idx)
+        if (ppy === 12) {
+          const cash = (e.amount * ppy) * growthFactor
+          const disc = yr - currentYear + 1
+          pv += cash / Math.pow(1 + discountRate / 100, disc)
+        } else {
+          for (let i = 0; i < ppy; i++) {
+            const m = (monthDue - 1) + i * (12 / ppy)
+            const disc = (yr - currentYear) + m / 12
+            const cash = e.amount * growthFactor
+            pv += cash / Math.pow(1 + discountRate / 100, disc)
+          }
+        }
       }
       return sum + pv
     }, 0)

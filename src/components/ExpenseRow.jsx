@@ -49,20 +49,22 @@ export default function ExpenseRow({ id, name, amount, frequency, monthDue = 1, 
         </select>
       </div>
 
-      <div>
-        <label htmlFor={makeId('monthDue')} className="block text-sm font-medium">Month Due</label>
-        <input
-          id={makeId('monthDue')}
-          aria-label="Month due"
-          title="Month due"
-          type="number"
-          min={1}
-          max={12}
-          className="border p-2 rounded-md w-full text-right"
-          value={monthDue}
-          onChange={e => onChange(id, 'monthDue', e.target.value)}
-        />
-      </div>
+      {['Quarterly', 'Annually', 'Annual', 'One-Off', 'One-time'].includes(frequency) && (
+        <div>
+          <label htmlFor={makeId('monthDue')} className="block text-sm font-medium">Month Due</label>
+          <input
+            id={makeId('monthDue')}
+            aria-label="Month due"
+            title="Month due"
+            type="number"
+            min={1}
+            max={12}
+            className="border p-2 rounded-md w-full text-right"
+            value={monthDue}
+            onChange={e => onChange(id, 'monthDue', e.target.value)}
+          />
+        </div>
+      )}
 
       <div>
         <label htmlFor={makeId('growth')} className="block text-sm font-medium">Growth Rate (%)</label>
