@@ -4,8 +4,12 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'rec
 import { Card, CardHeader, CardBody } from '../common/Card.jsx'
 
 export default function WealthChart() {
-  const { cumulativePV, startYear } = useFinance()
-  const data = cumulativePV.map((v, i) => ({ year: startYear + i, value: v }))
+  const { cumulativePV, startYear, selectedYear } = useFinance()
+  const endYear = selectedYear ?? startYear
+  const endIndex = Math.min(cumulativePV.length, endYear - startYear + 1)
+  const data = cumulativePV
+    .slice(0, endIndex)
+    .map((v, i) => ({ year: startYear + i, value: v }))
   if (data.length === 0) return null
   return (
     <Card>

@@ -564,6 +564,30 @@ export function FinanceProvider({ children }) {
     return settings.startYear
   }, [settings.startYear])
 
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const s = storage.get('selectedYear')
+    const yr = s ? Number(s) : null
+    const base = settings.startYear
+    if (yr && !Number.isNaN(yr)) return yr
+    return base
+  })
+
+  useEffect(() => {
+    setSelectedYear(prev => {
+      const min = settings.startYear
+      const max = settings.startYear + years - 1
+      let next = prev
+      if (prev < min) next = min
+      if (prev > max) next = max
+      storage.set('selectedYear', next)
+      return next
+    })
+  }, [settings.startYear, years])
+
+  useEffect(() => {
+    storage.set('selectedYear', selectedYear)
+  }, [selectedYear])
+
   // === Risk scoring ===
   const [riskScore, setRiskScore] = useState(0)
   const [riskCategory, setRiskCategory] = useState(() => deriveCategory(0))
@@ -1459,6 +1483,7 @@ export function FinanceProvider({ children }) {
       // IncomeTab
       incomeSources, setIncomeSources,
       startYear,
+      selectedYear, setSelectedYear,
 
       // Expenses & Goals
       expensesList,  setExpensesList,
