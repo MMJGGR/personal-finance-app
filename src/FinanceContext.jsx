@@ -527,17 +527,20 @@ export function FinanceProvider({ children }) {
   const addEvent = useCallback(event => {
     const list = storeAddEvent(storage, event)
     setEvents(list)
-  }, [])
+    updatePersona(currentPersonaId, { timeline: list })
+  }, [currentPersonaId, updatePersona])
 
   const updateEventEntry = useCallback((id, updates) => {
     const list = storeUpdateEvent(storage, id, updates)
     setEvents(list)
-  }, [])
+    updatePersona(currentPersonaId, { timeline: list })
+  }, [currentPersonaId, updatePersona])
 
   const removeEvent = useCallback(id => {
     const list = storeRemoveEvent(storage, id)
     setEvents(list)
-  }, [])
+    updatePersona(currentPersonaId, { timeline: list })
+  }, [currentPersonaId, updatePersona])
 
   // === Settings state ===
   const [settings, setSettings] = useState(() => {
@@ -656,11 +659,12 @@ export function FinanceProvider({ children }) {
     setSettings(prevSettings => {
       if (JSON.stringify(updated) !== JSON.stringify(prevSettings)) {
         storage.set('settings', JSON.stringify(updated))
+        updatePersona(currentPersonaId, { settings: updated })
         return updated
       }
       return prevSettings
     })
-  }, [])
+  }, [currentPersonaId, updatePersona])
 
   const updateProfile = useCallback(updated => {
     const base = { ...profile, ...updated }
@@ -847,51 +851,59 @@ export function FinanceProvider({ children }) {
     const storedIncomeSources = storage.get('incomeSources');
     if (JSON.stringify(incomeSources) !== storedIncomeSources) {
       storage.set('incomeSources', JSON.stringify(incomeSources));
+      updatePersona(currentPersonaId, { incomeSources });
     }
-  }, [incomeSources]);
+  }, [incomeSources, currentPersonaId, updatePersona]);
 
   useEffect(() => {
     const storedGoalsList = storage.get('goalsList');
     if (JSON.stringify(goalsList) !== storedGoalsList) {
       storage.set('goalsList', JSON.stringify(goalsList));
+      updatePersona(currentPersonaId, { goalsList });
     }
-  }, [goalsList]);
+  }, [goalsList, currentPersonaId, updatePersona]);
   useEffect(() => {
     const stored = storage.get('expensesList');
     if (JSON.stringify(expensesList) !== stored) {
       storage.set('expensesList', JSON.stringify(expensesList));
+      updatePersona(currentPersonaId, { expensesList });
     }
-  }, [expensesList]);
+  }, [expensesList, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedAssetsList = storage.get('assetsList');
     if (JSON.stringify(assetsList) !== storedAssetsList) {
       storage.set('assetsList', JSON.stringify(assetsList));
+      updatePersona(currentPersonaId, { assetsList });
     }
-  }, [assetsList]);
+  }, [assetsList, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedLiabilitiesList = storage.get('liabilitiesList');
     if (JSON.stringify(liabilitiesList) !== storedLiabilitiesList) {
       storage.set('liabilitiesList', JSON.stringify(liabilitiesList));
+      updatePersona(currentPersonaId, { liabilitiesList });
     }
-  }, [liabilitiesList]);
+  }, [liabilitiesList, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedInvestmentContributions = storage.get('investmentContributions');
     if (JSON.stringify(investmentContributions) !== storedInvestmentContributions) {
       storage.set('investmentContributions', JSON.stringify(investmentContributions));
+      updatePersona(currentPersonaId, { investmentContributions });
     }
-  }, [investmentContributions]);
+  }, [investmentContributions, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedPensionStreams = storage.get('pensionStreams');
     if (JSON.stringify(pensionStreams) !== storedPensionStreams) {
       storage.set('pensionStreams', JSON.stringify(pensionStreams));
+      updatePersona(currentPersonaId, { pensionStreams });
     }
-  }, [pensionStreams]);
+  }, [pensionStreams, currentPersonaId, updatePersona]);
   useEffect(() => {
     const stored = storage.get('privatePensionContributions');
     if (JSON.stringify(privatePensionContributions) !== stored) {
       storage.set('privatePensionContributions', JSON.stringify(privatePensionContributions));
+      updatePersona(currentPersonaId, { privatePensionContributions });
     }
-  }, [privatePensionContributions]);
+  }, [privatePensionContributions, currentPersonaId, updatePersona]);
 
   useEffect(() => {
     const newMonthlyTotal = expensesList.reduce((sum, e) => {
@@ -1184,26 +1196,30 @@ export function FinanceProvider({ children }) {
     const storedIncludeMediumPV = storage.get('includeMediumPV');
     if (JSON.stringify(includeMediumPV) !== storedIncludeMediumPV) {
       storage.set('includeMediumPV', JSON.stringify(includeMediumPV));
+      updatePersona(currentPersonaId, { includeMediumPV });
     }
-  }, [includeMediumPV]);
+  }, [includeMediumPV, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedIncludeLowPV = storage.get('includeLowPV');
     if (JSON.stringify(includeLowPV) !== storedIncludeLowPV) {
       storage.set('includeLowPV', JSON.stringify(includeLowPV));
+      updatePersona(currentPersonaId, { includeLowPV });
     }
-  }, [includeLowPV]);
+  }, [includeLowPV, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedIncludeGoalsPV = storage.get('includeGoalsPV');
     if (JSON.stringify(includeGoalsPV) !== storedIncludeGoalsPV) {
       storage.set('includeGoalsPV', JSON.stringify(includeGoalsPV));
+      updatePersona(currentPersonaId, { includeGoalsPV });
     }
-  }, [includeGoalsPV]);
+  }, [includeGoalsPV, currentPersonaId, updatePersona]);
   useEffect(() => {
     const storedIncludeLiabilitiesNPV = storage.get('includeLiabilitiesNPV');
     if (JSON.stringify(includeLiabilitiesNPV) !== storedIncludeLiabilitiesNPV) {
       storage.set('includeLiabilitiesNPV', JSON.stringify(includeLiabilitiesNPV));
+      updatePersona(currentPersonaId, { includeLiabilitiesNPV });
     }
-  }, [includeLiabilitiesNPV]);
+  }, [includeLiabilitiesNPV, currentPersonaId, updatePersona]);
 
   useEffect(() => {
     const assetTotal = assetsList.reduce(
