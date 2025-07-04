@@ -68,6 +68,7 @@ export function PersonaProvider({ children }) {
     if (data.pensionStreams) storage.set('pensionStreams', JSON.stringify(data.pensionStreams))
     if (data.privatePensionContributions) storage.set('privatePensionContributions', JSON.stringify(data.privatePensionContributions))
     if (data.settings) storage.set('settings', JSON.stringify(data.settings))
+    if (data.timeline) storage.set('timeline', JSON.stringify(data.timeline))
     if ('includeMediumPV' in data) storage.set('includeMediumPV', JSON.stringify(data.includeMediumPV))
     if ('includeLowPV' in data) storage.set('includeLowPV', JSON.stringify(data.includeLowPV))
     if ('includeGoalsPV' in data) storage.set('includeGoalsPV', JSON.stringify(data.includeGoalsPV))
@@ -89,6 +90,7 @@ export function PersonaProvider({ children }) {
       investmentContributions: data.investmentContributions || [],
       pensionStreams: data.pensionStreams || [],
       privatePensionContributions: data.privatePensionContributions || [],
+      timeline: data.timeline || [],
       settings: data.settings || {}
     }
     persona.profile.name = [
@@ -108,6 +110,9 @@ export function PersonaProvider({ children }) {
       const updatedPersona = next.find(p => p.id === id)
       if (updatedPersona) {
         localStorage.setItem(`persona-${id}`, JSON.stringify(updatedPersona))
+        if (id === currentPersonaId) {
+          setCurrentData(updatedPersona)
+        }
       }
       persistPersona(id, updates)
       return next
