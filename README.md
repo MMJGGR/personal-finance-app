@@ -163,6 +163,8 @@ import { buildIncomeJSON, buildPlanJSON, submitProfile } from './src/utils/expor
 
 Calling `submitProfile()` sends the generated JSON to the configured endpoint.
 
+To have ChatGPT analyze a user’s financial state, click the **Export** button in the app header and attach the generated `report.json` in your prompt. ChatGPT will parse the metrics, flag anomalies and suggest next steps.
+
 ### Data Compliance
 
 The submission helper strips personally identifiable information before

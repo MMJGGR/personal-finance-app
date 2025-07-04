@@ -1,0 +1,43 @@
+{
+  "profile": {
+    "name": "Hadi Alsawad",
+    "age": 35,
+    "location": "Nairobi, Kenya",
+    "profession": "Investment Analyst",
+    "dependents": 2,
+    "riskTolerance": "Moderate"
+  },
+  "settings": {
+    "discountRate": 8,
+    "inflationRate": 5,
+    "currency": "KES",
+    "locale": "en-KE"
+  },
+  "incomeSources": [
+    { "name": "Salary", "type": "employment", "amount": 200000, "frequency": 12, "growth": 5 },
+    { "name": "Rental", "type": "property", "amount": 50000, "frequency": 12, "growth": 2 }
+  ],
+  "expenses": [
+    { "name": "Rent", "category": "Fixed", "amount": 40000, "frequency": 12, "growth": 3 },
+    { "name": "Utilities", "category": "Variable", "amount": 10000, "frequency": 12, "growth": 2 }
+  ],
+  "goals": [
+    { "name": "Car", "targetYear": 2028, "amount": 800000, "growth": 5 }
+  ],
+  "loans": [
+    { "principal": 1000000, "interestRate": 12, "termMonths": 60, "frequency": 12, "type": "Mortgage" }
+  ],
+  "investments": [
+    { "ticker": "NSE:EQTY", "marketValue": 300000, "valuationMethod": "marketPrice", "linkedIncome": null }
+  ],
+  "pension": {
+    "monthlyContribution": 45000,
+    "startAge": 30,
+    "retirementAge": 60,
+    "growthRate": 5
+  },
+  "insurance": {
+    "emergencyFundMonths": 6,
+    "lifeCoverMultiplier": 10
+  }
+}
