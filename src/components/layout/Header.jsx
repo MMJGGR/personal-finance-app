@@ -1,5 +1,6 @@
 import React from 'react'
 import UserMenu from './UserMenu.jsx'
+import ExportReportButton from '../ExportReportButton.jsx'
 
 export default function Header({ setActiveTab }) {
   return (
@@ -13,6 +14,7 @@ export default function Header({ setActiveTab }) {
         >
           ⚙️
         </button>
+        <ExportReportButton />
         <UserMenu />
       </div>
     </header>
